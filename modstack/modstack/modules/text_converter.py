@@ -1,7 +1,7 @@
 import logging
-from typing import Any, ClassVar
+from typing import Any
 
-from modstack.commands import FromTextFile, command
+from modstack.commands import ToText, command
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, TextArtifact
 from modstack.utils.dicts import normalize_metadata
@@ -10,17 +10,7 @@ from modstack.utils.func import zip2
 logger = logging.getLogger(__name__)
 
 class TextConverter(Module):
-    known_html_extractors: ClassVar[list[str]] = [
-        'DefaultExtractor',
-        'ArticleExtractor',
-        'ArticleSentencesExtractor',
-        'LargestContentExtractor',
-        'CanolaExtractor',
-        'KeepEverythingExtractor',
-        'NumWordsRulesExtractor'
-    ]
-
-    @command(FromTextFile)
+    @command(ToText)
     def from_text_file(
         self,
         sources: list[ArtifactSource],

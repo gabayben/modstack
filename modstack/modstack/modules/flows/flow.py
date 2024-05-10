@@ -1,8 +1,8 @@
 import networkx
 
-from modstack.commands import CommandHandler
+from modstack.commands import CommandHandler, command
+from modstack.commands.flows import FlowInput, FlowOutput, NodeId, RunFlow, SocketId
 from modstack.modules import Module
-from modstack.modules.flows import NodeId, SocketId
 
 class Flow(Module):
     @property
@@ -24,4 +24,13 @@ class Flow(Module):
         source: SocketId,
         target: SocketId
     ) -> None:
+        pass
+
+    @command(RunFlow)
+    def run(
+        self,
+        node_id: NodeId | None = None,
+        data: FlowInput | None = None,
+        **kwargs
+    ) -> FlowOutput:
         pass
