@@ -14,7 +14,7 @@ class Module:
     def __init__(self, **kwargs):
         self._handlers = {
             getattr(handler, COMMAND_TYPE): CommandHandler(handler)
-            for _, handler in inspect.getmembers(self, lambda x: hasattr(x, COMMAND_TYPE))
+            for _, handler in inspect.getmembers(self, lambda x: callable(x) and hasattr(x, COMMAND_TYPE))
         }
 
     def get_handler(
