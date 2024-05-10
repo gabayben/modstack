@@ -1,2 +1,2 @@
-from .node import NodeId
+from .sockets import NodeId, SocketId
 from .flow import Flow

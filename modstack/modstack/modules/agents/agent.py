@@ -1,4 +1,2 @@
-from modstack.core import Structure
-
-class Agent(Structure):
+class Agent:
     pass
