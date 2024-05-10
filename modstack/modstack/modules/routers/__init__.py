@@ -1,0 +1,1 @@
+from .mime_type import MimeTypeRouter

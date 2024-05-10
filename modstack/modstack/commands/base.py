@@ -2,10 +2,13 @@ from abc import ABC
 import inspect
 from typing import AsyncIterator, Callable, Generic, Iterator, Type, TypeVar, final
 
-from modstack.constants import COMMAND_TYPE
+from pydantic import BaseModel
+
+from modstack.constants import COMMAND_TYPE, IGNORE_OUTPUT_SCHEMA
 from modstack.containers import Effect, Effects, ReturnType
 from modstack.typing import Serializable
 from modstack.typing.vars import Out
+from modstack.utils.serialization import create_model, create_schema
 
 class Command(Serializable, Generic[Out], ABC):
     pass
@@ -17,6 +20,7 @@ class CommandHandler(Generic[TCommand, Out]):
     _func: Callable[..., Effect[Out]]
     command_type: Type[TCommand]
     output_type: Type[Out]
+    output_schema: Type[BaseModel]
 
     def __init__(self, func: Callable[..., ReturnType[Out]]):
         def fn(*args, **kwargs) -> Effect[Out]:
@@ -41,6 +45,11 @@ class CommandHandler(Generic[TCommand, Out]):
         self._func = fn
         self.command_type = getattr(func, COMMAND_TYPE)
         self.output_type = inspect.signature(func).return_annotation
+        self.output_schema = (
+            create_schema(f'{self.command_type.__name__}Output', type(Out))
+            if not getattr(func, IGNORE_OUTPUT_SCHEMA, False)
+            else create_model(f'{self.command_type.__name__}Output', value=(type(Out), None))
+        )
 
     def effect(self, command: TCommand) -> Effect[Out]:
         return self._func(**command.model_dump())
@@ -58,9 +67,13 @@ class CommandHandler(Generic[TCommand, Out]):
         async for item in self.effect(command).aiter(): #type: ignore
             yield item
 
-def command(command_type: Type[TCommand]):
+def command(
+    command_type: Type[TCommand],
+    ignore_output_schema: bool = False
+):
     def wrapper(func: Callable[..., ReturnType[Out]]) -> Callable[..., ReturnType[Out]]:
         setattr(func, COMMAND_TYPE, command_type)
+        setattr(func, IGNORE_OUTPUT_SCHEMA, ignore_output_schema)
         return func
     return wrapper
 
