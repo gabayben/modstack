@@ -1,5 +1,5 @@
-from modstack.commands import RankArtifacts, RankLostInTheMiddle
-from modstack.core import Module, command
+from modstack.commands import RankArtifacts, RankLostInTheMiddle, command
+from modstack.modules import Module
 from modstack.typing import Artifact
 
 class LostInTheMiddleRanker(Module):

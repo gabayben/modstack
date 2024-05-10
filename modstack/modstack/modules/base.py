@@ -2,8 +2,8 @@ import inspect
 from typing import Any, Type
 
 from modstack.constants import COMMAND_TYPE
-from modstack.core import Command, CommandHandler
-from modstack.core.command import TCommand
+from modstack.commands import Command, CommandHandler
+from modstack.commands.base import TCommand
 from modstack.typing.vars import Out
 
 class Module:

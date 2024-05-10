@@ -1,4 +1,4 @@
-from modstack.core import Command
+from modstack.commands import Command
 from modstack.typing import Artifact
 
 class RankArtifacts(Command[list[Artifact]]):

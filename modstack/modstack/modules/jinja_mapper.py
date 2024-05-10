@@ -2,8 +2,8 @@ from typing import Any, Generic, Type, cast
 
 from jinja2 import Template, meta
 
-from modstack.commands import JinjaMapping
-from modstack.core import Module, command
+from modstack.commands import JinjaMapping, command
+from modstack.modules import Module
 from modstack.typing.vars import Out
 
 class JinjaMapper(Module, Generic[Out]):

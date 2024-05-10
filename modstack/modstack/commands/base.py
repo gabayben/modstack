@@ -1,10 +1,10 @@
 from abc import ABC
 import inspect
-from typing import AsyncIterator, Callable, Generic, Iterator, Protocol, Type, TypeVar, final
+from typing import AsyncIterator, Callable, Generic, Iterator, Type, TypeVar, final
 
 from modstack.constants import COMMAND_TYPE
 from modstack.containers import Effect, Effects, ReturnType
-from modstack.core import Serializable
+from modstack.typing import Serializable
 from modstack.typing.vars import Out
 
 class Command(Serializable, Generic[Out], ABC):
@@ -57,10 +57,6 @@ class CommandHandler(Generic[TCommand, Out]):
     async def aiter(self, command: TCommand) -> AsyncIterator[Out]:
         async for item in self.effect(command).aiter(): #type: ignore
             yield item
-
-class CommandExecutor(Protocol[Out]):
-    def evaluate(self, command: Command[Out]) -> Effect[Out]:
-        pass
 
 def command(command_type: Type[TCommand]):
     def wrapper(func: Callable[..., ReturnType[Out]]) -> Callable[..., ReturnType[Out]]:

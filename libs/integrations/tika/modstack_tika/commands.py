@@ -1,6 +1,6 @@
 from typing import Any
 
-from modstack.core import Command
+from modstack.commands import Command
 from modstack.typing import ArtifactSource, TextArtifact
 
 class TikaToText(Command[list[TextArtifact]]):

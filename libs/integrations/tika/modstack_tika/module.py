@@ -4,8 +4,8 @@ from typing import Any
 
 from tika import parser
 
-from modstack.commands import PDFToText
-from modstack.core import Module, command
+from modstack.commands import PDFToText, command
+from modstack.modules import Module
 from modstack.typing import ArtifactSource, ByteStream, TextArtifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import zip2

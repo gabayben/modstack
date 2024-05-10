@@ -1,6 +1,7 @@
 import networkx
 
-from modstack.core import CommandHandler, Module
+from modstack.commands import CommandHandler
+from modstack.modules import Module
 from modstack.modules.flows import NodeId, SocketId
 
 class Flow(Module):

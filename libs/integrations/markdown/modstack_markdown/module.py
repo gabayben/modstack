@@ -6,8 +6,8 @@ from markdown_it.renderer import RendererHTML, RendererProtocol
 from markdown_it.utils import PresetType
 from mdit_plain.renderer import RendererPlain
 
-from modstack.commands import HtmlToText, MarkdownToText
-from modstack.core import Module, command
+from modstack.commands import HtmlToText, MarkdownToText, command
+from modstack.modules import Module
 from modstack.typing import ArtifactSource, ByteStream, TextArtifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import zip2

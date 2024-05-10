@@ -2,7 +2,7 @@ from typing import Any, Type
 
 from pydantic import Field
 
-from modstack.core import Command
+from modstack.commands import Command
 from modstack.typing import ArtifactSource, TextArtifact
 from modstack.typing.vars import Out
 

@@ -1,5 +1,5 @@
-from modstack.commands import FetchFromLinks
-from modstack.core import Module, command
+from modstack.commands import FetchFromLinks, command
+from modstack.modules import Module
 from modstack.typing import ByteStream
 
 class LinkContentFetcher(Module):

@@ -1,8 +1,8 @@
 import logging
 from typing import Any, ClassVar
 
-from modstack.commands import FromTextFile
-from modstack.core import Module, command
+from modstack.commands import FromTextFile, command
+from modstack.modules import Module
 from modstack.typing import ArtifactSource, TextArtifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import zip2

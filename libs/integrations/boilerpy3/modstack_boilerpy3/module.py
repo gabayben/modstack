@@ -4,8 +4,8 @@ from typing import Any, ClassVar
 from boilerpy3 import extractors
 from boilerpy3.extractors import Extractor
 
-from modstack.commands import HtmlToText
-from modstack.core import Module, command
+from modstack.commands import HtmlToText, command
+from modstack.modules import Module
 from modstack.typing import ArtifactSource, ByteStream, TextArtifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import zip2

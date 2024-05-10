@@ -5,8 +5,8 @@ from typing import Any, Iterator
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LAParams, LTPage, LTTextContainer
 
-from modstack.commands import PDFToText
-from modstack.core import Module, command
+from modstack.commands import PDFToText, command
+from modstack.modules import Module
 from modstack.typing import ArtifactSource, ByteStream, TextArtifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import zip2

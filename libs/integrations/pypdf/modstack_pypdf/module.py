@@ -4,9 +4,9 @@ from typing import Any, Self
 
 from pypdf import PdfReader
 
-from modstack.commands import PDFToText
-from modstack.core import Module, Serializable, command
-from modstack.typing import ArtifactSource, ByteStream, TextArtifact
+from modstack.commands import PDFToText, command
+from modstack.modules import Module
+from modstack.typing import ArtifactSource, ByteStream, Serializable, TextArtifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import zip2
 from modstack_pypdf import PyPDFConverter, PyPDFToText

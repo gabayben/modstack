@@ -1,8 +1,9 @@
 from typing import AsyncIterator, Iterator, Type, final
 
 from modstack.containers import Effect
-from modstack.core import Command, CommandHandler, Module
-from modstack.core.command import TCommand
+from modstack.commands import Command, CommandHandler
+from modstack.commands.base import TCommand
+from modstack.modules import Module
 from modstack.typing.vars import Out
 
 @final
