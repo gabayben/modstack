@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "modstack"
+version = "0.1.0"
+description = ""
+authors = ["bengabay <ben@netop.cloud>"]
+packages = [{ include = "modstack" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+returns = "^0.22.0"
+jinja2 = "^3.1.4"
+pydantic = "^2.7.1"
+docarray = { version = "^0.40.0", extras = ['proto'] }
+tenacity = "^8.3.0"
+unsync = "^1.4.0"
+networkx = "^3.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

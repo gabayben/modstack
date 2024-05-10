@@ -1,0 +1,1 @@
+COMMAND_TYPE = '__command_type__'

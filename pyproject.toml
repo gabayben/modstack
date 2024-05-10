@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "modstack-monorepo"
+version = "0.1.0"
+description = ""
+authors = ["bengabay <ben@netop.cloud>"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+[tool.poetry.group.dev.dependencies]
+modstack = { path = "modstack/", develop = true }
+modstack-markdown = { path = "libs/integrations/markdown/", develop = true }
+modstack-boilerpy3 = { path = "libs/integrations/boilerpy3/", develop = true }
+modstack-pypdf = { path = "libs/integrations/pypdf/", develop = true }
+modstack-pdfminer = { path = "libs/integrations/pdfminer/", develop = true }
+modstack-tika = { path = "libs/integrations/tika/", develop = true }
+jupyter = "^1.0.0"
+
+[tool.poetry.group.lint.dependencies]
+modstack = { path = "modstack/", develop = true }
+modstack-markdown = { path = "libs/integrations/markdown/", develop = true }
+modstack-boilerpy3 = { path = "libs/integrations/boilerpy3/", develop = true }
+modstack-pypdf = { path = "libs/integrations/pypdf/", develop = true }
+modstack-pdfminer = { path = "libs/integrations/pdfminer/", develop = true }
+modstack-tika = { path = "libs/integrations/tika/", develop = true }

@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "modstack-pypdf"
+version = "0.1.0"
+description = ""
+authors = ["bengabay <ben@netop.cloud>"]
+packages = [{ include = "modstack_pypdf" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+modstack = { path = "../../../modstack/" }
+pypdf = "^4.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,75 @@
+import logging
+from typing import Any, ClassVar
+
+from boilerpy3 import extractors
+from boilerpy3.extractors import Extractor
+
+from modstack.commands import HtmlToText
+from modstack.core import Module, command
+from modstack.typing import ArtifactSource, ByteStream, TextArtifact
+from modstack.utils.dicts import normalize_metadata
+from modstack.utils.func import zip2
+from modstack_boilerpy3 import BoilerToText, ExtractorType
+
+logger = logging.getLogger(__name__)
+
+class BoilerPy3(Module):
+    known_html_extractors: ClassVar[list[str]] = [
+        'DefaultExtractor',
+        'ArticleExtractor',
+        'ArticleSentencesExtractor',
+        'LargestContentExtractor',
+        'CanolaExtractor',
+        'KeepEverythingExtractor',
+        'NumWordsRulesExtractor'
+    ]
+
+    @command(HtmlToText)
+    def to_text(
+        self,
+        sources: list[ArtifactSource],
+        metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
+        **kwargs
+    ) -> list[TextArtifact]:
+        return self.boiler_to_text(sources, metadata=metadata, **kwargs)
+
+    @command(BoilerToText)
+    def boiler_to_text(
+        self,
+        sources: list[ArtifactSource],
+        metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
+        extractor_type: ExtractorType = 'DefaultExtractor',
+        try_others: bool = True,
+        **kwargs
+    ) -> list[TextArtifact]:
+        metadata = normalize_metadata(metadata, len(sources))
+        results: list[TextArtifact] = []
+
+        extractors_list = (
+            list(dict.fromkeys([extractor_type, *self.known_html_extractors]))
+            if try_others
+            else [extractor_type]
+        )
+
+        for source, md in zip2(sources, metadata):
+            try:
+                bytestream = ByteStream.from_source(source, md)
+            except Exception as e:
+                logger.warning(f'Could not read {source}. Skipping it. Error: {e}.')
+                continue
+            for extractor_name in extractors_list:
+                extractor_cls = getattr(extractors, extractor_name)
+                extractor: Extractor = extractor_cls(raise_on_failure=False)
+                try:
+                    text = extractor.get_content(bytestream.to_utf8())
+                    if text:
+                        break
+                except Exception as e:
+                    if try_others:
+                        logger.warning(f'Failed to extract using {extractor_name} from {source}. Trying next extractor. Error: {e}.')
+            if not text:
+                logger.warning(f'Failed to extract text using extractors {extractors_list}. Skipping it.')
+                continue
+            results.append(TextArtifact(text, metadata=bytestream.metadata))
+
+        return results
