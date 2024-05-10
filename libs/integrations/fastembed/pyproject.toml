@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "modstack-fastembed"
+version = "0.1.0"
+description = ""
+authors = ["bengabay <ben@netop.cloud>"]
+packages = [{ include = "modstack_fastembed" }]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+modstack = { path = "../../../modstack/" }
+fastembed = "^0.2.7"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
