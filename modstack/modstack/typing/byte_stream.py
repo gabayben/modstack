@@ -16,10 +16,9 @@ class ByteStream(Artifact):
     def from_bytes(
         cls,
         data: bytes,
-        mime_type: str | None = None,
         **kwargs
     ) -> Self:
-        return ByteStream(data, _mime_type=mime_type)
+        return ByteStream(data)
 
     @override
     def to_bytes(self, **kwargs) -> bytes:

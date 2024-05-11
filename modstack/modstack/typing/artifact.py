@@ -28,7 +28,7 @@ class Artifact(BaseDoc, ABC):
     def from_artifact(cls, other: 'Artifact', metadata: dict[str, Any] = {}) -> Self:
         artifact = cls.from_bytes(bytes(other))
         artifact._mime_type = other._mime_type or other.metadata['mime_type'] or metadata['mime_type']
-        artifact.metadata.update({**other.metadata, **metadata, 'mime_type': artifact._mime_type})
+        artifact.metadata.update({**other.metadata, **metadata})
         return artifact
 
     @classmethod

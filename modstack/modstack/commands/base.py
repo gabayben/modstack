@@ -48,7 +48,7 @@ class CommandHandler(Generic[TCommand, Out]):
         self.input_schema = self.command_type
         self.output_type = inspect.signature(func).return_annotation
         self.output_schema = (
-            create_schema(f'{self.command_type.__name__}Output', self.output_type)
+            create_schema(f'{self.command_type.__name__}Output', type(Out))
             if not getattr(func, IGNORE_OUTPUT_SCHEMA, False)
             else create_model(f'{self.command_type.__name__}Output', value=(self.output_type, None))
         )
