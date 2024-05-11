@@ -1316,6 +1316,7 @@ develop = true
 [package.dependencies]
 docarray = {version = "^0.40.0", extras = ["proto"]}
 jinja2 = "^3.1.4"
+more-itertools = "^10.2.0"
 networkx = "^3.3"
 pydantic = "^2.7.1"
 returns = "^0.22.0"
@@ -1394,6 +1395,17 @@ pypdf = "^4.2.0"
 [package.source]
 type = "directory"
 url = "libs/integrations/pypdf"
+
+[[package]]
+name = "more-itertools"
+version = "10.2.0"
+description = "More routines for operating on iterables, beyond itertools"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "more-itertools-10.2.0.tar.gz", hash = "sha256:8fccb480c43d3e99a00087634c06dd02b0d50fbf088b380de5a41a015ec239e1"},
+    {file = "more_itertools-10.2.0-py3-none-any.whl", hash = "sha256:686b06abe565edfab151cb8fd385a05651e1fdf8f0a14191e4439283421f8684"},
+]
 
 [[package]]
 name = "mypy-extensions"
