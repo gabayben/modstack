@@ -12,20 +12,9 @@ modstack = { path = "modstack/", develop = true }
 modstack-markdown = { path = "libs/integrations/markdown/", develop = true }
 modstack-boilerpy3 = { path = "libs/integrations/boilerpy3/", develop = true }
 modstack-pypdf = { path = "libs/integrations/pypdf/", develop = true }
-modstack-pdfminer = { path = "libs/integrations/pdfminer/", develop = true }
-modstack-tika = { path = "libs/integrations/tika/", develop = true }
+#modstack-pdfminer = { path = "libs/integrations/pdfminer/", develop = true }
+#modstack-tika = { path = "libs/integrations/tika/", develop = true }
 modstack-langdetect = { path = "libs/integrations/langdetect/", develop = true }
-modstack-fastembed = { path = "libs/integrations/fastembed/", develop = true }
-modstack-openai = { path = "libs/integrations/openai/", develop = true }
+#modstack-fastembed = { path = "libs/integrations/fastembed/", develop = true }
+#modstack-openai = { path = "libs/integrations/openai/", develop = true }
 jupyter = "^1.0.0"
-
-[tool.poetry.group.lint.dependencies]
-modstack = { path = "modstack/", develop = true }
-modstack-markdown = { path = "libs/integrations/markdown/", develop = true }
-modstack-boilerpy3 = { path = "libs/integrations/boilerpy3/", develop = true }
-modstack-pypdf = { path = "libs/integrations/pypdf/", develop = true }
-modstack-pdfminer = { path = "libs/integrations/pdfminer/", develop = true }
-modstack-tika = { path = "libs/integrations/tika/", develop = true }
-modstack-langdetect = { path = "libs/integrations/langdetect/", develop = true }
-modstack-fastembed = { path = "libs/integrations/fastembed/", develop = true }
-modstack-openai = { path = "libs/integrations/openai/", develop = true }

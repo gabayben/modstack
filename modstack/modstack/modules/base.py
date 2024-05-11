@@ -26,6 +26,20 @@ class Module:
     ) -> CommandHandler[TCommand, Out]:
         return self.handlers[command_type]
 
+    def get_input_schema(self, command_type: Type[TCommand]) -> Type[BaseModel]:
+        return self.get_handler(command_type).input_schema
+
+    def get_output_schema(self, command_type: Type[TCommand]) -> Type[BaseModel]:
+        return self.get_handler(command_type).output_schema
+
+    def set_input_schema(
+        self,
+        command_type: Type[TCommand],
+        input_schema: Type[BaseModel]
+    ) -> None:
+        handler = self.get_handler(command_type)
+        setattr(handler, 'input_schema', input_schema)
+
     def set_output_schema(
         self,
         command_type: Type[TCommand],
