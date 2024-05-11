@@ -1309,6 +1309,20 @@ files = [
 ]
 
 [[package]]
+name = "langdetect"
+version = "1.0.9"
+description = "Language detection library ported from Google's language-detection."
+optional = false
+python-versions = "*"
+files = [
+    {file = "langdetect-1.0.9-py2-none-any.whl", hash = "sha256:7cbc0746252f19e76f77c0b1690aadf01963be835ef0cd4b56dddf2a8f1dfc2a"},
+    {file = "langdetect-1.0.9.tar.gz", hash = "sha256:cbc1fef89f8d062739774bd51eda3da3274006b3661d199c2655f6b3f6d605a0"},
+]
+
+[package.dependencies]
+six = "*"
+
+[[package]]
 name = "loguru"
 version = "0.7.2"
 description = "Python logging made (stupidly) simple"
@@ -1574,6 +1588,23 @@ modstack = {path = "../../../modstack"}
 [package.source]
 type = "directory"
 url = "libs/integrations/fastembed"
+
+[[package]]
+name = "modstack-langdetect"
+version = "0.1.0"
+description = ""
+optional = false
+python-versions = "^3.12"
+files = []
+develop = true
+
+[package.dependencies]
+langdetect = "^1.0.9"
+modstack = {path = "../../../modstack"}
+
+[package.source]
+type = "directory"
+url = "libs/integrations/langdetect"
 
 [[package]]
 name = "modstack-markdown"
@@ -3407,4 +3438,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<3.13"
-content-hash = "ab67b946c87d92d1c906cb0c36c758eb8e5814e6be448b0caea58f41ca1ef04f"
+content-hash = "d5d5d2f9d456e00dbd6e79894f50304beba89f596a213da9919c0e17376ad763"
