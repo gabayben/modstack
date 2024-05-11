@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 class LangDetectClassifier(Module):
     def __init__(self, languages: list[str] | None = None):
+        super().__init__()
         self.languages = languages or ['en']
 
     @command(ClassifyLanguages)

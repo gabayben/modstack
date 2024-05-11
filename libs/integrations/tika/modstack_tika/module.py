@@ -14,8 +14,8 @@ from modstack_tika import TikaToText
 logger = logging.getLogger(__name__)
 
 class Tika(Module):
-    def __init__(self, tika_url: str = 'http://localhost:9998/tika', **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, tika_url: str = 'http://localhost:9998/tika'):
+        super().__init__()
         self.tika_url = tika_url
 
     @command(TikaToText)
