@@ -36,10 +36,9 @@ class LangDetectRouter(Module):
         return artifacts_by_language
 
     def _detect_language(self, artifact: TextArtifact) -> str | None:
-        text = str(artifact)
         try:
-            detected_language = langdetect.detect(text)
+            detected_language = langdetect.detect(str(artifact))
         except langdetect.LangDetectException as e:
-            logger.warning(f'LangDetect cannot detect the language of text: {text}. Error: {e}.')
+            logger.warning(f'LangDetect cannot detect the language of artifact with id: {artifact.id}. Error: {e}.')
             detected_language = None
         return detected_language
