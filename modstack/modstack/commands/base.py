@@ -19,6 +19,7 @@ TCommand = TypeVar('TCommand', bound=Command)
 class CommandHandler(Generic[TCommand, Out]):
     _func: Callable[..., Effect[Out]]
     command_type: Type[TCommand]
+    input_schema: Type[BaseModel]
     output_type: Type[Out]
     output_schema: Type[BaseModel]
 
@@ -44,11 +45,12 @@ class CommandHandler(Generic[TCommand, Out]):
 
         self._func = fn
         self.command_type = getattr(func, COMMAND_TYPE)
+        self.input_schema = self.command_type
         self.output_type = inspect.signature(func).return_annotation
         self.output_schema = (
-            create_schema(f'{self.command_type.__name__}Output', type(Out))
+            create_schema(f'{self.command_type.__name__}Output', self.output_type)
             if not getattr(func, IGNORE_OUTPUT_SCHEMA, False)
-            else create_model(f'{self.command_type.__name__}Output', value=(type(Out), None))
+            else create_model(f'{self.command_type.__name__}Output', value=(self.output_type, None))
         )
 
     def effect(self, command: TCommand) -> Effect[Out]:

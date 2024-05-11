@@ -26,9 +26,10 @@ class Executor(Module):
         self.handlers[command_type] = handler
 
     def add_module(self, module: Module) -> None:
-        self.modules.append(module)
-        for command_type, handler in module.handlers.items():
-            self.add_handler(command_type, handler)
+        if module not in self.modules:
+            self.modules.append(module)
+            for command_type, handler in module.handlers.items():
+                self.add_handler(command_type, handler)
 
     def effect(self, command: Command[Out]) -> Effect[Out]:
         return self.get_handler(type(command), type(Out)).effect(command)
