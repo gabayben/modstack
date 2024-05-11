@@ -52,7 +52,7 @@ class CommandHandler(Generic[TCommand, Out]):
         )
 
     def effect(self, command: TCommand) -> Effect[Out]:
-        return self._func(**command.model_dump())
+        return self._func(**dict(command))
 
     def invoke(self, command: TCommand) -> Out:
         return self.effect(command).invoke()

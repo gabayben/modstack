@@ -75,3 +75,12 @@ def create_schema[T](name: str, type_: Type[T]) -> Type[BaseModel]:
         field_descriptions = {'value': (type_, ...)}
 
     return create_model(name, **field_descriptions)
+
+def to_dict(data: Any) -> dict[str, Any]:
+    if isinstance(data, dict):
+        return data
+    elif isinstance(data, BaseModel):
+        return dict(data)
+    elif is_named_tuple(type(data)):
+        return data._asdict()
+    return {'value': data}

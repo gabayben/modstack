@@ -28,7 +28,7 @@ class MimeTypeRouter(Module):
         self.mime_types = mime_types
 
     @command(RouteByMimeType, ignore_output_schema=True)
-    def route(self, sources: list[ArtifactSource]) -> dict[str, list[StrictArtifactSource]]:
+    def route(self, sources: list[ArtifactSource], **kwargs) -> dict[str, list[StrictArtifactSource]]:
         sources_by_mime_type: defaultdict[str, list[StrictArtifactSource]] = defaultdict(list)
         for source in sources:
             mime_type = Artifact.get_mime_type(source)
