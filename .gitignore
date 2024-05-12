@@ -141,3 +141,5 @@ dmypy.json
 .pyre/
 
 notebooks
+
+poetry.lock
