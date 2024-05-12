@@ -55,16 +55,26 @@ class SerperSearch(Module):
             )
             for result in serper_response.organic
         ]
+
         content: list[TextArtifact] = []
 
         if serper_response.knowledge_graph:
             content.append(
-                TextArtifact(mapping_to_str(dict(serper_response.knowledge_graph)))
+                TextArtifact(
+                    'Google Search Knowledge Graph:\n'
+                    + mapping_to_str(dict(serper_response.knowledge_graph))
+                )
             )
+
         if serper_response.people_also_ask:
+            entries_str = ''
+            for entry in serper_response.people_also_ask:
+                entries_str += f'{entry.get('question')}\n'
+                entries_str += mapping_to_str(dict(entry), exclude=['question']) + '\n'
             content.append(
-                TextArtifact(mapping_to_str(dict(serper_response.people_also_ask))) #type: ignore[call-args]
+                TextArtifact('People Also Ask:\n' + entries_str.strip('\n'))
             )
+
         if serper_response.related_searches:
             content.append(
                 TextArtifact(f"Related Searches: {', '.join(serper_response.related_searches)}")
