@@ -1397,6 +1397,22 @@ type = "directory"
 url = "libs/integrations/pypdf"
 
 [[package]]
+name = "modstack-serper"
+version = "0.1.0"
+description = ""
+optional = false
+python-versions = "^3.12"
+files = []
+develop = true
+
+[package.dependencies]
+modstack = {path = "../../../modstack"}
+
+[package.source]
+type = "directory"
+url = "libs/integrations/serper"
+
+[[package]]
 name = "more-itertools"
 version = "10.2.0"
 description = "More routines for operating on iterables, beyond itertools"
@@ -2784,4 +2800,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<3.13"
-content-hash = "86295df40d6c8c620ab7d6e66393d38a7c485f92e85399e4b8a4564b00f1ce0d"
+content-hash = "ad66ff0bcb6674e52143218a9ed711f76816feee5953bb6b2fd4f2555bc54c14"

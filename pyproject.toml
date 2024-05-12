@@ -14,6 +14,7 @@ modstack-boilerpy3 = { path = "libs/integrations/boilerpy3/", develop = true }
 modstack-pypdf = { path = "libs/integrations/pypdf/", develop = true }
 #modstack-pdfminer = { path = "libs/integrations/pdfminer/", develop = true }
 #modstack-tika = { path = "libs/integrations/tika/", develop = true }
+modstack-serper = { path = "libs/integrations/serper/", develop = true }
 modstack-langdetect = { path = "libs/integrations/langdetect/", develop = true }
 #modstack-fastembed = { path = "libs/integrations/fastembed/", develop = true }
 #modstack-openai = { path = "libs/integrations/openai/", develop = true }
