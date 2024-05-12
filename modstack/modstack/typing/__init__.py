@@ -19,6 +19,7 @@ from .types import (
 
 from .serializable import Serializable
 from .artifact import Artifact, StrictArtifactSource, ArtifactSource
+from .text import TextArtifact
 from .blob import BlobArtifact, MediaArtifact, ImageArtifact, VideoArtifact, AudioArtifact
 from .byte_stream import ByteStream
-from .text import TextArtifact
+from .reference import ReferenceArtifact

@@ -16,11 +16,11 @@ logger = logging.getLogger(__name__)
 class BoilerPy3(Module):
     known_html_extractors: ClassVar[list[str]] = [
         'DefaultExtractor',
+        'KeepEverythingExtractor',
         'ArticleExtractor',
         'ArticleSentencesExtractor',
         'LargestContentExtractor',
         'CanolaExtractor',
-        'KeepEverythingExtractor',
         'NumWordsRulesExtractor'
     ]
 

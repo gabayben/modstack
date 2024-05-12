@@ -6,8 +6,9 @@ import requests
 
 from modstack.auth import Secret
 from modstack.commands import command
-from modstack.commands.websearch import SearchEngineQuery, SearchEngineResponse
+from modstack.commands.websearch import SearchEngineQuery
 from modstack.modules import Module
+from modstack.typing import ReferenceArtifact
 from modstack_serper.search import SerperError, SerperSearchQuery, SerperSearchResponse
 from modstack_serper.search.builders import build_search_response
 
@@ -35,7 +36,7 @@ class SerperSearch(Module):
         _ = self.api_key.resolve_value()
 
     @command(SearchEngineQuery, name='serper_search')
-    def search(self, query: str, **kwargs) -> SearchEngineResponse:
+    def search(self, query: str, **kwargs) -> list[ReferenceArtifact]:
         pass
 
     @command(SerperSearchQuery)
@@ -66,7 +67,7 @@ class SerperSearch(Module):
         headers = {'X-API-KEY': self.api_key.resolve_value(), 'Content-Type': 'application/json'}
 
         try:
-            response = requests.get(SERPER_BASE_URL, data=payload, headers=headers, timeout=self.timeout)
+            response = requests.post(SERPER_BASE_URL, data=payload, headers=headers, timeout=self.timeout)
             response.raise_for_status()
         except requests.Timeout as e:
             raise TimeoutError(f'Request to {SERPER_BASE_URL} with payload {payload} timed out.') from e

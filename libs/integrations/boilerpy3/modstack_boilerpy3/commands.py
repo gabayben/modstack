@@ -4,11 +4,11 @@ from modstack.commands import HtmlToText
 
 ExtractorType = Literal[
     'DefaultExtractor',
+    'KeepEverythingExtractor',
     'ArticleExtractor',
     'ArticleSentencesExtractor',
     'LargestContentExtractor',
     'CanolaExtractor',
-    'KeepEverythingExtractor',
     'NumWordsRulesExtractor',
 ]
 
