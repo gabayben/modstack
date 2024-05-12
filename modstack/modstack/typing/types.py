@@ -1,3 +1,6 @@
+import typing
+from typing import Annotated, Iterable
+
 from docarray import (
     BaseDoc as DocArrayBaseDoc,
     DocList as DocArrayDocList,
@@ -17,6 +20,12 @@ from docarray.typing import (
 )
 from docarray.typing.bytes.base_bytes import BaseBytes as DocArrayBaseBytes
 from numpy import ndarray
+
+from modstack.constants import VARIADIC_TYPE
+
+_T = typing.TypeVar('_T')
+
+Variadic = Annotated[Iterable[_T], VARIADIC_TYPE]
 
 BaseDoc = DocArrayBaseDoc
 DocList = DocArrayDocList

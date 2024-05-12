@@ -19,6 +19,7 @@ TCommand = TypeVar('TCommand', bound=Command)
 class CommandHandler(Generic[TCommand, Out]):
     _func: Callable[..., Effect[Out]]
     command_type: Type[TCommand]
+    name: str
     input_schema: Type[BaseModel]
     output_type: Type[Out]
     output_schema: Type[BaseModel]
@@ -45,10 +46,11 @@ class CommandHandler(Generic[TCommand, Out]):
 
         self._func = fn
         self.command_type = getattr(func, COMMAND_TYPE)
+        self.name = getattr(func, 'name')
         self.input_schema = self.command_type
         self.output_type = inspect.signature(func).return_annotation
         self.output_schema = (
-            create_schema(f'{self.command_type.__name__}Output', type(Out))
+            create_schema(f'{self.command_type.__name__}Output', self.output_type)
             if not getattr(func, IGNORE_OUTPUT_SCHEMA, False)
             else create_model(f'{self.command_type.__name__}Output', value=(self.output_type, None))
         )
@@ -71,16 +73,22 @@ class CommandHandler(Generic[TCommand, Out]):
 
 def command(
     command_type: Type[TCommand],
+    name: str | None = None,
     ignore_output_schema: bool = False
 ):
     def wrapper(func: Callable[..., ReturnType[Out]]) -> Callable[..., ReturnType[Out]]:
         setattr(func, COMMAND_TYPE, command_type)
+        setattr(func, 'name', name or func.__name__)
         setattr(func, IGNORE_OUTPUT_SCHEMA, ignore_output_schema)
         return func
     return wrapper
 
-def command_handler(command_type: Type[TCommand]):
+def command_handler(
+    command_type: Type[TCommand],
+    name: str | None = None
+):
     def wrapper(func: Callable[..., ReturnType[Out]]) -> CommandHandler[TCommand, Out]:
         setattr(func, COMMAND_TYPE, command_type)
+        setattr(func, 'name', name or func.__name__)
         return CommandHandler(func)
     return wrapper

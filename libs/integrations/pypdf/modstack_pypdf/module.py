@@ -1,28 +1,18 @@
 import io
 import logging
-from typing import Any, Self
+from typing import Any
 
 from pypdf import PdfReader
 
 from modstack.commands import PDFToText, command
 from modstack.modules import Module
-from modstack.typing import ArtifactSource, ByteStream, Serializable, TextArtifact
+from modstack.typing import ArtifactSource, ByteStream, TextArtifact
 from modstack.utils.dicts import normalize_metadata
-from modstack.utils.func import zip2
+from modstack.utils.func import tzip
 from modstack_pypdf import PyPDFConverter, PyPDFToText
+from modstack_pypdf.converter import _DefaultConverter
 
 logger = logging.getLogger(__name__)
-
-class _DefaultConverter(Serializable, PyPDFConverter):
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        return cls(**data)
-
-    def to_dict(self) -> dict[str, Any]:
-        return self.model_dump()
-
-    def convert(self, reader: PdfReader) -> TextArtifact:
-        return TextArtifact('\f'.join([page.extract_text() for page in reader.pages]))
 
 class PyPDF(Module):
     @command(PDFToText)
@@ -46,7 +36,7 @@ class PyPDF(Module):
         converter = converter or _DefaultConverter()
         results: list[TextArtifact] = []
 
-        for source, md in zip2(sources, metadata):
+        for source, md in tzip(sources, metadata):
             try:
                 bytestream = ByteStream.from_source(source, md)
             except Exception as e:

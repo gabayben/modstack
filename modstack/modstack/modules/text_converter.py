@@ -5,7 +5,7 @@ from modstack.commands import ToText, command
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, TextArtifact
 from modstack.utils.dicts import normalize_metadata
-from modstack.utils.func import zip2
+from modstack.utils.func import tzip
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class TextConverter(Module):
         metadata = normalize_metadata(metadata, len(sources))
         results: list[TextArtifact] = []
 
-        for source, md in zip2(sources, metadata):
+        for source, md in tzip(sources, metadata):
             try:
                 results.append(TextArtifact.from_source(source, md))
             except Exception as e:

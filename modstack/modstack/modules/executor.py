@@ -1,8 +1,7 @@
-from typing import AsyncIterator, Iterator, Type, final
+from typing import AsyncIterator, Iterator, final
 
 from modstack.containers import Effect
-from modstack.commands import Command, CommandHandler
-from modstack.commands.base import TCommand
+from modstack.commands import Command
 from modstack.modules import Module
 from modstack.typing.vars import Out
 
@@ -18,31 +17,29 @@ class Executor(Module):
         super().__init__()
         self._modules = []
 
-    def add_handler(
-        self,
-        command_type: Type[TCommand],
-        handler: CommandHandler[TCommand, Out]
-    ) -> None:
-        self.handlers[command_type] = handler
-
     def add_module(self, module: Module) -> None:
         if module not in self.modules:
             self.modules.append(module)
-            for command_type, handler in module.handlers.items():
-                self.add_handler(command_type, handler)
+            for handlers in module.commands.values():
+                for handler in handlers.values():
+                    self.add_handler(handler)
 
-    def effect(self, command: Command[Out]) -> Effect[Out]:
-        return self.get_handler(type(command), type(Out)).effect(command)
+    def effect(self, command: Command[Out], name: str | None = None) -> Effect[Out]:
+        return self.get_handler(
+            type(command),
+            name=name,
+            output_type=type(Out)
+        ).effect(command)
 
-    def invoke(self, command: Command[Out]) -> Out:
-        return self.effect(command).invoke()
+    def invoke(self, command: Command[Out], name: str | None = None) -> Out:
+        return self.effect(command, name=name).invoke()
 
-    async def ainvoke(self, command: Command[Out]) -> Out:
-        return await self.effect(command).ainvoke()
+    async def ainvoke(self, command: Command[Out], name: str | None = None) -> Out:
+        return await self.effect(command, name=name).ainvoke()
 
-    def iter(self, command: Command[Out]) -> Iterator[Out]:
-        yield from self.effect(command).iter()
+    def iter(self, command: Command[Out], name: str | None = None) -> Iterator[Out]:
+        yield from self.effect(command, name=name).iter()
 
-    async def aiter(self, command: Command[Out]) -> AsyncIterator[Out]:
-        async for item in self.effect(command).aiter(): # type: ignore
+    async def aiter(self, command: Command[Out], name: str | None = None) -> AsyncIterator[Out]:
+        async for item in self.effect(command, name=name).aiter(): # type: ignore
             yield item

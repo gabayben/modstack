@@ -10,7 +10,7 @@ from modstack.commands import HtmlToText, MarkdownToText, command
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, ByteStream, TextArtifact
 from modstack.utils.dicts import normalize_metadata
-from modstack.utils.func import zip2
+from modstack.utils.func import tzip
 from modstack_markdown import MdItToText
 from modstack_markdown.commands import RendererType
 
@@ -68,7 +68,7 @@ class Markdown(Module):
         )
         parser.enable(features, ignoreInvalid=ignore_invalid_features)
 
-        for source, md in zip2(sources, metadata):
+        for source, md in tzip(sources, metadata):
             try:
                 bytestream = ByteStream.from_source(source, md)
             except Exception as e:

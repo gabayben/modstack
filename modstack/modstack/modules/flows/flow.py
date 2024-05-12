@@ -26,7 +26,7 @@ class Flow(Module):
     ) -> None:
         pass
 
-    @command(RunFlow)
+    @command(RunFlow, name='run_flow')
     def run(
         self,
         node_id: NodeId | None = None,

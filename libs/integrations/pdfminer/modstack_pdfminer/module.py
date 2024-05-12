@@ -9,7 +9,7 @@ from modstack.commands import PDFToText, command
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, ByteStream, TextArtifact
 from modstack.utils.dicts import normalize_metadata
-from modstack.utils.func import zip2
+from modstack.utils.func import tzip
 from modstack_pdfminer import PDFMinerToText
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class PDFMiner(Module):
             all_texts=False
         )
 
-        for source, md in zip2(sources, metadata):
+        for source, md in tzip(sources, metadata):
             try:
                 bytestream = ByteStream.from_source(source, md)
             except Exception as e:

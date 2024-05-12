@@ -56,7 +56,7 @@ def create_model(
         )
 
 def create_schema[T](name: str, type_: Type[T]) -> Type[BaseModel]:
-    if issubclass(type_, BaseModel):
+    if issubclass(type_.__class__, BaseModel):
         return type_
 
     field_descriptions: dict[str, (Type, Any)]

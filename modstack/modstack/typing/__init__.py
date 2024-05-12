@@ -1,4 +1,5 @@
 from .types import (
+    Variadic,
     BaseDoc,
     DocList,
     DocVec,

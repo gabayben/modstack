@@ -4,6 +4,7 @@ from .jinja_mapper import JinjaMapper
 from .link_content_fetcher import LinkContentFetcher
 from .text_converter import TextConverter
 from .builders import *
+from .joiners import *
 from .preprocessors import *
 from .rankers import *
 from .routers import *
