@@ -3,6 +3,7 @@ from .builders import BuildPrompt, BuildDynamicPrompt
 from .classification import ClassifyLanguages
 from .converters import ToText, MarkdownToText, HtmlToText, PDFToText, JinjaMapping
 from .fetchers import FetchFromLinks
+from .generators import TextGeneration, GenerateText
 from .joiners import JoinArtifacts
 from .preprocessors import CleanText, SplitText
 from .rankers import RankArtifacts, RankLostInTheMiddle
