@@ -1,23 +1,27 @@
 from typing import Any
 
 from modstack.typing import Artifact, TextArtifact, TextUrl
+from modstack.utils.display import mapping_to_str
 
-class ReferenceArtifact(Artifact):
-    title: str
+class LinkArtifact(Artifact):
     link: TextUrl
+    title: str
+    position: int | None = None
     description: str | None = None
 
     def __init__(
         self,
-        title: str,
         link: str,
+        title: str,
+        position: int | None = None,
         description: str | None = None,
         metadata: dict[str, Any] = {},
         **kwargs
     ):
         super().__init__(
+            link=TextUrl(link), # type: ignore[call-args]
             title=title,
-            link=TextUrl(link), #type: ignore[call-args]
+            position=position,
             description=description,
             metadata=metadata,
             **kwargs
@@ -30,9 +34,8 @@ class ReferenceArtifact(Artifact):
         return self.link.load_bytes()
 
     def to_text_artifact(self) -> TextArtifact:
-        text = (
-            f'title: {self.title}' +
-            f'\nlink: {str(self.link)}' +
-            (f'\ndescription: {self.description}' if self.description else '')
+        return TextArtifact(
+            mapping_to_str(dict(self)),
+            id=self.id,
+            metadata=self.metadata
         )
-        return TextArtifact(text, metadata=self.metadata)

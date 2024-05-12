@@ -6,9 +6,10 @@ import requests
 
 from modstack.auth import Secret
 from modstack.commands import command
-from modstack.commands.websearch import SearchEngineQuery
+from modstack.commands.websearch import SearchEngineQuery, SearchEngineResponse
 from modstack.modules import Module
-from modstack.typing import ReferenceArtifact
+from modstack.typing import LinkArtifact, TextArtifact
+from modstack.utils.display import mapping_to_str
 from modstack_serper.search import SerperError, SerperSearchQuery, SerperSearchResponse
 from modstack_serper.search.builders import build_search_response
 
@@ -36,8 +37,40 @@ class SerperSearch(Module):
         _ = self.api_key.resolve_value()
 
     @command(SearchEngineQuery, name='serper_search')
-    def search(self, query: str, **kwargs) -> list[ReferenceArtifact]:
-        pass
+    def search(self, query: str, **kwargs) -> SearchEngineResponse:
+        serper_response = self.serper_search(query, **kwargs)
+
+        links: list[LinkArtifact] = [
+            LinkArtifact(
+                link=result.get('link'),
+                title=result.get('title'),
+                position=result.get('position', None),
+                description=result.get('snippet', None),
+                metadata={
+                    'date': result.get('date', None),
+                    'image_url': result.get('image_url', None),
+                    'site_links': result.get('site_links', None),
+                    **result.get('attributes', {})
+                }
+            )
+            for result in serper_response.organic
+        ]
+        content: list[TextArtifact] = []
+
+        if serper_response.knowledge_graph:
+            content.append(
+                TextArtifact(mapping_to_str(dict(serper_response.knowledge_graph)))
+            )
+        if serper_response.people_also_ask:
+            content.append(
+                TextArtifact(mapping_to_str(dict(serper_response.people_also_ask))) #type: ignore[call-args]
+            )
+        if serper_response.related_searches:
+            content.append(
+                TextArtifact(f"Related Searches: {', '.join(serper_response.related_searches)}")
+            )
+
+        return SearchEngineResponse(links=links, content=content)
 
     @command(SerperSearchQuery)
     def serper_search(

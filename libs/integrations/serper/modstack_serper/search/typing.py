@@ -16,10 +16,10 @@ class SerperKnowledgeGraph(TypedDict):
     title: str
     type: str
     website: str
-    image_url: NotRequired[str | None]
     description: str
     description_source: str
     description_link: NotRequired[str | None]
+    image_url: NotRequired[str | None]
     attributes: NotRequired[dict[str, Any] | None]
 
 class SerperPeopleAlsoAsk(TypedDict):
