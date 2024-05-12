@@ -6,7 +6,7 @@ from pypdf import PdfReader
 
 from modstack.commands import PDFToText, command
 from modstack.modules import Module
-from modstack.typing import ArtifactSource, ByteStream, TextArtifact
+from modstack.typing import ArtifactSource, ByteStream, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
 from modstack_pypdf import PyPDFConverter, PyPDFToText
@@ -21,7 +21,7 @@ class PyPDF(Module):
         sources: list[ArtifactSource],
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
         **kwargs
-    ) -> list[TextArtifact]:
+    ) -> list[Utf8Artifact]:
         return self.pypdf_to_text(sources, metadata=metadata, **kwargs)
 
     @command(PyPDFToText)
@@ -31,10 +31,10 @@ class PyPDF(Module):
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
         converter: PyPDFConverter | None = None,
         **kwargs
-    ) -> list[TextArtifact]:
+    ) -> list[Utf8Artifact]:
         metadata = normalize_metadata(metadata, len(sources))
         converter = converter or _DefaultConverter()
-        results: list[TextArtifact] = []
+        results: list[Utf8Artifact] = []
 
         for source, md in tzip(sources, metadata):
             try:

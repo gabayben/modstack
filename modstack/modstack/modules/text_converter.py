@@ -3,7 +3,7 @@ from typing import Any
 
 from modstack.commands import ToText, command
 from modstack.modules import Module
-from modstack.typing import ArtifactSource, TextArtifact
+from modstack.typing import ArtifactSource, TextArtifact, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
 
@@ -16,7 +16,7 @@ class TextConverter(Module):
         sources: list[ArtifactSource],
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
         **kwargs
-    ) -> list[TextArtifact]:
+    ) -> list[Utf8Artifact]:
         metadata = normalize_metadata(metadata, len(sources))
         results: list[TextArtifact] = []
 

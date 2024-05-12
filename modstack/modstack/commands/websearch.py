@@ -3,13 +3,13 @@ from typing import Any, TypeVar
 from pydantic import Field
 
 from modstack.commands import Command
-from modstack.typing import LinkArtifact, Serializable, TextArtifact
+from modstack.typing import LinkArtifact, Serializable, Utf8Artifact
 
 _T = TypeVar('_T')
 
 class SearchEngineResponse(Serializable):
     links: list[LinkArtifact]
-    content: list[TextArtifact] = Field(default_factory=list)
+    content: list[Utf8Artifact] = Field(default_factory=list)
 
 class SearchEngineQueryBase(Command[_T]):
     query: str

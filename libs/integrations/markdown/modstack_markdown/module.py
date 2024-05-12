@@ -8,7 +8,7 @@ from mdit_plain.renderer import RendererPlain
 
 from modstack.commands import HtmlToText, MarkdownToText, command
 from modstack.modules import Module
-from modstack.typing import ArtifactSource, ByteStream, TextArtifact
+from modstack.typing import ArtifactSource, TextArtifact, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
 from modstack_markdown import MdItToText
@@ -28,7 +28,7 @@ class Markdown(Module):
         sources: list[ArtifactSource],
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
         **kwargs
-    ) -> list[TextArtifact]:
+    ) -> list[Utf8Artifact]:
         return self.mdit_to_text(sources, metadata=metadata, **kwargs)
 
     @command(HtmlToText)
@@ -37,7 +37,7 @@ class Markdown(Module):
         sources: list[ArtifactSource],
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
         **kwargs
-    ) -> list[TextArtifact]:
+    ) -> list[Utf8Artifact]:
         return self.mdit_to_text(
             sources,
             metadata=metadata,
@@ -56,7 +56,7 @@ class Markdown(Module):
         features: list[str] = [],
         ignore_invalid_features: bool = False,
         **kwargs
-    ) -> list[TextArtifact]:
+    ) -> list[Utf8Artifact]:
         metadata = normalize_metadata(metadata, len(sources))
         results: list[TextArtifact] = []
 
@@ -70,13 +70,13 @@ class Markdown(Module):
 
         for source, md in tzip(sources, metadata):
             try:
-                bytestream = ByteStream.from_source(source, md)
+                artifact = TextArtifact.from_source(source, metadata=md)
             except Exception as e:
                 logger.warning(f'Could not read {source}. Skipping it. Error: {e}.')
                 continue
             try:
-                text = parser.render(bytestream.to_utf8())
-                results.append(TextArtifact(text, metadata=bytestream.metadata))
+                text = parser.render(artifact.to_utf8())
+                results.append(TextArtifact(text, metadata=artifact.metadata))
             except Exception as e:
                 logger.warning(f'Failed to extract text from {source}. Skipping it. Error: {e}.')
 

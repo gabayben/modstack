@@ -5,7 +5,7 @@ import langdetect
 
 from modstack.commands import RouteByLanguage, command
 from modstack.modules import Module
-from modstack.typing import TextArtifact
+from modstack.typing import Utf8Artifact
 from modstack.utils.serialization import create_model
 
 logger = logging.getLogger(__name__)
@@ -18,15 +18,15 @@ class LangDetectRouter(Module):
             RouteByLanguage,
             create_model(
                 'RouteByLanguageOutput',
-                unmatched=(list[TextArtifact], []),
-                **{language: (list[TextArtifact], []) for language in languages}
+                unmatched=(list[Utf8Artifact], []),
+                **{language: (list[Utf8Artifact], []) for language in languages}
             )
         )
         self.languages = languages
 
     @command(RouteByLanguage, ignore_output_schema=True)
-    def route(self, artifacts: list[TextArtifact], **kwargs) -> dict[str, list[TextArtifact]]:
-        artifacts_by_language: defaultdict[str, list[TextArtifact]] = defaultdict(list)
+    def route(self, artifacts: list[Utf8Artifact], **kwargs) -> dict[str, list[Utf8Artifact]]:
+        artifacts_by_language: defaultdict[str, list[Utf8Artifact]] = defaultdict(list)
         for artifact in artifacts:
             detected_language = self._detect_language(artifact)
             if detected_language in self.languages:
@@ -35,7 +35,7 @@ class LangDetectRouter(Module):
                 artifacts_by_language['unmatched'].append(artifact)
         return artifacts_by_language
 
-    def _detect_language(self, artifact: TextArtifact) -> str | None:
+    def _detect_language(self, artifact: Utf8Artifact) -> str | None:
         try:
             detected_language = langdetect.detect(str(artifact))
         except langdetect.LangDetectException as e:

@@ -7,7 +7,7 @@ from pdfminer.layout import LAParams, LTPage, LTTextContainer
 
 from modstack.commands import PDFToText, command
 from modstack.modules import Module
-from modstack.typing import ArtifactSource, ByteStream, TextArtifact
+from modstack.typing import ArtifactSource, ByteStream, TextArtifact, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
 from modstack_pdfminer import PDFMinerToText
@@ -21,7 +21,7 @@ class PDFMiner(Module):
         sources: list[ArtifactSource],
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
         **kwargs
-    ) -> list[TextArtifact]:
+    ) -> list[Utf8Artifact]:
         return self.pdfminer_to_text(sources, metadata=metadata, **kwargs)
 
     @command(PDFMinerToText)
@@ -31,7 +31,7 @@ class PDFMiner(Module):
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
         layout_params: LAParams | None = None,
         **kwargs
-    ) -> list[TextArtifact]:
+    ) -> list[Utf8Artifact]:
         metadata = normalize_metadata(metadata, len(sources))
         results: list[TextArtifact] = []
 

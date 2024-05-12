@@ -1,15 +1,20 @@
-from typing import Type
+from typing import Self
 
-from docarray.base_doc.mixins.io import T
+from modstack.typing import Utf8Artifact
 
-from modstack.typing import Artifact
-
-class TextArtifact(Artifact):
+class TextArtifact(Utf8Artifact):
     content: str
-    encoding: str = 'utf-8'
 
     def __init__(self, content: str, **kwargs):
         super().__init__(**kwargs, content=content)
+
+    @classmethod
+    def from_bytes(
+        cls,
+        data: bytes,
+        **kwargs
+    ) -> Self:
+        return cls(data.decode('utf-8'))
 
     def __str__(self) -> str:
         return self.content
@@ -17,13 +22,5 @@ class TextArtifact(Artifact):
     def to_base64(self, **kwargs) -> str:
         return str(self)
 
-    @classmethod
-    def from_bytes(
-        cls: Type[T],
-        data: bytes,
-        **kwargs
-    ) -> T:
-        return cls(data.decode('utf-8'))
-
-    def to_bytes(self, **kwargs) -> bytes:
-        return str(self).encode(encoding=self.encoding)
+    def to_utf8(self) -> str:
+        return str(self)

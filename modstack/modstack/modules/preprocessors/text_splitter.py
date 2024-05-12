@@ -6,7 +6,7 @@ from more_itertools import windowed
 
 from modstack.commands import SplitText, command
 from modstack.modules import Module
-from modstack.typing import Artifact, TextArtifact
+from modstack.typing import TextArtifact, Utf8Artifact
 
 SplitBy = Literal['word', 'sentence', 'passage', 'page']
 SPLIT_BY_MAPPING: dict[SplitBy, str] = {
@@ -33,7 +33,7 @@ class TextSplitter(Module):
         self.split_overlap = split_overlap
 
     @command(SplitText)
-    def split(self, artifacts: list[Artifact], **kwargs) -> list[TextArtifact]:
+    def split(self, artifacts: list[Utf8Artifact], **kwargs) -> list[Utf8Artifact]:
         split_artifacts: list[TextArtifact] = []
         for artifact in artifacts:
             try:

@@ -1,11 +1,10 @@
-from abc import ABC
-from builtins import staticmethod
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Optional, Self
 
 from pydantic import Field
 
-from modstack.typing import BaseDoc, BaseUrl, Embedding, TextUrl
+from modstack.typing import BaseDoc, BaseUrl, Embedding
 from modstack.utils.paths import get_mime_type
 
 class Artifact(BaseDoc, ABC):
@@ -32,22 +31,12 @@ class Artifact(BaseDoc, ABC):
         return artifact
 
     @classmethod
-    def from_url(cls, url: BaseUrl, metadata: dict[str, Any] = {}) -> Self:
-        artifact = cls.from_bytes(url.load_bytes())
-        artifact.metadata.update(metadata)
-        artifact.metadata['url'] = url
-        return artifact
-
-    @classmethod
     def from_path(cls, path: str | Path, metadata: dict[str, Any] = {}) -> Self:
         if isinstance(path, Path):
             valid_path = path.as_uri()
         else:
             valid_path = path
-        return cls.from_url(TextUrl(valid_path), metadata) # type: ignore[call-args]
-
-    def to_utf8(self) -> str:
-        return bytes(self).decode('utf-8')
+        return cls.from_bytes(BaseUrl(valid_path).load_bytes())
 
     def is_empty(self) -> bool:
         return bytes(self) == b''
@@ -60,9 +49,9 @@ class Artifact(BaseDoc, ABC):
         if isinstance(source, Path):
             mime_type = get_mime_type(source)
         elif isinstance(source, BaseUrl):
-            mime_type = source.mime_type()
+            mime_type = source.mime_type
         elif isinstance(source, Artifact):
-            mime_type = source.mime_type()
+            mime_type = source.mime_type
         else:
             raise ValueError(f'Unsupported data source type: {type(source).__name__}.')
         return mime_type
@@ -71,5 +60,16 @@ class Artifact(BaseDoc, ABC):
         extra = 'allow'
         arbitrary_types_allowed = True
 
-StrictArtifactSource = Path | BaseUrl | Artifact
+class Utf8Artifact(Artifact, ABC):
+    def to_bytes(self, **kwargs) -> bytes:
+        return str(self).encode(encoding='utf-8')
+
+    def __str__(self) -> str:
+        return bytes(self).decode(encoding='utf-8')
+
+    @abstractmethod
+    def to_utf8(self) -> str:
+        pass
+
+StrictArtifactSource = Path | Artifact
 ArtifactSource = str | StrictArtifactSource

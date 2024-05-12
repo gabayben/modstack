@@ -1,8 +1,8 @@
 from modstack.commands import Command
-from modstack.typing import Artifact, TextArtifact
+from modstack.typing import Utf8Artifact
 
-class CleanText(Command[list[TextArtifact]]):
-    artifacts: list[Artifact]
+class CleanText(Command[list[Utf8Artifact]]):
+    artifacts: list[Utf8Artifact]
 
-class SplitText(Command[list[TextArtifact]]):
-    artifacts: list[Artifact]
+class SplitText(Command[list[Utf8Artifact]]):
+    artifacts: list[Utf8Artifact]

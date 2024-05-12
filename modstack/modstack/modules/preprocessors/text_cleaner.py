@@ -6,7 +6,7 @@ from typing import Generator
 
 from modstack.commands import CleanText, command
 from modstack.modules import Module
-from modstack.typing import Artifact, TextArtifact
+from modstack.typing import TextArtifact, Utf8Artifact
 from modstack.utils.func import tintersection, tmap, tpartial, treduce
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class TextCleaner(Module):
         self.remove_repeated_substrings = remove_repeated_substrings
 
     @command(CleanText)
-    def clean(self, artifacts: list[Artifact], **kwargs) -> list[TextArtifact]:
+    def clean(self, artifacts: list[Utf8Artifact], **kwargs) -> list[Utf8Artifact]:
         cleaned_artifacts: list[TextArtifact] = []
 
         for artifact in artifacts:

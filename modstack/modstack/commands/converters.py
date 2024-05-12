@@ -1,21 +1,21 @@
 from typing import Any
 
 from modstack.commands import Command
-from modstack.typing import ArtifactSource, TextArtifact
+from modstack.typing import ArtifactSource, Utf8Artifact
 
-class ToText(Command[list[TextArtifact]]):
+class ToText(Command[list[Utf8Artifact]]):
     sources: list[ArtifactSource]
     metadata: dict[str, Any] | list[dict[str, Any]] | None = None
 
-class MarkdownToText(Command[list[TextArtifact]]):
+class MarkdownToText(Command[list[Utf8Artifact]]):
     sources: list[ArtifactSource]
     metadata: dict[str, Any] | list[dict[str, Any]] | None = None
 
-class HtmlToText(Command[list[TextArtifact]]):
+class HtmlToText(Command[list[Utf8Artifact]]):
     sources: list[ArtifactSource]
     metadata: dict[str, Any] | list[dict[str, Any]] | None = None
 
-class PDFToText(Command[list[TextArtifact]]):
+class PDFToText(Command[list[Utf8Artifact]]):
     sources: list[ArtifactSource]
     metadata: dict[str, Any] | list[dict[str, Any]] | None = None
 

@@ -1,9 +1,9 @@
 from typing import Any
 
-from modstack.typing import Artifact, TextArtifact, TextUrl
+from modstack.typing import TextArtifact, TextUrl, Utf8Artifact
 from modstack.utils.display import mapping_to_str
 
-class LinkArtifact(Artifact):
+class LinkArtifact(Utf8Artifact):
     link: TextUrl
     title: str
     position: int | None = None
@@ -27,11 +27,14 @@ class LinkArtifact(Artifact):
             **kwargs
         )
 
-    def __str__(self) -> str:
-        return self.link.load()
-
     def to_bytes(self, **kwargs) -> bytes:
         return self.link.load_bytes()
+
+    def __str__(self) -> str:
+        return self.link.load(charset='utf-8')
+
+    def to_utf8(self) -> str:
+        return str(self)
 
     def to_text_artifact(self) -> TextArtifact:
         return TextArtifact(

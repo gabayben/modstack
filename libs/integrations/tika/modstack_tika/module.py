@@ -6,7 +6,7 @@ from tika import parser
 
 from modstack.commands import PDFToText, command
 from modstack.modules import Module
-from modstack.typing import ArtifactSource, ByteStream, TextArtifact
+from modstack.typing import ArtifactSource, ByteStream, TextArtifact, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
 from modstack_tika import TikaToText
@@ -24,7 +24,7 @@ class Tika(Module):
         sources: list[ArtifactSource],
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
         **kwargs
-    ) -> list[TextArtifact]:
+    ) -> list[Utf8Artifact]:
         metadata = normalize_metadata(metadata, len(sources))
         results: list[TextArtifact] = []
 
@@ -49,5 +49,5 @@ class Tika(Module):
         sources: list[ArtifactSource],
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
         **kwargs
-    ) -> list[TextArtifact]:
+    ) -> list[Utf8Artifact]:
         return self.tika_to_text(sources, metadata, **kwargs)

@@ -6,7 +6,7 @@ from boilerpy3.extractors import Extractor
 
 from modstack.commands import HtmlToText, command
 from modstack.modules import Module
-from modstack.typing import ArtifactSource, ByteStream, TextArtifact
+from modstack.typing import ArtifactSource, TextArtifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
 from modstack_boilerpy3 import BoilerToText, ExtractorType
@@ -53,7 +53,7 @@ class BoilerPy3(Module):
 
         for source, md in tzip(sources, metadata):
             try:
-                bytestream = ByteStream.from_source(source, md)
+                artifact = TextArtifact.from_source(source, metadata=md)
             except Exception as e:
                 logger.warning(f'Could not read {source}. Skipping it. Error: {e}.')
                 continue
@@ -61,7 +61,7 @@ class BoilerPy3(Module):
                 extractor_cls = getattr(extractors, extractor_name)
                 extractor: Extractor = extractor_cls(raise_on_failure=False)
                 try:
-                    text = extractor.get_content(bytestream.to_utf8())
+                    text = extractor.get_content(artifact.to_utf8())
                     if text:
                         break
                 except Exception as e:
@@ -70,6 +70,6 @@ class BoilerPy3(Module):
             if not text:
                 logger.warning(f'Failed to extract text using extractors {extractors_list}. Skipping it.')
                 continue
-            results.append(TextArtifact(text, metadata=bytestream.metadata))
+            results.append(TextArtifact(text, metadata=artifact.metadata))
 
         return results
