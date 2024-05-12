@@ -77,7 +77,7 @@ class LinkContentFetcher(Module):
             return response
         self._get_response = get_response
 
-    @command(FetchFromLinks)
+    @command(FetchFromLinks, name='fetch_from_links')
     def fetch(self, urls: list[str], **kwargs) -> list[ByteStream]:
         streams: list[ByteStream] = []
 
