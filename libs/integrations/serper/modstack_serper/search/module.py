@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 from modstack.auth import Secret
@@ -5,6 +6,9 @@ from modstack.commands import command
 from modstack.commands.websearch import SearchEngineQuery, SearchEngineResponse
 from modstack.modules import Module
 from modstack_serper.search import SerperSearchQuery, SerperSearchResponse
+
+SERPER_BASE_URL = 'https://google.serper.dev/search'
+logger = logging.getLogger(__name__)
 
 class SerperSearch(Module):
     def __init__(
@@ -36,4 +40,4 @@ class SerperSearch(Module):
         search_params: dict[str, Any] | None = None,
         **kwargs
     ) -> SerperSearchResponse:
-        pass
+        query_prepend = 'OR '.join(f'site:{domain}' for domain in self.allowed_domains) if self.allowed_domains else ''

@@ -1,6 +1,4 @@
-from typing import Any
-
-from modstack.commands import Command
+from modstack.commands.websearch import SearchEngineQueryBase
 from modstack.typing import Serializable
 from modstack_serper.search import SerperKnowledgeGraph, SerperOrganicResult, SerperPeopleAlsoAsk
 
@@ -10,7 +8,5 @@ class SerperSearchResponse(Serializable):
     people_also_ask: SerperPeopleAlsoAsk | None = None
     related_searches: list[str] | None = None
 
-class SerperSearchQuery(Command[SerperSearchResponse]):
-    query: str
-    allowed_domains: list[str] | None = None
-    search_params: dict[str, Any] | None = None
+class SerperSearchQuery(SearchEngineQueryBase[SerperSearchResponse]):
+    pass
