@@ -1,3 +1,3 @@
 from .converter import PyPDFConverter
-from .commands import PyPDFToText
+from .contracts import PyPDFToText
 from .module import PyPDF

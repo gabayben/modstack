@@ -1,6 +1,7 @@
 from typing import Any
 
-from modstack.commands import GenerateText, TextGeneration, command
+from modstack.containers import feature
+from modstack.contracts import GenerateText, TextGeneration
 from modstack.modules import Module
 
 class OllamaTextGenerator(Module):
@@ -13,7 +14,7 @@ class OllamaTextGenerator(Module):
         self.url = url
         self.model = model
 
-    @command(GenerateText, name='generate_text')
+    @feature(name=GenerateText.name())
     def generate(
         self,
         prompt: str,

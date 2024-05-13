@@ -4,7 +4,8 @@ from typing import Any
 
 from pypdf import PdfReader
 
-from modstack.commands import PDFToText, command
+from modstack.containers import feature
+from modstack.contracts import PDFToText
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, ByteStream, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
@@ -15,7 +16,7 @@ from modstack_pypdf.converter import _DefaultConverter
 logger = logging.getLogger(__name__)
 
 class PyPDF(Module):
-    @command(PDFToText)
+    @feature(name=PDFToText.name())
     def to_text(
         self,
         sources: list[ArtifactSource],
@@ -24,7 +25,7 @@ class PyPDF(Module):
     ) -> list[Utf8Artifact]:
         return self.pypdf_to_text(sources, metadata=metadata, **kwargs)
 
-    @command(PyPDFToText)
+    @feature(name=PyPDFToText.name())
     def pypdf_to_text(
         self,
         sources: list[ArtifactSource],

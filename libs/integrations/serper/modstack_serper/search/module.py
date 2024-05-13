@@ -5,8 +5,8 @@ from typing import Any
 import requests
 
 from modstack.auth import Secret
-from modstack.commands import command
-from modstack.commands.websearch import SearchEngineQuery, SearchEngineResponse
+from modstack.containers import feature
+from modstack.contracts.websearch import SearchEngineQuery, SearchEngineResponse
 from modstack.modules import Module
 from modstack.typing import LinkArtifact, TextArtifact
 from modstack.utils.display import mapping_to_str
@@ -36,9 +36,15 @@ class SerperSearch(Module):
         self.timeout = timeout
         _ = self.api_key.resolve_value()
 
-    @command(SearchEngineQuery, name='serper_search')
-    def search(self, query: str, **kwargs) -> SearchEngineResponse:
-        serper_response = self.serper_search(query, **kwargs)
+    @feature(name=SearchEngineQuery.name())
+    def search(
+        self,
+        query: str,
+        allowed_domains: list[str] | None = None,
+        search_params: dict[str, Any] | None = None,
+        **kwargs
+    ) -> SearchEngineResponse:
+        serper_response = self.serper_search(query, allowed_domains=allowed_domains, search_params=search_params, **kwargs)
 
         links: list[LinkArtifact] = [
             LinkArtifact(
@@ -82,7 +88,7 @@ class SerperSearch(Module):
 
         return SearchEngineResponse(links=links, content=content)
 
-    @command(SerperSearchQuery)
+    @feature(name=SerperSearchQuery.name())
     def serper_search(
         self,
         query: str,

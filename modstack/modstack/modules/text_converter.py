@@ -1,7 +1,8 @@
 import logging
 from typing import Any
 
-from modstack.commands import ToText, command
+from modstack.containers import feature
+from modstack.contracts import ConvertTextFile
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, TextArtifact, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
@@ -10,7 +11,7 @@ from modstack.utils.func import tzip
 logger = logging.getLogger(__name__)
 
 class TextConverter(Module):
-    @command(ToText)
+    @feature(name=ConvertTextFile.name())
     def from_text_file(
         self,
         sources: list[ArtifactSource],

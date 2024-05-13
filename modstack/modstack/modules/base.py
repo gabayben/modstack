@@ -1,58 +1,47 @@
-from collections import defaultdict
 import inspect
+from inspect import Parameter
+from types import MappingProxyType
 from typing import Any, Type
 
 from pydantic import BaseModel
 
-from modstack.constants import COMMAND_TYPE
-from modstack.commands import Command, CommandHandler
-from modstack.commands.base import TCommand
-from modstack.typing.vars import Out
+from modstack.constants import MODSTACK_FEATURE
+from modstack.containers import Feature, FeatureNotFound
 
 class Module:
     @property
-    def commands(self) -> dict[Type[Command], dict[str, CommandHandler]]:
-        return self._commands
+    def features(self) -> dict[str, Feature]:
+        return self._features
 
     def __init__(self, **kwargs):
-        self._commands: dict[Type[Command], dict[str, CommandHandler]] = defaultdict(dict)
-        for _, func in inspect.getmembers(self, lambda x: callable(x) and hasattr(x, COMMAND_TYPE)):
-            self.add_handler(CommandHandler(func))
+        self._features: dict[str, Feature] = {}
+        for _, func in inspect.getmembers(self, lambda x: callable(x) and hasattr(x, MODSTACK_FEATURE)):
+            self.add_feature(Feature(func))
 
-    def get_handler(
-        self,
-        command_type: Type[TCommand],
-        name: str | None = None,
-        output_type: Type[Out] = Any
-    ) -> CommandHandler[TCommand, Out]:
-        return (
-            self.commands[command_type][name] if name
-            else list(self.commands[command_type].values())[0]
-        )
+    def get_feature[Out, **P](self, name: str, output_type: Type[Out] = Any) -> Feature[Out, P]:
+        if name not in self.features:
+            raise FeatureNotFound(f'Feature {name} not found in Module {self.__class__.__name__}')
+        return self.features[name]
 
-    def add_handler(self, handler: CommandHandler[TCommand, Out]) -> None:
-        self.commands[handler.command_type][handler.name] = handler
+    def add_feature[Out, **P](self, feature: Feature[Out, P]) -> None:
+        self.features[feature.name] = feature
 
-    def get_input_schema(self, command_type: Type[TCommand], name: str | None = None) -> Type[BaseModel]:
-        return self.get_handler(command_type, name=name).input_schema
+    def get_parameters(self, name: str) -> MappingProxyType[str, Parameter]:
+        return self.get_feature(name).parameters
 
-    def get_output_schema(self, command_type: Type[TCommand], name: str | None = None) -> Type[BaseModel]:
-        return self.get_handler(command_type, name=name).output_schema
+    def get_return_annotation(self, name: str) -> Any:
+        return self.get_feature(name).return_annotation
 
-    def set_input_schema(
-        self,
-        command_type: Type[TCommand],
-        input_schema: Type[BaseModel],
-        name: str | None = None
-    ) -> None:
-        handler = self.get_handler(command_type, name=name)
-        setattr(handler, 'input_schema', input_schema)
+    def get_input_schema(self, name: str) -> Type[BaseModel]:
+        return self.get_feature(name).input_schema
 
-    def set_output_schema(
-        self,
-        command_type: Type[TCommand],
-        output_schema: Type[BaseModel],
-        name: str | None = None
-    ) -> None:
-        handler = self.get_handler(command_type, name=name)
-        setattr(handler, 'output_schema', output_schema)
+    def set_input_schema(self, name: str, input_schema: Type[BaseModel]) -> None:
+        feature = self.get_feature(name)
+        setattr(feature, 'input_schema', input_schema)
+
+    def get_output_schema(self, name: str) -> Type[BaseModel]:
+        return self.get_feature(name).output_schema
+
+    def set_output_schema(self, name: str, output_schema: Type[BaseModel]) -> None:
+        feature = self.get_feature(name)
+        setattr(feature, 'output_schema', output_schema)

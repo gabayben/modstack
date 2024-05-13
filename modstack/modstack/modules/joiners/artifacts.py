@@ -1,10 +1,10 @@
 from collections import defaultdict
-from enum import StrEnum
 import logging
 from math import inf
 from typing import Iterable
 
-from modstack.commands import JoinArtifacts, command
+from modstack.containers import feature
+from modstack.contracts import ConcatArtifacts, MergeArtifacts, ReciprocalRankFusion
 from modstack.modules import Module
 from modstack.typing import Artifact, Variadic
 from modstack.utils.func import chain_iterables, tzip
@@ -12,12 +12,7 @@ from modstack.utils.func import chain_iterables, tzip
 logger = logging.getLogger(__name__)
 
 class ArtifactJoiner(Module):
-    class Mode(StrEnum):
-        Concatenate = 'concatenate',
-        Merge = 'merge',
-        ReciprocalRankFusion = 'reciprocal_rank_fusion'
-
-    @command(JoinArtifacts, name=Mode.Concatenate)
+    @feature(name=ConcatArtifacts.name())
     def concatenate(
         self,
         artifacts: Variadic[list[Artifact]],
@@ -40,7 +35,7 @@ class ArtifactJoiner(Module):
             sort_by_score
         )
 
-    @command(JoinArtifacts, name=Mode.Merge)
+    @feature(name=MergeArtifacts.name())
     def merge(
         self,
         artifacts: Variadic[list[Artifact]],
@@ -66,7 +61,7 @@ class ArtifactJoiner(Module):
             sort_by_score
         )
 
-    @command(JoinArtifacts, name=Mode.ReciprocalRankFusion)
+    @feature(name=ReciprocalRankFusion.name())
     def reciprocal_rank_fusion(
         self,
         artifacts: Variadic[list[Artifact]],

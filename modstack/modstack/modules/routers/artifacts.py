@@ -1,7 +1,8 @@
 from jinja2 import TemplateError
 from jinja2.nativetypes import NativeEnvironment
 
-from modstack.commands import RouteArtifacts, command
+from modstack.containers import feature
+from modstack.contracts import RouteArtifacts
 from modstack.modules import Module
 from modstack.typing import Artifact
 from modstack.utils.serialization import create_model
@@ -14,7 +15,7 @@ class ArtifactRouter(Module):
     ):
         super().__init__()
         self.set_output_schema(
-            RouteArtifacts,
+            RouteArtifacts.name(),
             create_model(
                 'RouteArtifactsOutput',
                 unmatched=(list[Artifact], []),
@@ -24,7 +25,7 @@ class ArtifactRouter(Module):
         self.branches = branches
         self.included_variables = included_variables
 
-    @command(RouteArtifacts, ignore_output_schema=True)
+    @feature(name=RouteArtifacts.name(), ignore_output_schema=True)
     def route(self, artifacts: list[Artifact], **kwargs) -> dict[str, list[Artifact]]:
         unmatched_artifacts: list[Artifact] = []
         artifacts_by_branch: dict[str, list[Artifact]] = {branch: [] for branch in self.branches}

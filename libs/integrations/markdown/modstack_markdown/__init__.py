@@ -1,2 +1,2 @@
-from .commands import MdItToText
+from .typing import MdItToText, RendererType
 from .module import Markdown

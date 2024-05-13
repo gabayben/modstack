@@ -4,7 +4,8 @@ from typing import Any, ClassVar
 from boilerpy3 import extractors
 from boilerpy3.extractors import Extractor
 
-from modstack.commands import HtmlToText, command
+from modstack.containers import feature
+from modstack.contracts import HtmlToText
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, TextArtifact
 from modstack.utils.dicts import normalize_metadata
@@ -24,7 +25,7 @@ class BoilerPy3(Module):
         'NumWordsRulesExtractor'
     ]
 
-    @command(HtmlToText)
+    @feature(name=HtmlToText.name())
     def to_text(
         self,
         sources: list[ArtifactSource],
@@ -33,7 +34,7 @@ class BoilerPy3(Module):
     ) -> list[TextArtifact]:
         return self.boiler_to_text(sources, metadata=metadata, **kwargs)
 
-    @command(BoilerToText)
+    @feature(name=BoilerToText.name())
     def boiler_to_text(
         self,
         sources: list[ArtifactSource],

@@ -1,4 +1,4 @@
-from modstack.commands.websearch import SearchEngineQueryBase
+from modstack.contracts.websearch import SearchEngineQueryBase
 from modstack.typing import Serializable
 from modstack_serper.search import SerperKnowledgeGraph, SerperOrganicResult, SerperPeopleAlsoAsk
 
@@ -12,3 +12,7 @@ class SerperSearchQuery(SearchEngineQueryBase[SerperSearchResponse]):
     country: str | None = None
     language: str | None = None
     autocomplete: bool | None = None
+
+    @classmethod
+    def name(cls) -> str:
+        return 'serper_search_query'

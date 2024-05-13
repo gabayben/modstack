@@ -2,7 +2,8 @@ from typing import Any
 
 from jinja2 import Template, meta
 
-from modstack.commands import BuildPrompt, command
+from modstack.containers import feature
+from modstack.contracts import BuildPrompt
 from modstack.modules import Module
 from modstack.utils.serialization import create_model
 
@@ -19,7 +20,7 @@ class PromptBuilder(Module):
         ast = self.template.environment.parse(template)
         template_variables = meta.find_undeclared_variables(ast)
         self.set_input_schema(
-            BuildPrompt,
+            BuildPrompt.name(),
             create_model(
                 'BuildPromptInput',
                 **{
@@ -31,7 +32,7 @@ class PromptBuilder(Module):
             )
         )
 
-    @command(BuildPrompt)
+    @feature(name=BuildPrompt.name())
     def build(self, **variables) -> str:
         missing_variables = [v for v in self.required_variables if v not in variables]
         if missing_variables:

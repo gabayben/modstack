@@ -1,6 +1,6 @@
-from typing import Literal
+from typing import Literal, override
 
-from modstack.commands import HtmlToText
+from modstack.contracts import HtmlToText
 
 ExtractorType = Literal[
     'DefaultExtractor',
@@ -15,3 +15,8 @@ ExtractorType = Literal[
 class BoilerToText(HtmlToText):
     extractor_type: ExtractorType = 'DefaultExtractor'
     try_others: bool = True
+
+    @classmethod
+    @override
+    def name(cls) -> str:
+        return 'boiler_to_text'
