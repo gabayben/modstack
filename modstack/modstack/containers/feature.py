@@ -69,7 +69,7 @@ def feature[Out, **P](
     name: str | None = None,
     ignore_input_schema: bool = False,
     ignore_output_schema: bool = False
-):
+) -> Callable[P, Out]:
     def wrapper(fn: Callable[P, Out]) -> Callable[P, Out]:
         setattr(fn, MODSTACK_FEATURE, True)
         setattr(fn, 'name', name or fn.__name__)
@@ -78,10 +78,10 @@ def feature[Out, **P](
         return fn
     return wrapper(func) if func else wrapper
 
-def feature_func[Out, **P](
+def feature_fn[Out, **P](
     func: Callable[P, Out] | None = None,
     name: str | None = None
-):
+) -> Feature[Out, P]:
     def wrapper(fn: Callable[P, Out]) -> Feature[Out, P]:
         setattr(fn, MODSTACK_FEATURE, True)
         setattr(fn, 'name', name or fn.__name__)
