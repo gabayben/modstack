@@ -10,7 +10,7 @@ from modstack.contracts.websearch import SearchEngineQuery, SearchEngineResponse
 from modstack.modules import Module
 from modstack.typing import LinkArtifact, TextArtifact
 from modstack.utils.display import mapping_to_str
-from modstack_serper.search import SerperError, SerperSearchQuery, SerperSearchResponse
+from modstack_serper.search import MapSerperSearch, SerperError, SerperSearchQuery, SerperSearchResponse
 from modstack_serper.search.builders import build_search_response
 
 SERPER_BASE_URL = 'https://google.serper.dev/search'
@@ -45,48 +45,7 @@ class SerperSearch(Module):
         **kwargs
     ) -> SearchEngineResponse:
         serper_response = self.serper_search(query, allowed_domains=allowed_domains, search_params=search_params, **kwargs)
-
-        links: list[LinkArtifact] = [
-            LinkArtifact(
-                link=result.get('link'),
-                title=result.get('title'),
-                position=result.get('position', None),
-                description=result.get('snippet', None),
-                metadata={
-                    'date': result.get('date', None),
-                    'image_url': result.get('image_url', None),
-                    'site_links': result.get('site_links', None),
-                    **result.get('attributes', {})
-                }
-            )
-            for result in serper_response.organic
-        ]
-
-        content: list[TextArtifact] = []
-
-        if serper_response.knowledge_graph:
-            content.append(
-                TextArtifact(
-                    'Google Search Knowledge Graph:\n'
-                    + mapping_to_str(dict(serper_response.knowledge_graph))
-                )
-            )
-
-        if serper_response.people_also_ask:
-            entries_str = ''
-            for entry in serper_response.people_also_ask:
-                entries_str += f'{entry.get('question')}\n'
-                entries_str += mapping_to_str(dict(entry), exclude=['question']) + '\n'
-            content.append(
-                TextArtifact('People Also Ask:\n' + entries_str.strip('\n'))
-            )
-
-        if serper_response.related_searches:
-            content.append(
-                TextArtifact(f"Related Searches: {', '.join(serper_response.related_searches)}")
-            )
-
-        return SearchEngineResponse(links=links, content=content)
+        return self.map(serper_response)
 
     @feature(name=SerperSearchQuery.name())
     def serper_search(
@@ -124,3 +83,47 @@ class SerperSearch(Module):
             raise SerperError(f'An error occurred while querying. Payload {payload}, Error: {e}.') from e
 
         return build_search_response(response.json())
+
+    @feature(name=MapSerperSearch.name())
+    def map(self, response: SerperSearchResponse, **kwargs) -> SearchEngineResponse:
+        links: list[LinkArtifact] = [
+            LinkArtifact(
+                link=result.get('link'),
+                title=result.get('title'),
+                position=result.get('position', None),
+                description=result.get('snippet', None),
+                metadata={
+                    'date': result.get('date', None),
+                    'image_url': result.get('image_url', None),
+                    'site_links': result.get('site_links', None),
+                    **result.get('attributes', {})
+                }
+            )
+            for result in response.organic
+        ]
+
+        content: list[TextArtifact] = []
+
+        if response.knowledge_graph:
+            content.append(
+                TextArtifact(
+                    'Google Search Knowledge Graph:\n'
+                    + mapping_to_str(dict(response.knowledge_graph))
+                )
+            )
+
+        if response.people_also_ask:
+            entries_str = ''
+            for entry in response.people_also_ask:
+                entries_str += f'{entry.get('question')}\n'
+                entries_str += mapping_to_str(dict(entry), exclude=['question']) + '\n'
+            content.append(
+                TextArtifact('People Also Ask:\n' + entries_str.strip('\n'))
+            )
+
+        if response.related_searches:
+            content.append(
+                TextArtifact(f"Related Searches: {', '.join(response.related_searches)}")
+            )
+
+        return SearchEngineResponse(links=links, content=content)

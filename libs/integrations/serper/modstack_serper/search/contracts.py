@@ -1,4 +1,5 @@
-from modstack.contracts.websearch import SearchEngineQueryBase
+from modstack.contracts import Contract
+from modstack.contracts.websearch import SearchEngineQueryBase, SearchEngineResponse
 from modstack.typing import Serializable
 from modstack_serper.search import SerperKnowledgeGraph, SerperOrganicResult, SerperPeopleAlsoAsk
 
@@ -16,3 +17,10 @@ class SerperSearchQuery(SearchEngineQueryBase[SerperSearchResponse]):
     @classmethod
     def name(cls) -> str:
         return 'serper_search_query'
+
+class MapSerperSearch(Contract[SearchEngineResponse]):
+    response: SerperSearchResponse
+
+    @classmethod
+    def name(cls) -> str:
+        return 'map_serper_search'
