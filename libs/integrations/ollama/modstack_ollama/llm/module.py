@@ -3,10 +3,10 @@ from typing import Any, Iterator
 
 import requests
 
-from modstack.commands import LLMCommand, command
+from modstack.commands import CallLLM, command
 from modstack.modules import Module
 from modstack.typing import ChatMessage, StreamingCallback, StreamingChunk
-from modstack_ollama.llm import OllamaLLMCommand
+from modstack_ollama.llm import CallOllamaLLM
 
 class OllamaLLM(Module):
     def __init__(
@@ -28,7 +28,7 @@ class OllamaLLM(Module):
         self.raw = raw
         self.streaming_callback = streaming_callback
 
-    @command(LLMCommand)
+    @command(CallLLM)
     def generate(
         self,
         messages: list[ChatMessage],
@@ -37,7 +37,7 @@ class OllamaLLM(Module):
     ) -> Iterator[ChatMessage]:
         yield from self.ollama_generate(messages, generation_args=generation_args, **kwargs)
 
-    @command(OllamaLLMCommand)
+    @command(CallOllamaLLM)
     def ollama_generate(
         self,
         messages: list[ChatMessage],
