@@ -5,12 +5,16 @@ from modstack.commands.flows import FlowInput, FlowOutput, RunFlow, SocketId
 from modstack.modules import Module
 
 class Flow(Module):
+    @property
+    def nodes(self) -> dict[CommandId, CommandHandler]:
+        raise NotImplementedError()
+
     def __init__(self):
         self.graph = networkx.MultiDiGraph()
 
-    def add_node(
+    def add_module(
         self,
-        node: CommandHandler | Module,
+        module: Module,
         name: str | None = None
     ) -> None:
         pass
