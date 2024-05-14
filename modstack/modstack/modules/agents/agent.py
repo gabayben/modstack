@@ -1,31 +1,29 @@
-from typing import Iterator, NamedTuple, Type
+from abc import ABC
 
-from modstack.commands import Command, CommandHandler, LLMCommand, Tool
+from modstack.commands import CommandHandler, CommandId, LLMCommand, Tool
 from modstack.commands.base import TCommand
 from modstack.modules import Module
 from modstack.typing import ChatMessage
 from modstack.typing.vars import Out
 
-class ToolId(NamedTuple):
-    command: Type[Command]
-    module: str | None = None
-
-class Agent(Module):
+class Agent(Module, ABC):
     @property
-    def modules(self) -> list[Module]:
-        pass
+    def provided_handlers(self) -> dict[CommandId, CommandHandler]:
+        return self._provided_handlers
 
     @property
-    def provided_handlers(self) -> dict[str, CommandHandler]:
-        pass
+    def tools(self) -> dict[CommandId, Tool]:
+        return self._tools
 
     def __init__(
         self,
-        llm: CommandHandler[LLMCommand, Iterator[ChatMessage]] | Module,
+        llm: CommandHandler[LLMCommand, list[ChatMessage]] | Module,
         tools: list[Tool] | None = None,
         **kwargs
     ):
         super().__init__()
+        self._provided_handlers: dict[CommandId, CommandHandler] = {}
+        self._tools: dict[CommandId, Tool] = {}
         if isinstance(llm, CommandHandler):
             self.provide_handler(llm)
         else:
@@ -36,16 +34,20 @@ class Agent(Module):
     def provide_handler(
         self,
         handler: CommandHandler[TCommand, Out],
-        name: str | None = None
+        module: str | None = None
     ) -> None:
-        pass
+        self.provided_handlers[CommandId(handler.command, module)] = handler
 
     def provide_module(
         self,
         module: Module,
         name: str | None = None
     ):
-        pass
+        name = name or module.__class__.__name__
+        for handler in module.handlers.values():
+            self.provide_handler(handler, module=name)
 
     def add_tools(self, *tools: Tool) -> None:
-        pass
+        for tool in tools:
+            if (tool.command, tool.module) in self.provided_handlers:
+                self.tools[CommandId(tool.command, tool.module)] = tool

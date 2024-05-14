@@ -1,4 +1,12 @@
-from .base import Command, CommandHandler, CommandNotFound, AmbiguousCommands, command, command_handler
+from .base import (
+    Command,
+    CommandId,
+    CommandHandler,
+    CommandNotFound,
+    AmbiguousCommands,
+    command,
+    command_handler
+)
 from .builders import BuildPrompt, BuildDynamicPrompt
 from .classification import ClassifyLanguages
 from .converters import ConvertTextFile, MarkdownToText, HtmlToText, PDFToText, JinjaMapping

@@ -1,4 +1,4 @@
-from typing import Any, Iterator, Mapping
+from typing import Any, Mapping
 
 from anthropic import Anthropic, NOT_GIVEN
 
@@ -52,8 +52,8 @@ class AnthropicLLM(Module):
         messages: list[ChatMessage],
         generation_args: dict[str, Any] | None = None,
         **kwargs
-    ) -> Iterator[ChatMessage]:
-        yield from self.anthropic_call(messages, generation_args, **kwargs)
+    ) -> list[ChatMessage]:
+        return self.anthropic_call(messages, generation_args, **kwargs)
 
     @command(AnthropicLLMCommand)
     def anthropic_call(
@@ -68,9 +68,9 @@ class AnthropicLLM(Module):
         stop_sequences: list[str] | None = None,
         stream: bool = False,
         **kwargs
-    ) -> Iterator[ChatMessage]:
+    ) -> list[ChatMessage]:
         if not messages:
-            yield from []
+            return []
 
         generation_args = {**self.generation_args, **(generation_args or {})}
         max_tokens = max_tokens or self.max_tokens

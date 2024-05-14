@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import inspect
-from typing import Any, AsyncIterator, Callable, Generic, Iterator, Type, TypeVar
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, NamedTuple, Type, TypeVar
 
 from pydantic import BaseModel
 
@@ -16,11 +16,15 @@ class Command(Serializable, Generic[Out], ABC):
     def name(cls) -> str:
         return cls.__name__
 
+class CommandId(NamedTuple):
+    command: Type[Command]
+    provider: str | None = None
+
 TCommand = TypeVar('TCommand', bound=Command)
 
 class CommandHandler(Generic[TCommand, Out]):
     _call: Callable[..., Effect[Out]]
-    contract: Type[TCommand]
+    command: Type[TCommand]
     return_annotation: Any
     input_schema: Type[BaseModel]
     output_schema: Type[BaseModel]
@@ -67,7 +71,7 @@ class CommandHandler(Generic[TCommand, Out]):
         return self._call(*args, **kwargs)
 
     def effect(self, command: TCommand) -> Effect[Out]:
-        return self(command)
+        return self(**dict(command))
 
     def invoke(self, command: TCommand) -> Out:
         return self.effect(command).invoke()
@@ -89,7 +93,7 @@ class AmbiguousCommands(Exception):
     pass
 
 def command(
-    command: Type[TCommand],
+    commands: Type[TCommand],
     ignore_output_schema: bool = False
 ) -> Callable[..., Out]:
     def wrapper(fn: Callable[..., Out]) -> Callable[..., Out]:
@@ -103,6 +107,6 @@ def command_handler(
     ignore_output_schema: bool = False
 ) -> CommandHandler[[TCommand], Out]:
     def wrapper(fn: Callable[..., Out]) -> CommandHandler[[TCommand], Out]:
-        setattr(fn, MODSTACK_COMMAND, True)
+        setattr(fn, MODSTACK_COMMAND, command)
         return CommandHandler(fn)
     return wrapper #type: ignore
