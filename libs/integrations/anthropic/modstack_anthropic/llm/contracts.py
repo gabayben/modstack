@@ -1,8 +1,8 @@
 from typing import override
 
-from modstack.commands import CallLLM
+from modstack.contracts import LLMCall
 
-class CallAnthropicLLM(CallLLM):
+class AnthropicLLMCall(LLMCall):
     max_tokens: int | None = None
     system_prompt: str | None = None
     top_k: int | None = None
@@ -14,4 +14,4 @@ class CallAnthropicLLM(CallLLM):
     @classmethod
     @override
     def name(cls) -> str:
-        return 'call_anthropic_llm'
+        return 'anthropic_llm_call'

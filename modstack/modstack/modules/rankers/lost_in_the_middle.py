@@ -1,13 +1,14 @@
-from modstack.commands import RankArtifacts, RankLostInTheMiddle, command
+from modstack.containers import feature
+from modstack.contracts import RankArtifacts, RankLostInTheMiddle
 from modstack.modules import Module
 from modstack.typing import Artifact
 
 class LostInTheMiddleRanker(Module):
-    @command(RankArtifacts)
+    @feature(name=RankArtifacts.name())
     def rank(self, artifacts: list[Artifact], **kwargs) -> list[Artifact]:
         return self.lost_in_the_middle(artifacts, **kwargs)
 
-    @command(RankLostInTheMiddle)
+    @feature(name=RankLostInTheMiddle.name())
     def lost_in_the_middle(
         self,
         artifacts: list[Artifact],

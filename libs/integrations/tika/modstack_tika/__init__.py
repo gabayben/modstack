@@ -1,2 +1,2 @@
-from .commands import TikaToText
+from .contracts import TikaToText
 from .module import Tika

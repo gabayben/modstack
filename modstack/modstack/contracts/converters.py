@@ -1,9 +1,9 @@
 from typing import Any
 
-from modstack.commands import Command
+from modstack.contracts import Contract
 from modstack.typing import ArtifactSource, Utf8Artifact
 
-class ConvertTextFile(Command[list[Utf8Artifact]]):
+class ConvertTextFile(Contract[list[Utf8Artifact]]):
     sources: list[ArtifactSource]
     metadata: dict[str, Any] | list[dict[str, Any]] | None = None
 
@@ -11,7 +11,7 @@ class ConvertTextFile(Command[list[Utf8Artifact]]):
     def name(cls) -> str:
         return 'convert_text_file'
 
-class MarkdownToText(Command[list[Utf8Artifact]]):
+class MarkdownToText(Contract[list[Utf8Artifact]]):
     sources: list[ArtifactSource]
     metadata: dict[str, Any] | list[dict[str, Any]] | None = None
 
@@ -19,7 +19,7 @@ class MarkdownToText(Command[list[Utf8Artifact]]):
     def name(cls) -> str:
         return 'markdown_to_text'
 
-class HtmlToText(Command[list[Utf8Artifact]]):
+class HtmlToText(Contract[list[Utf8Artifact]]):
     sources: list[ArtifactSource]
     metadata: dict[str, Any] | list[dict[str, Any]] | None = None
 
@@ -27,7 +27,7 @@ class HtmlToText(Command[list[Utf8Artifact]]):
     def name(cls) -> str:
         return 'html_to_text'
 
-class PDFToText(Command[list[Utf8Artifact]]):
+class PDFToText(Contract[list[Utf8Artifact]]):
     sources: list[ArtifactSource]
     metadata: dict[str, Any] | list[dict[str, Any]] | None = None
 
@@ -35,7 +35,7 @@ class PDFToText(Command[list[Utf8Artifact]]):
     def name(cls) -> str:
         return 'pdf_to_text'
 
-class JinjaMapping(Command[Any]):
+class JinjaMapping(Contract[Any]):
     context: Any
 
     @classmethod

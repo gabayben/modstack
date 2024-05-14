@@ -1,9 +1,9 @@
 from typing import override
 
-from modstack.commands import Command
+from modstack.contracts import Contract
 from modstack.typing import Artifact
 
-class RankArtifacts(Command[list[Artifact]]):
+class RankArtifacts(Contract[list[Artifact]]):
     artifacts: list[Artifact]
 
     @classmethod

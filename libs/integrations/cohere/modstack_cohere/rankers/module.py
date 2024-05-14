@@ -4,7 +4,7 @@ from typing import ClassVar
 import cohere
 
 from modstack.auth import Secret
-from modstack.commands import command
+from modstack.containers import feature
 from modstack.modules import Module
 from modstack.typing import Utf8Artifact
 from modstack.utils.func import tzip
@@ -37,7 +37,7 @@ class CohereRanker(Module):
         self.meta_fields_to_embed = meta_fields_to_embed or []
         self.metadata_seperator = metadata_seperator
 
-    @command(CohereRank)
+    @feature(name=CohereRank.name())
     async def rank(
         self,
         query: str,

@@ -6,7 +6,8 @@ from markdown_it.renderer import RendererHTML, RendererProtocol
 from markdown_it.utils import PresetType
 from mdit_plain.renderer import RendererPlain
 
-from modstack.commands import HtmlToText, MarkdownToText, command
+from modstack.containers import feature
+from modstack.contracts import HtmlToText, MarkdownToText
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, TextArtifact, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
@@ -21,7 +22,7 @@ class Markdown(Module):
         'Html': RendererHTML
     }
 
-    @command(MarkdownToText)
+    @feature(name=MarkdownToText.name())
     def to_text(
         self,
         sources: list[ArtifactSource],
@@ -30,7 +31,7 @@ class Markdown(Module):
     ) -> list[Utf8Artifact]:
         return self.mdit_to_text(sources, metadata=metadata, **kwargs)
 
-    @command(HtmlToText)
+    @feature(name=HtmlToText.name())
     def html_to_text(
         self,
         sources: list[ArtifactSource],
@@ -44,7 +45,7 @@ class Markdown(Module):
             **kwargs
         )
 
-    @command(MdItToText)
+    @feature(name=MdItToText.name())
     def mdit_to_text(
         self,
         sources: list[ArtifactSource],

@@ -1,7 +1,7 @@
-from modstack.commands import Command
+from modstack.contracts import Contract
 from modstack.typing import Utf8Artifact
 
-class CohereRank(Command[list[Utf8Artifact]]):
+class CohereRank(Contract[list[Utf8Artifact]]):
     query: str
     artifacts: list[Utf8Artifact]
     top_k: int | None = None

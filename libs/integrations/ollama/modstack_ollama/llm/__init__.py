@@ -1,2 +1,2 @@
-from .commands import CallOllamaLLM
+from .contracts import OllamaLLMCall
 from .module import OllamaLLM

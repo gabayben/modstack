@@ -5,8 +5,8 @@ from typing import Any
 import requests
 
 from modstack.auth import Secret
-from modstack.commands import command
-from modstack.commands.websearch import SearchEngineQuery, SearchEngineResponse
+from modstack.containers import feature
+from modstack.contracts.websearch import SearchEngineQuery, SearchEngineResponse
 from modstack.modules import Module
 from modstack.typing import LinkArtifact, TextArtifact
 from modstack.utils.display import mapping_to_str
@@ -36,7 +36,7 @@ class SerperSearch(Module):
         self.timeout = timeout
         _ = self.api_key.resolve_value()
 
-    @command(SearchEngineQuery)
+    @feature(name=SearchEngineQuery.name())
     def search(
         self,
         query: str,
@@ -47,7 +47,7 @@ class SerperSearch(Module):
         serper_response = self.serper_search(query, allowed_domains=allowed_domains, search_params=search_params, **kwargs)
         return self.map(serper_response)
 
-    @command(SerperSearchQuery)
+    @feature(name=SerperSearchQuery.name())
     def serper_search(
         self,
         query: str,
@@ -84,7 +84,7 @@ class SerperSearch(Module):
 
         return build_search_response(response.json())
 
-    @command(MapSerperSearch)
+    @feature(name=MapSerperSearch.name())
     def map(self, response: SerperSearchResponse, **kwargs) -> SearchEngineResponse:
         links: list[LinkArtifact] = [
             LinkArtifact(

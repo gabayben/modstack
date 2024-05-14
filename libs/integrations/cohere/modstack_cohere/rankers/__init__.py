@@ -1,2 +1,2 @@
-from .command import CohereRank
+from .contracts import CohereRank
 from .module import CohereRanker

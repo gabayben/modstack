@@ -4,7 +4,8 @@ from typing import Any
 
 from tika import parser
 
-from modstack.commands import PDFToText, command
+from modstack.containers import feature
+from modstack.contracts import PDFToText
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, ByteStream, TextArtifact, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
@@ -18,16 +19,7 @@ class Tika(Module):
         super().__init__()
         self.tika_url = tika_url
 
-    @command(PDFToText)
-    def pdf_to_text(
-        self,
-        sources: list[ArtifactSource],
-        metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
-        **kwargs
-    ) -> list[Utf8Artifact]:
-        return self.tika_to_text(sources, metadata, **kwargs)
-
-    @command(TikaToText)
+    @feature(name=TikaToText.name())
     def tika_to_text(
         self,
         sources: list[ArtifactSource],
@@ -51,3 +43,12 @@ class Tika(Module):
             results.append(TextArtifact(text))
 
         return results
+
+    @feature(name=PDFToText.name())
+    def pdf_to_text(
+        self,
+        sources: list[ArtifactSource],
+        metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
+        **kwargs
+    ) -> list[Utf8Artifact]:
+        return self.tika_to_text(sources, metadata, **kwargs)

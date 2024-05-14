@@ -1,6 +1,6 @@
 from typing import Literal, override
 
-from modstack.commands import HtmlToText
+from modstack.contracts import HtmlToText
 
 ExtractorType = Literal[
     'DefaultExtractor',

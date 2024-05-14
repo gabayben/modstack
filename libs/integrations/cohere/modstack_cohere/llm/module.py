@@ -3,7 +3,8 @@ from typing import Any, ClassVar, Iterator
 import cohere
 
 from modstack.auth import Secret
-from modstack.commands import CallLLM, command
+from modstack.containers import feature
+from modstack.contracts import LLMCall
 from modstack.modules import Module
 from modstack.typing import ChatMessage, ChatRole, StreamingCallback
 from modstack_cohere.utils import build_cohore_metadata
@@ -38,7 +39,7 @@ class CohereLLM(Module):
             timeout=timeout
         )
 
-    @command(CallLLM)
+    @feature(name=LLMCall.name())
     def chat(
         self,
         messages: list[ChatMessage],

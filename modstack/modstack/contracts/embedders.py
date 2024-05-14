@@ -2,7 +2,7 @@ from typing import Any
 
 from pydantic import Field
 
-from modstack.commands import Command
+from modstack.contracts import Contract
 from modstack.typing import Serializable, Utf8Artifact
 
 class EmbedTextResponse(Serializable):
@@ -17,7 +17,7 @@ class EmbedTextResponse(Serializable):
     ):
         super().__init__(artifacts=artifacts, metadata=metadata, **kwargs)
 
-class EmbedText(Command[list[Utf8Artifact]]):
+class EmbedText(Contract[list[Utf8Artifact]]):
     artifacts: list[Utf8Artifact]
 
     def __init__(self, artifacts: list[Utf8Artifact], **kwargs):

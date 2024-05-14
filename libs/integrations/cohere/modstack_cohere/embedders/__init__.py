@@ -1,2 +1,2 @@
-from .command import CohereEmbedText
+from .contracts import CohereEmbedText
 from .text import CohereTextEmbedder
