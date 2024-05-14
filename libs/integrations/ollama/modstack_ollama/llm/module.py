@@ -1,5 +1,5 @@
 import json
-from typing import Any
+from typing import Any, Iterator
 
 import requests
 
@@ -34,8 +34,8 @@ class OllamaLLM(Module):
         messages: list[ChatMessage],
         generation_args: dict[str, Any] | None = None,
         **kwargs
-    ) -> list[ChatMessage]:
-        return self.ollama_generate(messages, generation_args=generation_args, **kwargs)
+    ) -> Iterator[ChatMessage]:
+        yield from self.ollama_generate(messages, generation_args=generation_args, **kwargs)
 
     @command(OllamaLLMCommand)
     def ollama_generate(
@@ -48,7 +48,7 @@ class OllamaLLM(Module):
         timeout: int | None = None,
         raw: bool | None = None,
         **kwargs
-    ) -> list[ChatMessage]:
+    ) -> Iterator[ChatMessage]:
         generation_args = {**(generation_args or {})}
         system_prompt = system_prompt or self.system_prompt
         template = template or self.template
@@ -77,16 +77,17 @@ class OllamaLLM(Module):
                     chunks.append(chunk)
                     if self.streaming_callback:
                         self.streaming_callback(chunk[0], chunk[1])
-                return [ChatMessage.from_assistant(
+                yield ChatMessage.from_assistant(
                     ''.join(content for content, _ in chunks),
                     metadata={key: value for key, value in chunks[0][1].items() if key != 'response'}
-                )]
+                )
+                continue
 
             data = response.json()
-            return [ChatMessage.from_assistant(
+            yield ChatMessage.from_assistant(
                 data['response'],
                 metadata={key: value for key, value in data if key != 'response'}
-            )]
+            )
 
 def _build_chunk(data: bytes | bytearray) -> StreamingChunk:
     chunk = json.loads(data.decode(encoding='utf-8'))

@@ -1,12 +1,12 @@
 import networkx
 
-from modstack.commands import CommandHandler, CommandId, command
-from modstack.commands.flows import FlowInput, FlowOutput, RunFlow, SocketId
+from modstack.commands import CommandHandler, command
+from modstack.commands.flows import FlowInput, FlowOutput, NodeId, RunFlow, SocketId
 from modstack.modules import Module
 
 class Flow(Module):
     @property
-    def nodes(self) -> dict[CommandId, CommandHandler]:
+    def nodes(self) -> dict[NodeId, CommandHandler]:
         raise NotImplementedError()
 
     def __init__(self):
@@ -29,7 +29,7 @@ class Flow(Module):
     @command(RunFlow)
     def run(
         self,
-        node: CommandId | None = None,
+        node_id: NodeId | None = None,
         data: FlowInput | None = None,
         **kwargs
     ) -> FlowOutput:

@@ -14,4 +14,4 @@ class AnthropicLLMCommand(LLMCommand):
     @classmethod
     @override
     def name(cls) -> str:
-        return 'anthropic_llm_command'
+        return 'call_anthropic_llm'

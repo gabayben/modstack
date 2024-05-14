@@ -1,24 +1,28 @@
-from typing import Any, Type
+from typing import Any, NamedTuple, Type
 
-from modstack.commands import Command, CommandId
+from modstack.commands import Command
 
-class SocketId(CommandId):
+class NodeId(NamedTuple):
+    command: Type[Command]
+    module: str | None = None
+
+class SocketId(NodeId):
     field: str | None = None
 
-FlowInput = dict[Type[Command] | CommandId, dict[str, Any]]
-FlowOutput = dict[Type[Command] | CommandId, Any]
+FlowInput = dict[NodeId, dict[str, Any]]
+FlowOutput = dict[NodeId, Any]
 
 class RunFlow(Command[FlowOutput]):
-    node: CommandId | None = None
+    node_id: NodeId | None = None
     data: FlowInput | None = None
 
     def __init__(
         self,
-        node: CommandId | None = None,
+        node_id: NodeId | None = None,
         data: FlowInput | None = None,
         **kwargs
     ):
-        super().__init__(node=node, data=data, **kwargs)
+        super().__init__(node_id=node_id, data=data, **kwargs)
 
     @classmethod
     def name(cls) -> str:

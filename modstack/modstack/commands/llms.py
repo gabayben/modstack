@@ -1,4 +1,4 @@
-from typing import Any, NotRequired, Type, TypedDict
+from typing import Any, Iterator, NotRequired, TypedDict, override
 
 from pydantic import Field
 
@@ -6,38 +6,33 @@ from modstack.commands import Command
 from modstack.typing import ChatMessage, Serializable
 
 class ToolParameter(TypedDict):
-    type: str
-    description: str
-    required: bool
-    allowed_values: NotRequired[list[Any] | None]
+    name: str
+    description: NotRequired[str | None]
     metadata: NotRequired[dict[str, Any] | None]
 
 class Tool(Serializable):
-    command: Type[Command]
-    description: str
-    module: str | None = None
-    parameters: dict[str, ToolParameter] = Field(default_factory=dict)
+    name: str
+    description: str | None = None
+    parameters: list[ToolParameter] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     def __init__(
         self,
-        command: Type[Command],
-        description: str,
-        module: str | None = None,
-        parameters: dict[str, ToolParameter] = {},
-        metadata: dict[str, Any] = {},
+        name: str,
+        description: str | None = None,
+        parameters: list[ToolParameter] = [],
+        metadata: dict[str, Any] = Field(default_factory=dict),
         **kwargs
     ):
         super().__init__(
-            command=command,
+            name=name,
             description=description,
-            module=module,
             parameters=parameters,
             metadata=metadata,
             **kwargs
         )
 
-class LLMCommand(Command[list[ChatMessage]]):
+class LLMCommand(Command[Iterator[ChatMessage]]):
     messages: list[ChatMessage]
     tools: list[Tool] | None = None
     generation_args: dict[str, Any] | None = None

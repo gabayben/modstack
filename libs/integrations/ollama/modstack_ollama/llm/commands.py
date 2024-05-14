@@ -12,4 +12,4 @@ class OllamaLLMCommand(LLMCommand):
     @classmethod
     @override
     def name(cls) -> str:
-        return 'ollama_llm_command'
+        return 'call_ollama_llm'

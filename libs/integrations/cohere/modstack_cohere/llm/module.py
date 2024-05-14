@@ -1,4 +1,4 @@
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Iterator
 
 import cohere
 
@@ -44,7 +44,7 @@ class CohereLLM(Module):
         messages: list[ChatMessage],
         generation_args: dict[str, Any] | None = None,
         **kwargs
-    ) -> list[ChatMessage]:
+    ) -> Iterator[ChatMessage]:
         if not messages:
             yield from []
 
@@ -76,7 +76,7 @@ class CohereLLM(Module):
 
             chat_message = ChatMessage.from_assistant(text)
             self._build_metadata(chat_message.metadata, finish_response)
-            return [chat_message]
+            yield chat_message
         else:
             response = self.client.chat(
                 message=messages[-1].content,
@@ -86,7 +86,7 @@ class CohereLLM(Module):
             )
             chat_message = ChatMessage.from_assistant(response.text)
             self._build_metadata(chat_message.metadata, response)
-            return [chat_message]
+            yield chat_message
 
     def _build_cohere_message(self, message: ChatMessage) -> cohere.ChatMessage:
         return cohere.ChatMessage(
