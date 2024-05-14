@@ -32,35 +32,25 @@ class Tool(Serializable):
             **kwargs
         )
 
-class CallLLM(Command[Iterator[ChatMessage]]):
+class LLMCommand(Command[Iterator[ChatMessage]]):
     messages: list[ChatMessage]
+    tools: list[Tool] | None = None
     generation_args: dict[str, Any] | None = None
 
     def __init__(
         self,
         messages: list[ChatMessage],
+        tools: list[Tool] | None = None,
         generation_args: dict[str, Any] | None = None,
         **kwargs
     ):
-        super().__init__(messages=messages, generation_args=generation_args, **kwargs)
+        super().__init__(
+            messages=messages,
+            tools=tools,
+            generation_args=generation_args,
+            **kwargs
+        )
 
     @classmethod
     def name(cls) -> str:
-        return 'call_llm'
-
-class CallLLMWithTools(CallLLM):
-    tools: list[Tool]
-
-    def __init__(
-        self,
-        messages: list[ChatMessage],
-        tools: list[Tool],
-        generation_args: dict[str, Any] | None = None,
-        **kwargs
-    ):
-        super().__init__(messages, tools=tools, generation_args=generation_args, **kwargs)
-
-    @classmethod
-    @override
-    def name(cls) -> str:
-        return 'call_llm_with_tools'
+        return 'llm_command'

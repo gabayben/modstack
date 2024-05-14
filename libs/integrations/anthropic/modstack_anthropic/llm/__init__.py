@@ -1,2 +1,2 @@
-from .command import CallAnthropicLLM
+from .command import AnthropicLLMCommand
 from .module import AnthropicLLM

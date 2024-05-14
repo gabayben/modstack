@@ -1,8 +1,8 @@
 from typing import override
 
-from modstack.commands import CallLLM
+from modstack.commands import LLMCommand
 
-class CallAnthropicLLM(CallLLM):
+class AnthropicLLMCommand(LLMCommand):
     max_tokens: int | None = None
     system_prompt: str | None = None
     top_k: int | None = None

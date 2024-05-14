@@ -1,8 +1,8 @@
 from typing import override
 
-from modstack.commands import CallLLM
+from modstack.commands import LLMCommand
 
-class CallOllamaLLM(CallLLM):
+class OllamaLLMCommand(LLMCommand):
     images: list[str] | None = None
     system_prompt: str | None = None
     template: str | None = None
