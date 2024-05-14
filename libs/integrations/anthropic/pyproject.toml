@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "modstack-anthropic"
+version = "0.1.0"
+description = ""
+authors = ["bengabay <ben@netop.cloud>"]
+packages = [{ include = "modstack_anthropic" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+modstack = { path = "../../../modstack/" }
+anthropic = "^0.25.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

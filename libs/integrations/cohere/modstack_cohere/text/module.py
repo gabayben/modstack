@@ -4,12 +4,12 @@ import cohere
 
 from modstack.auth import Secret
 from modstack.containers import feature
-from modstack.contracts import GenerateChat
+from modstack.contracts import GenerateText
 from modstack.modules import Module
 from modstack.typing import ChatMessage, ChatRole, StreamingCallback
 from modstack_cohere.utils import build_cohore_metadata
 
-class CohereChatGenerator(Module):
+class CohereTextGenerator(Module):
     ROLES_MAP: ClassVar[dict[ChatRole, cohere.ChatMessageRole]] = {
         ChatRole.USER: 'USER',
         ChatRole.FUNCTION: 'USER',
@@ -39,7 +39,7 @@ class CohereChatGenerator(Module):
             timeout=timeout
         )
 
-    @feature(name=GenerateChat.name())
+    @feature(name=GenerateText.name())
     def chat(
         self,
         messages: list[ChatMessage],

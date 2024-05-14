@@ -1,12 +1,12 @@
 import json
-from typing import Any
+from typing import Any, Iterator
 
 import requests
 
 from modstack.containers import feature
 from modstack.contracts import GenerateText
 from modstack.modules import Module
-from modstack.typing import StreamingCallback, StreamingChunk, TextArtifact, Utf8Artifact
+from modstack.typing import ChatMessage, StreamingCallback, StreamingChunk
 from modstack_ollama.text import OllamaGenerateText
 
 class OllamaTextGenerator(Module):
@@ -32,16 +32,16 @@ class OllamaTextGenerator(Module):
     @feature(name=GenerateText.name())
     def generate(
         self,
-        prompt: str,
+        messages: list[ChatMessage],
         generation_args: dict[str, Any] | None = None,
         **kwargs
-    ) -> list[Utf8Artifact]:
-        return self.ollama_generate(prompt, generation_args=generation_args, **kwargs)
+    ) -> Iterator[ChatMessage]:
+        yield from self.ollama_generate(messages, generation_args=generation_args, **kwargs)
 
     @feature(name=OllamaGenerateText.name())
     def ollama_generate(
         self,
-        prompt: str,
+        messages: list[ChatMessage],
         generation_args: dict[str, Any] | None = None,
         images: list[str] | None = None,
         system_prompt: str | None = None,
@@ -49,7 +49,7 @@ class OllamaTextGenerator(Module):
         timeout: int | None = None,
         raw: bool | None = None,
         **kwargs
-    ) -> list[Utf8Artifact]:
+    ) -> Iterator[ChatMessage]:
         generation_args = {**(generation_args or {})}
         system_prompt = system_prompt or self.system_prompt
         template = template or self.template
@@ -57,36 +57,38 @@ class OllamaTextGenerator(Module):
         raw = raw if raw is not None else self.raw
         stream = self.streaming_callback is not None
 
-        payload = {
-            'prompt': prompt,
-            'model': self.model,
-            'system': system_prompt,
-            'template': template,
-            'raw': raw,
-            'stream': stream,
-            'options': generation_args
-        }
+        for message in messages:
+            payload = {
+                'prompt': message.content,
+                'model': self.model,
+                'system': system_prompt,
+                'template': template,
+                'raw': raw,
+                'stream': stream,
+                'options': generation_args
+            }
 
-        response = requests.post(self.url, json=payload, timeout=self.timeout, stream=stream)
-        response.raise_for_status()
+            response = requests.post(self.url, json=payload, timeout=self.timeout, stream=stream)
+            response.raise_for_status()
 
-        if stream:
-            chunks: list[StreamingChunk] = []
-            for line in response.iter_lines():
-                chunk = _build_chunk(line)
-                chunks.append(chunk)
-                if self.streaming_callback:
-                    self.streaming_callback(chunk[0], chunk[1])
-            return [TextArtifact(
-                content=''.join(content for content, _ in chunks),
-                metadata={key: value for key, value in chunks[0][1].items() if key != 'response'}
-            )]
+            if stream:
+                chunks: list[StreamingChunk] = []
+                for line in response.iter_lines():
+                    chunk = _build_chunk(line)
+                    chunks.append(chunk)
+                    if self.streaming_callback:
+                        self.streaming_callback(chunk[0], chunk[1])
+                yield ChatMessage.from_assistant(
+                    ''.join(content for content, _ in chunks),
+                    metadata={key: value for key, value in chunks[0][1].items() if key != 'response'}
+                )
+                continue
 
-        data = response.json()
-        return [TextArtifact(
-            content=data['response'],
-            metadata={key: value for key, value in data if key != 'response'}
-        )]
+            data = response.json()
+            yield ChatMessage.from_assistant(
+                data['response'],
+                metadata={key: value for key, value in data if key != 'response'}
+            )
 
 def _build_chunk(data: bytes | bytearray) -> StreamingChunk:
     chunk = json.loads(data.decode(encoding='utf-8'))
