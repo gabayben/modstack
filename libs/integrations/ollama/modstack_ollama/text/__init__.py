@@ -1,2 +1,2 @@
 from .contracts import OllamaGenerateText
-from .generator import StreamingCallback, OllamaTextGenerator
+from .module import StreamingCallback, OllamaTextGenerator

@@ -26,6 +26,8 @@ from modstack.constants import VARIADIC_TYPE
 _T = typing.TypeVar('_T')
 
 Variadic = Annotated[Iterable[_T], VARIADIC_TYPE]
+StreamingChunk = tuple[str, dict[str, typing.Any]]
+StreamingCallback = typing.Callable[[str, dict[str, typing.Any]], None]
 
 BaseDoc = DocArrayBaseDoc
 DocList = DocArrayDocList

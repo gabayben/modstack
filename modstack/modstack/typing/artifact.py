@@ -65,7 +65,7 @@ class Utf8Artifact(Artifact, ABC):
         return str(self).encode(encoding='utf-8')
 
     def __str__(self) -> str:
-        return bytes(self).decode(encoding='utf-8')
+        return self.to_utf8()
 
     @abstractmethod
     def to_utf8(self) -> str:

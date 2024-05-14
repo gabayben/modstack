@@ -1,22 +1,10 @@
-from typing import Any
-
-from pydantic import Field
+from typing import Any, Iterator
 
 from modstack.contracts import Contract
-from modstack.typing import Serializable
+from modstack.typing import Utf8Artifact
+from modstack.typing import ChatMessage
 
-class TextGeneration(Serializable):
-    results: list[str]
-    metadata: list[dict[str, Any]] = Field(default_factory=list)
-
-    def __init__(
-        self,
-        results: list[str],
-        metadata: list[dict[str, Any]] = []
-    ):
-        super().__init__(results=results, metadata=metadata)
-
-class GenerateText(Contract[TextGeneration]):
+class GenerateText(Contract[list[Utf8Artifact]]):
     prompt: str
     generation_args: dict[str, Any] | None = None
 
@@ -31,3 +19,11 @@ class GenerateText(Contract[TextGeneration]):
     @classmethod
     def name(cls) -> str:
         return 'generate_text'
+
+class GenerateChat(Contract[Iterator[ChatMessage]]):
+    messages: list[ChatMessage]
+    generation_args: dict[str, Any] | None = None
+
+    @classmethod
+    def name(cls) -> str:
+        return 'generate_chat'

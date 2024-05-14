@@ -1,15 +1,13 @@
 import json
-from typing import Any, Callable
+from typing import Any
 
 import requests
 
 from modstack.containers import feature
-from modstack.contracts import GenerateText, TextGeneration
+from modstack.contracts import GenerateText
 from modstack.modules import Module
+from modstack.typing import StreamingCallback, StreamingChunk, TextArtifact, Utf8Artifact
 from modstack_ollama.text import OllamaGenerateText
-
-StreamingChunk = tuple[str, dict[str, Any]]
-StreamingCallback = Callable[[str, dict[str, Any]], None]
 
 class OllamaTextGenerator(Module):
     def __init__(
@@ -37,7 +35,7 @@ class OllamaTextGenerator(Module):
         prompt: str,
         generation_args: dict[str, Any] | None = None,
         **kwargs
-    ) -> TextGeneration:
+    ) -> list[Utf8Artifact]:
         return self.ollama_generate(prompt, generation_args=generation_args, **kwargs)
 
     @feature(name=OllamaGenerateText.name())
@@ -51,7 +49,7 @@ class OllamaTextGenerator(Module):
         timeout: int | None = None,
         raw: bool | None = None,
         **kwargs
-    ) -> TextGeneration:
+    ) -> list[Utf8Artifact]:
         generation_args = {**(generation_args or {})}
         system_prompt = system_prompt or self.system_prompt
         template = template or self.template
@@ -79,16 +77,16 @@ class OllamaTextGenerator(Module):
                 chunks.append(chunk)
                 if self.streaming_callback:
                     self.streaming_callback(chunk[0], chunk[1])
-            return TextGeneration(
-                results=[''.join(content for content, _ in chunks)],
-                metadata=[{key: value for key, value in chunks[0][1].items() if key != 'response'}]
-            )
+            return [TextArtifact(
+                content=''.join(content for content, _ in chunks),
+                metadata={key: value for key, value in chunks[0][1].items() if key != 'response'}
+            )]
 
         data = response.json()
-        return TextGeneration(
-            results=[data['response']],
-            metadata=[{key: value for key, value in data if key != 'response'}]
-        )
+        return [TextArtifact(
+            content=data['response'],
+            metadata={key: value for key, value in data if key != 'response'}
+        )]
 
 def _build_chunk(data: bytes | bytearray) -> StreamingChunk:
     chunk = json.loads(data.decode(encoding='utf-8'))
