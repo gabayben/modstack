@@ -56,8 +56,8 @@ class LinkContentFetcher(Module):
         self.raise_on_failure = raise_on_failure
         self._current_user_agent_idx = 0
         self._response_handlers: dict[str | None, Callable[[requests.Response], ByteStream]] = {
-            'text/html': _text_content_handler,
-            'text/plain': _text_content_handler,
+            'llm/html': _text_content_handler,
+            'llm/plain': _text_content_handler,
             'application/pdf': _binary_content_handler,
             'application/octet-stream': _binary_content_handler,
             None: _binary_content_handler
@@ -97,7 +97,7 @@ class LinkContentFetcher(Module):
         return streams
 
     def _fetch(self, url: str) -> ByteStream:
-        content_type = 'text/html'
+        content_type = 'llm/html'
         stream = ByteStream(b'', content_type, metadata={})
 
         try:

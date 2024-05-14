@@ -1,8 +1,8 @@
 from typing import override
 
-from modstack.contracts import GenerateText
+from modstack.contracts import LLMCall
 
-class OllamaGenerateText(GenerateText):
+class OllamaLLMCall(LLMCall):
     images: list[str] | None = None
     system_prompt: str | None = None
     template: str | None = None
@@ -12,4 +12,4 @@ class OllamaGenerateText(GenerateText):
     @classmethod
     @override
     def name(cls) -> str:
-        return 'ollama_generate_text'
+        return 'ollama_llm_call'

@@ -2,8 +2,8 @@ import mimetypes
 from pathlib import Path
 
 CUSTOM_MIME_TYPE_MAPPINGS: dict[str, str] = {
-    '.markdown': 'text/markdown',
-    '.md': 'text/markdown'
+    '.markdown': 'llm/markdown',
+    '.md': 'llm/markdown'
 }
 
 def get_mime_type(path: Path) -> str | None:

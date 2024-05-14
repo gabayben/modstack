@@ -3,7 +3,7 @@ from typing import Any, Iterator
 from modstack.contracts import Contract
 from modstack.typing import ChatMessage
 
-class GenerateText(Contract[Iterator[ChatMessage]]):
+class LLMCall(Contract[Iterator[ChatMessage]]):
     messages: list[ChatMessage]
     generation_args: dict[str, Any] | None = None
 

@@ -9,7 +9,7 @@ class ByteStream(Artifact):
         super().__init__(**kwargs, bytes_=bytes_, _mime_type=mime_type)
 
     @classmethod
-    def from_text(cls, text: str, mime_type: str | None = 'text/plain', **kwargs) -> Self:
+    def from_text(cls, text: str, mime_type: str | None = 'llm/plain', **kwargs) -> Self:
         return cls(bytes(text, 'utf-8'), _mime_type=mime_type, **kwargs)
 
     @classmethod

@@ -4,12 +4,12 @@ import cohere
 
 from modstack.auth import Secret
 from modstack.containers import feature
-from modstack.contracts import GenerateText
+from modstack.contracts import LLMCall
 from modstack.modules import Module
 from modstack.typing import ChatMessage, ChatRole, StreamingCallback
 from modstack_cohere.utils import build_cohore_metadata
 
-class CohereTextGenerator(Module):
+class CohereLLM(Module):
     ROLES_MAP: ClassVar[dict[ChatRole, cohere.ChatMessageRole]] = {
         ChatRole.USER: 'USER',
         ChatRole.FUNCTION: 'USER',
@@ -39,13 +39,16 @@ class CohereTextGenerator(Module):
             timeout=timeout
         )
 
-    @feature(name=GenerateText.name())
+    @feature(name=LLMCall.name())
     def chat(
         self,
         messages: list[ChatMessage],
         generation_args: dict[str, Any] | None = None,
         **kwargs
     ) -> Iterator[ChatMessage]:
+        if not messages:
+            yield from []
+
         generation_args = {**self.generation_args, **(generation_args or {})}
         chat_history = [
             self._build_cohere_message(message)
@@ -67,7 +70,7 @@ class CohereTextGenerator(Module):
                         event.text,
                         {'event_type': event.event_type, **(event.response.meta or {})}
                     )
-                if event.event_type == 'text-generation':
+                if event.event_type == 'llm-generation':
                     text += event.text
                 elif event.event_type == 'stream-end':
                     finish_response = event.response

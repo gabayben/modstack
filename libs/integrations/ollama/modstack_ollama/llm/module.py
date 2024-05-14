@@ -4,12 +4,12 @@ from typing import Any, Iterator
 import requests
 
 from modstack.containers import feature
-from modstack.contracts import GenerateText
+from modstack.contracts import LLMCall
 from modstack.modules import Module
 from modstack.typing import ChatMessage, StreamingCallback, StreamingChunk
-from modstack_ollama.text import OllamaGenerateText
+from modstack_ollama.llm import OllamaLLMCall
 
-class OllamaTextGenerator(Module):
+class OllamaLLM(Module):
     def __init__(
         self,
         url: str = 'http://localhost:11434/api/generate',
@@ -29,7 +29,7 @@ class OllamaTextGenerator(Module):
         self.raw = raw
         self.streaming_callback = streaming_callback
 
-    @feature(name=GenerateText.name())
+    @feature(name=LLMCall.name())
     def generate(
         self,
         messages: list[ChatMessage],
@@ -38,7 +38,7 @@ class OllamaTextGenerator(Module):
     ) -> Iterator[ChatMessage]:
         yield from self.ollama_generate(messages, generation_args=generation_args, **kwargs)
 
-    @feature(name=OllamaGenerateText.name())
+    @feature(name=OllamaLLMCall.name())
     def ollama_generate(
         self,
         messages: list[ChatMessage],
