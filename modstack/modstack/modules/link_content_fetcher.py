@@ -5,8 +5,7 @@ from typing import Callable
 import requests
 from tenacity import RetryCallState, retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from modstack.containers import feature
-from modstack.contracts import FetchFromLinks
+from modstack.commands import FetchFromLinks, command
 from modstack.modules import Module
 from modstack.typing import ByteStream
 from modstack.version import __version__
@@ -78,7 +77,7 @@ class LinkContentFetcher(Module):
             return response
         self._get_response = get_response
 
-    @feature(name=FetchFromLinks.name())
+    @command(FetchFromLinks)
     def fetch(self, urls: list[str], **kwargs) -> list[ByteStream]:
         streams: list[ByteStream] = []
 

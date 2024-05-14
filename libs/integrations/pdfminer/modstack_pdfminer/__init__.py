@@ -1,2 +1,2 @@
-from .contracts import PDFMinerToText
+from .commands import PDFMinerToText
 from .module import PDFMiner

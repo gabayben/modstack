@@ -3,11 +3,10 @@ from typing import Any, Iterator, Mapping
 from anthropic import Anthropic, NOT_GIVEN
 
 from modstack.auth import Secret
-from modstack.containers import feature
-from modstack.contracts import LLMCall
+from modstack.commands import CallLLM, command
 from modstack.modules import Module
 from modstack.typing import ChatMessage, StreamingCallback
-from modstack_anthropic.llm import AnthropicLLMCall
+from modstack_anthropic.llm import CallAnthropicLLM
 
 class AnthropicLLM(Module):
     def __init__(
@@ -28,6 +27,7 @@ class AnthropicLLM(Module):
         stop_sequences: list[str] | None = None,
         stream: bool = False
     ):
+        super().__init__()
         self.client = Anthropic(
             api_key=token.resolve_value(),
             base_url=base_url,
@@ -46,7 +46,7 @@ class AnthropicLLM(Module):
         self.stop_sequences = stop_sequences
         self.stream = stream
 
-    @feature(name=LLMCall.name())
+    @command(CallLLM)
     def call(
         self,
         messages: list[ChatMessage],
@@ -55,7 +55,7 @@ class AnthropicLLM(Module):
     ) -> Iterator[ChatMessage]:
         yield from self.anthropic_call(messages, generation_args, **kwargs)
 
-    @feature(name=AnthropicLLMCall.name())
+    @command(CallAnthropicLLM)
     def anthropic_call(
         self,
         messages: list[ChatMessage],

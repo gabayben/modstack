@@ -2,19 +2,18 @@ from typing import Any
 
 from jinja2 import Template, meta
 
-from modstack.containers import feature
-from modstack.contracts import BuildDynamicPrompt
+from modstack.commands import BuildDynamicPrompt, command
 from modstack.modules import Module
-from modstack.utils.serialization import create_model, from_parameters
+from modstack.utils.serialization import create_model
 
 class DynamicPromptBuilder(Module):
     def __init__(self, runtime_variables: list[str] | None = None):
         super().__init__()
         self.runtime_variables = runtime_variables or []
-        schema_fields = from_parameters(self.get_parameters(BuildDynamicPrompt.name()))
+        schema_fields = self.get_input_schema(BuildDynamicPrompt).model_fields
         runtime_fields = {v: (Any | None, None) for v in self.runtime_variables}
         self.set_input_schema(
-            BuildDynamicPrompt.name(),
+            BuildDynamicPrompt,
             create_model(
                 'BuildDynamicPromptInput',
                 **schema_fields,
@@ -22,7 +21,7 @@ class DynamicPromptBuilder(Module):
             )
         )
 
-    @feature(name=BuildDynamicPrompt.name(), ignore_input_schema=True)
+    @command(BuildDynamicPrompt)
     def build(
         self,
         prompt_source: str,

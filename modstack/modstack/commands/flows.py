@@ -1,10 +1,10 @@
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Type
 
-from modstack.contracts import Contract
+from modstack.commands import Command
 
 class NodeId(NamedTuple):
-    feature_name: str
-    module_name: str | None = None
+    command: Type[Command]
+    module: str | None = None
 
 class SocketId(NodeId):
     field: str | None = None
@@ -12,7 +12,7 @@ class SocketId(NodeId):
 FlowInput = dict[NodeId, dict[str, Any]]
 FlowOutput = dict[NodeId, Any]
 
-class RunFlow(Contract[FlowOutput]):
+class RunFlow(Command[FlowOutput]):
     node_id: NodeId | None = None
     data: FlowInput | None = None
 

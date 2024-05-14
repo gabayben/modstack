@@ -5,8 +5,7 @@ from typing import Any, Iterator
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LAParams, LTPage, LTTextContainer
 
-from modstack.containers import feature
-from modstack.contracts import PDFToText
+from modstack.commands import PDFToText, command
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, ByteStream, TextArtifact, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
@@ -16,7 +15,7 @@ from modstack_pdfminer import PDFMinerToText
 logger = logging.getLogger(__name__)
 
 class PDFMiner(Module):
-    @feature(name=PDFToText.name())
+    @command(PDFToText)
     def to_text(
         self,
         sources: list[ArtifactSource],
@@ -25,7 +24,7 @@ class PDFMiner(Module):
     ) -> list[Utf8Artifact]:
         return self.pdfminer_to_text(sources, metadata=metadata, **kwargs)
 
-    @feature(name=PDFMinerToText.name())
+    @command(PDFMinerToText)
     def pdfminer_to_text(
         self,
         sources: list[ArtifactSource],

@@ -2,7 +2,7 @@ from typing import Any, Sequence, override
 
 import cohere
 
-from modstack.contracts import EmbedText
+from modstack.commands import EmbedText
 
 class CohereEmbedText(EmbedText):
     model: str | None = None

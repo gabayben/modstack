@@ -1,9 +1,9 @@
 from typing import Any
 
-from modstack.contracts import Contract
+from modstack.commands import Command
 from modstack.typing import TextArtifact
 
-class ToTextArtifacts(Contract[list[TextArtifact]]):
+class ToTextArtifacts(Command[list[TextArtifact]]):
     content: list[str]
     metadata: list[dict[str, Any]] | None = None
 

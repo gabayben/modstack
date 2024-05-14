@@ -1,7 +1,7 @@
-from modstack.contracts import Contract
+from modstack.commands import Command
 from modstack.typing import ByteStream
 
-class FetchFromLinks(Contract[list[ByteStream]]):
+class FetchFromLinks(Command[list[ByteStream]]):
     urls: list[str]
 
     @classmethod

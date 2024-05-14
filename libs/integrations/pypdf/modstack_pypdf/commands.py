@@ -1,6 +1,6 @@
 from typing import override
 
-from modstack.contracts import PDFToText
+from modstack.commands import PDFToText
 from modstack_pypdf import PyPDFConverter
 
 class PyPDFToText(PDFToText):
