@@ -1,1 +1,1 @@
-from .secrets import SecretType, Secret, TokenSecret, EnvVarSecret
+from .secrets import EnvVarSecret, Secret, SecretType, TokenSecret

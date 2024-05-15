@@ -2,9 +2,9 @@ from builtins import UnicodeDecodeError
 from copy import deepcopy
 from typing import Any, Literal
 
+from modstack.containers import feature
 from more_itertools import windowed
 
-from modstack.containers import feature
 from modstack.contracts import SplitText
 from modstack.modules import Module
 from modstack.typing import TextArtifact, Utf8Artifact

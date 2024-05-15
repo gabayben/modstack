@@ -1,7 +1,7 @@
 from jinja2 import TemplateError
 from jinja2.nativetypes import NativeEnvironment
-
 from modstack.containers import feature
+
 from modstack.contracts import RouteArtifacts
 from modstack.modules import Module
 from modstack.typing import Artifact

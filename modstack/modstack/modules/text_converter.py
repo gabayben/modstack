@@ -2,6 +2,7 @@ import logging
 from typing import Any
 
 from modstack.containers import feature
+
 from modstack.contracts import ConvertTextFile
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, TextArtifact, Utf8Artifact

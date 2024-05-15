@@ -1,4 +1,5 @@
 from modstack.containers import feature
+
 from modstack.contracts import RankArtifacts, RankLostInTheMiddle
 from modstack.modules import Module
 from modstack.typing import Artifact

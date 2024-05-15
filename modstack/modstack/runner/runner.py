@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import AsyncIterator, Iterator, final
 
 from modstack.containers import AmbiguousFeatures, Effect, Feature, FeatureNotFound
+
 from modstack.contracts import Contract
 from modstack.modules import Module
 from modstack.typing.vars import Out
@@ -26,7 +27,7 @@ class Runner:
 
     def add_module(self, module: Module, name: str | None = None):
         name = name or module.__class__.__name__
-        for feature in module.features.values():
+        for feature in module.endpoints.values():
             self.add_feature(feature, provider=name)
 
     def get_feature(self, contact: Contract[Out], provider: str | None = None) -> Feature[Out]:

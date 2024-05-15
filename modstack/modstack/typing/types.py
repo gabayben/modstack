@@ -6,18 +6,7 @@ from docarray import (
     DocList as DocArrayDocList,
     DocVec as DocArrayDocVec
 )
-from docarray.typing import (
-    AnyUrl,
-    TextUrl as DocArrayTextUrl,
-    ImageUrl as DocArrayImageUrl,
-    VideoUrl as DocArrayVideoUrl,
-    AudioUrl as DocArrayAudioUrl,
-    Mesh3DUrl as DocArrayMesh3DUrl,
-    PointCloud3DUrl as DocArrayPointCloud3DUrl,
-    ImageBytes as DocArrayImageBytes,
-    VideoBytes as DocArrayVideoBytes,
-    AudioBytes as DocArrayAudioBytes
-)
+from docarray.typing import (AnyUrl, AudioBytes as DocArrayAudioBytes, AudioUrl as DocArrayAudioUrl, ImageBytes as DocArrayImageBytes, ImageUrl as DocArrayImageUrl, Mesh3DUrl as DocArrayMesh3DUrl, PointCloud3DUrl as DocArrayPointCloud3DUrl, TextUrl as DocArrayTextUrl, VideoBytes as DocArrayVideoBytes, VideoUrl as DocArrayVideoUrl)
 from docarray.typing.bytes.base_bytes import BaseBytes as DocArrayBaseBytes
 from numpy import ndarray
 

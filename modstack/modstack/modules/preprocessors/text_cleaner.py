@@ -5,6 +5,7 @@ import re
 from typing import Generator
 
 from modstack.containers import feature
+
 from modstack.contracts import CleanText
 from modstack.modules import Module
 from modstack.typing import TextArtifact, Utf8Artifact

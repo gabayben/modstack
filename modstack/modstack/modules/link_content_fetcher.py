@@ -2,10 +2,10 @@ from concurrent.futures import ThreadPoolExecutor
 import logging
 from typing import Callable
 
+from modstack.containers import feature
 import requests
 from tenacity import RetryCallState, retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from modstack.containers import feature
 from modstack.contracts import FetchFromLinks
 from modstack.modules import Module
 from modstack.typing import ByteStream

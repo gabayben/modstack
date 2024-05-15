@@ -1,6 +1,7 @@
 from typing import Any
 
 from modstack.containers import feature_fn
+
 from modstack.contracts.utils import ToTextArtifacts
 from modstack.typing import TextArtifact
 from modstack.utils.dicts import normalize_metadata

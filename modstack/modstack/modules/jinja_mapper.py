@@ -1,8 +1,8 @@
 from typing import Any, cast
 
 from jinja2 import Template, meta
-
 from modstack.containers import feature
+
 from modstack.contracts import JinjaMapping
 from modstack.modules import Module
 

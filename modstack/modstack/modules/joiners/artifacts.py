@@ -4,6 +4,7 @@ from math import inf
 from typing import Iterable
 
 from modstack.containers import feature
+
 from modstack.contracts import ConcatArtifacts, MergeArtifacts, ReciprocalRankFusion
 from modstack.modules import Module
 from modstack.typing import Artifact, Variadic

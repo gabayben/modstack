@@ -1,8 +1,8 @@
 from typing import Any
 
 from jinja2 import Template, meta
-
 from modstack.containers import feature
+
 from modstack.contracts import BuildPrompt
 from modstack.modules import Module
 from modstack.utils.serialization import create_model

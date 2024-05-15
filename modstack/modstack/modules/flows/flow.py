@@ -1,7 +1,7 @@
+from modstack.containers import Feature, feature
 import networkx
 
 from modstack.contracts.flows import FlowInput, FlowOutput, NodeId, RunFlow, SocketId
-from modstack.containers import Feature, feature
 from modstack.modules import Module
 
 class Flow(Module):

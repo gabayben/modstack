@@ -5,26 +5,26 @@ from typing import Any, Type
 
 from pydantic import BaseModel
 
-from modstack.constants import MODSTACK_FEATURE
-from modstack.containers import Feature, FeatureNotFound
+from modstack.constants import MODSTACK_ENDPOINT
+from modstack.endpoints import Endpoint, EndpointNotFound
 
 class Module:
     @property
-    def features(self) -> dict[str, Feature]:
-        return self._features
+    def endpoints(self) -> dict[str, Endpoint]:
+        return self._endpoints
 
     def __init__(self, **kwargs):
-        self._features: dict[str, Feature] = {}
-        for _, func in inspect.getmembers(self, lambda x: callable(x) and hasattr(x, MODSTACK_FEATURE)):
-            self.add_feature(Feature(func))
+        self._endpoints: dict[str, Endpoint] = {}
+        for _, func in inspect.getmembers(self, lambda x: callable(x) and hasattr(x, MODSTACK_ENDPOINT)):
+            self.add_endpoint(Endpoint(func))
 
-    def get_feature[Out, **P](self, name: str, output_type: Type[Out] = Any) -> Feature[Out, P]:
-        if name not in self.features:
-            raise FeatureNotFound(f'Feature {name} not found in Module {self.__class__.__name__}')
-        return self.features[name]
+    def get_feature[Out, **P](self, name: str, output_type: Type[Out] = Any) -> Endpoint[Out, P]:
+        if name not in self.endpoints:
+            raise EndpointNotFound(f'Endpoint {name} not found in Module {self.__class__.__name__}')
+        return self.endpoints[name]
 
-    def add_feature[Out, **P](self, feature: Feature[Out, P]) -> None:
-        self.features[feature.name] = feature
+    def add_endpoint[Out, **P](self, feature: Endpoint[Out, P]) -> None:
+        self.endpoints[feature.name] = feature
 
     def get_parameters(self, name: str) -> MappingProxyType[str, Parameter]:
         return self.get_feature(name).parameters

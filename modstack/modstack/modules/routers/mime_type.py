@@ -3,6 +3,7 @@ import re
 from re import Pattern
 
 from modstack.containers import feature
+
 from modstack.contracts import RouteByMimeType
 from modstack.modules import Module
 from modstack.typing import Artifact, ArtifactSource, StrictArtifactSource
