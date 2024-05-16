@@ -2,10 +2,9 @@ from builtins import UnicodeDecodeError
 from copy import deepcopy
 from typing import Any, Literal
 
-from modstack.containers import feature
 from more_itertools import windowed
 
-from modstack.contracts import SplitText
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import TextArtifact, Utf8Artifact
 
@@ -33,7 +32,7 @@ class TextSplitter(Module):
             raise ValueError('split_overlap must be greater than or equal to 0.')
         self.split_overlap = split_overlap
 
-    @feature(name=SplitText.name())
+    @endpoint
     def split(self, artifacts: list[Utf8Artifact], **kwargs) -> list[Utf8Artifact]:
         split_artifacts: list[TextArtifact] = []
         for artifact in artifacts:

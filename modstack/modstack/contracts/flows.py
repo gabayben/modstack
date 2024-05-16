@@ -1,24 +1,21 @@
-from typing import Any, NamedTuple
+from typing import Any
 
 from modstack.contracts import Contract
 
-class NodeId(NamedTuple):
-    feature_name: str
-    module_name: str | None = None
-
-class SocketId(NodeId):
+class SocketId:
+    node: str
     field: str | None = None
 
-FlowInput = dict[NodeId, dict[str, Any]]
-FlowOutput = dict[NodeId, Any]
+FlowInput = dict[str, dict[str, Any]]
+FlowOutput = dict[str, Any]
 
 class RunFlow(Contract[FlowOutput]):
-    node_id: NodeId | None = None
+    node_id: str | None = None
     data: FlowInput | None = None
 
     def __init__(
         self,
-        node_id: NodeId | None = None,
+        node_id: str | None = None,
         data: FlowInput | None = None,
         **kwargs
     ):

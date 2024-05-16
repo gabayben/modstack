@@ -1,13 +1,11 @@
-from typing import Any, Iterator, Mapping
+from typing import Any, Iterable, Mapping
 
 from anthropic import Anthropic, NOT_GIVEN
 
 from modstack.auth import Secret
-from modstack.containers import feature
-from modstack.contracts import LLMCall
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import ChatMessage, StreamingCallback
-from modstack_anthropic.llm import AnthropicLLMCall
 
 class AnthropicLLM(Module):
     def __init__(
@@ -46,19 +44,10 @@ class AnthropicLLM(Module):
         self.stop_sequences = stop_sequences
         self.stream = stream
 
-    @feature(name=LLMCall.name())
+    @endpoint
     def call(
         self,
-        messages: list[ChatMessage],
-        generation_args: dict[str, Any] | None = None,
-        **kwargs
-    ) -> Iterator[ChatMessage]:
-        yield from self.anthropic_call(messages, generation_args, **kwargs)
-
-    @feature(name=AnthropicLLMCall.name())
-    def anthropic_call(
-        self,
-        messages: list[ChatMessage],
+        messages: Iterable[ChatMessage],
         generation_args: dict[str, Any] | None = None,
         max_tokens: int | None = None,
         system_prompt: str | None = None,
@@ -68,9 +57,9 @@ class AnthropicLLM(Module):
         stop_sequences: list[str] | None = None,
         stream: bool = False,
         **kwargs
-    ) -> Iterator[ChatMessage]:
+    ) -> Iterable[ChatMessage]:
         if not messages:
-            yield from []
+            return []
 
         generation_args = {**self.generation_args, **(generation_args or {})}
         max_tokens = max_tokens or self.max_tokens

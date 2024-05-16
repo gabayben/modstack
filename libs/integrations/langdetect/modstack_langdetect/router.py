@@ -3,8 +3,7 @@ import logging
 
 import langdetect
 
-from modstack.containers import feature
-from modstack.contracts import RouteByLanguage
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import Utf8Artifact
 from modstack.utils.serialization import create_model
@@ -16,7 +15,7 @@ class LangDetectRouter(Module):
         super().__init__()
         languages = languages or ['en']
         self.set_output_schema(
-            RouteByLanguage.name(),
+            'route',
             create_model(
                 'RouteByLanguageOutput',
                 unmatched=(list[Utf8Artifact], []),
@@ -25,7 +24,7 @@ class LangDetectRouter(Module):
         )
         self.languages = languages
 
-    @feature(name=RouteByLanguage.name(), ignore_output_schema=True)
+    @endpoint(ignore_output_schema=True)
     def route(self, artifacts: list[Utf8Artifact], **kwargs) -> dict[str, list[Utf8Artifact]]:
         artifacts_by_language: defaultdict[str, list[Utf8Artifact]] = defaultdict(list)
         for artifact in artifacts:

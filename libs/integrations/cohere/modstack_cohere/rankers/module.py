@@ -4,11 +4,10 @@ from typing import ClassVar
 import cohere
 
 from modstack.auth import Secret
-from modstack.containers import feature
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import Utf8Artifact
 from modstack.utils.func import tzip
-from modstack_cohere.rankers import CohereRank
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +36,7 @@ class CohereRanker(Module):
         self.meta_fields_to_embed = meta_fields_to_embed or []
         self.metadata_seperator = metadata_seperator
 
-    @feature(name=CohereRank.name())
+    @endpoint
     async def rank(
         self,
         query: str,

@@ -3,9 +3,7 @@ import logging
 from math import inf
 from typing import Iterable
 
-from modstack.containers import feature
-
-from modstack.contracts import ConcatArtifacts, MergeArtifacts, ReciprocalRankFusion
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import Artifact, Variadic
 from modstack.utils.func import chain_iterables, tzip
@@ -13,7 +11,7 @@ from modstack.utils.func import chain_iterables, tzip
 logger = logging.getLogger(__name__)
 
 class ArtifactJoiner(Module):
-    @feature(name=ConcatArtifacts.name())
+    @endpoint
     def concatenate(
         self,
         artifacts: Variadic[list[Artifact]],
@@ -36,7 +34,7 @@ class ArtifactJoiner(Module):
             sort_by_score
         )
 
-    @feature(name=MergeArtifacts.name())
+    @endpoint
     def merge(
         self,
         artifacts: Variadic[list[Artifact]],
@@ -62,7 +60,7 @@ class ArtifactJoiner(Module):
             sort_by_score
         )
 
-    @feature(name=ReciprocalRankFusion.name())
+    @endpoint
     def reciprocal_rank_fusion(
         self,
         artifacts: Variadic[list[Artifact]],

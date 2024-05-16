@@ -4,9 +4,7 @@ import logging
 import re
 from typing import Generator
 
-from modstack.containers import feature
-
-from modstack.contracts import CleanText
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import TextArtifact, Utf8Artifact
 from modstack.utils.func import tintersection, tmap, tpartial, treduce
@@ -29,7 +27,7 @@ class TextCleaner(Module):
         self.remove_regex = remove_regex
         self.remove_repeated_substrings = remove_repeated_substrings
 
-    @feature(name=CleanText.name())
+    @endpoint
     def clean(self, artifacts: list[Utf8Artifact], **kwargs) -> list[Utf8Artifact]:
         cleaned_artifacts: list[TextArtifact] = []
 

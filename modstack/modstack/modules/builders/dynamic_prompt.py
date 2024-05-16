@@ -1,9 +1,8 @@
 from typing import Any
 
 from jinja2 import Template, meta
-from modstack.containers import feature
 
-from modstack.contracts import BuildDynamicPrompt
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.utils.serialization import create_model, from_parameters
 
@@ -11,10 +10,10 @@ class DynamicPromptBuilder(Module):
     def __init__(self, runtime_variables: list[str] | None = None):
         super().__init__()
         self.runtime_variables = runtime_variables or []
-        schema_fields = from_parameters(self.get_parameters(BuildDynamicPrompt.name()))
+        schema_fields = from_parameters(self.get_parameters('build'))
         runtime_fields = {v: (Any | None, None) for v in self.runtime_variables}
         self.set_input_schema(
-            BuildDynamicPrompt.name(),
+            'build',
             create_model(
                 'BuildDynamicPromptInput',
                 **schema_fields,
@@ -22,7 +21,7 @@ class DynamicPromptBuilder(Module):
             )
         )
 
-    @feature(name=BuildDynamicPrompt.name(), ignore_input_schema=True)
+    @endpoint(ignore_input_schema=True)
     def build(
         self,
         prompt_source: str,

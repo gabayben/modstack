@@ -6,13 +6,12 @@ from markdown_it.renderer import RendererHTML, RendererProtocol
 from markdown_it.utils import PresetType
 from mdit_plain.renderer import RendererPlain
 
-from modstack.containers import feature
-from modstack.contracts import HtmlToText, MarkdownToText
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, TextArtifact, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
-from modstack_markdown import MdItToText, RendererType
+from modstack_markdown import RendererType
 
 logger = logging.getLogger(__name__)
 
@@ -22,31 +21,8 @@ class Markdown(Module):
         'Html': RendererHTML
     }
 
-    @feature(name=MarkdownToText.name())
-    def to_text(
-        self,
-        sources: list[ArtifactSource],
-        metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
-        **kwargs
-    ) -> list[Utf8Artifact]:
-        return self.mdit_to_text(sources, metadata=metadata, **kwargs)
-
-    @feature(name=HtmlToText.name())
-    def html_to_text(
-        self,
-        sources: list[ArtifactSource],
-        metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
-        **kwargs
-    ) -> list[Utf8Artifact]:
-        return self.mdit_to_text(
-            sources,
-            metadata=metadata,
-            renderer_type='Html',
-            **kwargs
-        )
-
-    @feature(name=MdItToText.name())
-    def mdit_to_text(
+    @endpoint
+    def markdown_to_text(
         self,
         sources: list[ArtifactSource],
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
@@ -81,3 +57,17 @@ class Markdown(Module):
                 logger.warning(f'Failed to extract text from {source}. Skipping it. Error: {e}.')
 
         return results
+
+    @endpoint
+    def html_to_text(
+        self,
+        sources: list[ArtifactSource],
+        metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
+        **kwargs
+    ) -> list[Utf8Artifact]:
+        return self.markdown_to_text(
+            sources,
+            metadata=metadata,
+            renderer_type='Html',
+            **kwargs
+        )

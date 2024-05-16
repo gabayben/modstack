@@ -4,12 +4,11 @@ import cohere
 import numpy as np
 
 from modstack.auth import Secret
-from modstack.containers import feature
-from modstack.contracts import EmbedText, EmbedTextResponse
+from modstack.contracts import EmbedTextResponse
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import Utf8Artifact
 from modstack.utils.func import tzip
-from modstack_cohere.embedders import CohereEmbedText
 from modstack_cohere.typing import OMIT
 
 _EMBED_RESPONSE = cohere.EmbedResponse_EmbeddingsFloats | cohere.EmbedResponse_EmbeddingsByType
@@ -56,12 +55,8 @@ class CohereTextEmbedder(Module):
         self.embedding_seperator = embedding_seperator
         self.batch_size = batch_size
 
-    @feature(name=EmbedText.name())
-    async def embed(self, artifacts: list[Utf8Artifact], **kwargs) -> EmbedTextResponse:
-        return await self.cohere_embed(artifacts, **kwargs)
-
-    @feature(name=CohereEmbedText.name())
-    async def cohere_embed(
+    @endpoint
+    async def embed(
         self,
         artifacts: list[Utf8Artifact],
         model: str | None = None,

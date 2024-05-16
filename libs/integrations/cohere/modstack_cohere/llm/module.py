@@ -1,10 +1,9 @@
-from typing import Any, ClassVar, Iterator
+from typing import Any, ClassVar, Iterable
 
 import cohere
 
 from modstack.auth import Secret
-from modstack.containers import feature
-from modstack.contracts import LLMCall
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import ChatMessage, ChatRole, StreamingCallback
 from modstack_cohere.utils import build_cohore_metadata
@@ -39,13 +38,13 @@ class CohereLLM(Module):
             timeout=timeout
         )
 
-    @feature(name=LLMCall.name())
-    def chat(
+    @endpoint
+    def call(
         self,
-        messages: list[ChatMessage],
+        messages: Iterable[ChatMessage],
         generation_args: dict[str, Any] | None = None,
         **kwargs
-    ) -> Iterator[ChatMessage]:
+    ) -> Iterable[ChatMessage]:
         if not messages:
             yield from []
 
@@ -77,7 +76,7 @@ class CohereLLM(Module):
 
             chat_message = ChatMessage.from_assistant(text)
             self._build_metadata(chat_message.metadata, finish_response)
-            yield chat_message
+            return [chat_message]
         else:
             response = self.client.chat(
                 message=messages[-1].content,
@@ -87,7 +86,7 @@ class CohereLLM(Module):
             )
             chat_message = ChatMessage.from_assistant(response.text)
             self._build_metadata(chat_message.metadata, response)
-            yield chat_message
+            return [chat_message]
 
     def _build_cohere_message(self, message: ChatMessage) -> cohere.ChatMessage:
         return cohere.ChatMessage(

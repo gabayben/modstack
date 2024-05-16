@@ -1,13 +1,11 @@
 import json
-from typing import Any, Iterator
+from typing import Any, Iterable
 
 import requests
 
-from modstack.containers import feature
-from modstack.contracts import LLMCall
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import ChatMessage, StreamingCallback, StreamingChunk
-from modstack_ollama.llm import OllamaLLMCall
 
 class OllamaLLM(Module):
     def __init__(
@@ -29,19 +27,10 @@ class OllamaLLM(Module):
         self.raw = raw
         self.streaming_callback = streaming_callback
 
-    @feature(name=LLMCall.name())
-    def generate(
+    @endpoint
+    def call(
         self,
-        messages: list[ChatMessage],
-        generation_args: dict[str, Any] | None = None,
-        **kwargs
-    ) -> Iterator[ChatMessage]:
-        yield from self.ollama_generate(messages, generation_args=generation_args, **kwargs)
-
-    @feature(name=OllamaLLMCall.name())
-    def ollama_generate(
-        self,
-        messages: list[ChatMessage],
+        messages: Iterable[ChatMessage],
         generation_args: dict[str, Any] | None = None,
         images: list[str] | None = None,
         system_prompt: str | None = None,
@@ -49,7 +38,7 @@ class OllamaLLM(Module):
         timeout: int | None = None,
         raw: bool | None = None,
         **kwargs
-    ) -> Iterator[ChatMessage]:
+    ) -> Iterable[ChatMessage]:
         generation_args = {**(generation_args or {})}
         system_prompt = system_prompt or self.system_prompt
         template = template or self.template
@@ -78,17 +67,16 @@ class OllamaLLM(Module):
                     chunks.append(chunk)
                     if self.streaming_callback:
                         self.streaming_callback(chunk[0], chunk[1])
-                yield ChatMessage.from_assistant(
+                return [ChatMessage.from_assistant(
                     ''.join(content for content, _ in chunks),
                     metadata={key: value for key, value in chunks[0][1].items() if key != 'response'}
-                )
-                continue
+                )]
 
             data = response.json()
-            yield ChatMessage.from_assistant(
+            return [ChatMessage.from_assistant(
                 data['response'],
                 metadata={key: value for key, value in data if key != 'response'}
-            )
+            )]
 
 def _build_chunk(data: bytes | bytearray) -> StreamingChunk:
     chunk = json.loads(data.decode(encoding='utf-8'))

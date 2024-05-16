@@ -2,9 +2,7 @@ from collections import defaultdict
 import re
 from re import Pattern
 
-from modstack.containers import feature
-
-from modstack.contracts import RouteByMimeType
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import Artifact, ArtifactSource, StrictArtifactSource
 from modstack.utils.serialization import create_model
@@ -20,7 +18,7 @@ class MimeTypeRouter(Module):
                 raise ValueError(f"Invalid mime type or regex pattern: '{mime_type}'.")
             self.mime_type_patterns.append(re.compile(mime_type))
         self.set_output_schema(
-            RouteByMimeType.name(),
+            'route',
             create_model(
                 'RouteByMimeTypeOutput',
                 unclassified=(list[StrictArtifactSource], []),
@@ -29,7 +27,7 @@ class MimeTypeRouter(Module):
         )
         self.mime_types = mime_types
 
-    @feature(name=RouteByMimeType.name(), ignore_output_schema=True)
+    @endpoint(ignore_output_schema=True)
     def route(self, sources: list[ArtifactSource], **kwargs) -> dict[str, list[StrictArtifactSource]]:
         sources_by_mime_type: defaultdict[str, list[StrictArtifactSource]] = defaultdict(list)
         for source in sources:

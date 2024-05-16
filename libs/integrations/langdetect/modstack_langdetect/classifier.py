@@ -2,8 +2,7 @@ import logging
 
 import langdetect
 
-from modstack.containers import feature
-from modstack.contracts import ClassifyLanguages
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import Utf8Artifact
 
@@ -14,7 +13,7 @@ class LangDetectClassifier(Module):
         super().__init__()
         self.languages = languages or ['en']
 
-    @feature(name=ClassifyLanguages.name())
+    @endpoint
     def classify(self, artifacts: list[Utf8Artifact], **kwargs) -> list[Utf8Artifact]:
         for artifact in artifacts:
             detected_language = self._detect_language(artifact)

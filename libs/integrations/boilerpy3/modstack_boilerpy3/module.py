@@ -4,13 +4,12 @@ from typing import Any, ClassVar
 from boilerpy3 import extractors
 from boilerpy3.extractors import Extractor
 
-from modstack.containers import feature
-from modstack.contracts import HtmlToText
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import ArtifactSource, TextArtifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
-from modstack_boilerpy3 import BoilerToText, ExtractorType
+from modstack_boilerpy3 import ExtractorType
 
 logger = logging.getLogger(__name__)
 
@@ -25,17 +24,8 @@ class BoilerPy3(Module):
         'NumWordsRulesExtractor'
     ]
 
-    @feature(name=HtmlToText.name())
-    def to_text(
-        self,
-        sources: list[ArtifactSource],
-        metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
-        **kwargs
-    ) -> list[TextArtifact]:
-        return self.boiler_to_text(sources, metadata=metadata, **kwargs)
-
-    @feature(name=BoilerToText.name())
-    def boiler_to_text(
+    @endpoint
+    def html_to_text(
         self,
         sources: list[ArtifactSource],
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,

@@ -1,9 +1,8 @@
 from typing import Any, cast
 
 from jinja2 import Template, meta
-from modstack.containers import feature
 
-from modstack.contracts import JinjaMapping
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 
 class JinjaMapper(Module):
@@ -14,6 +13,6 @@ class JinjaMapper(Module):
         template_variables = meta.find_undeclared_variables(ast)
         self.context_variables = {v: (Any, None) for v in template_variables}
 
-    @feature(name=JinjaMapping.name())
+    @endpoint
     def map(self, context: Any, **kwargs) -> Any:
         return cast(Any, self.template.render(context))

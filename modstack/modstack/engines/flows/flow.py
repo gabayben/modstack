@@ -1,12 +1,12 @@
-from modstack.containers import Feature, feature
 import networkx
 
-from modstack.contracts.flows import FlowInput, FlowOutput, NodeId, RunFlow, SocketId
+from modstack.contracts.flows import FlowInput, FlowOutput, SocketId
+from modstack.endpoints import Endpoint
 from modstack.modules import Module
 
-class Flow(Module):
+class Flow:
     @property
-    def nodes(self) -> dict[NodeId, Feature]:
+    def nodes(self) -> dict[str, Endpoint]:
         raise NotImplementedError()
 
     def __init__(self):
@@ -26,10 +26,9 @@ class Flow(Module):
     ) -> None:
         pass
 
-    @feature(name=RunFlow.name())
     def run(
         self,
-        node_id: NodeId | None = None,
+        node_id: str | None = None,
         data: FlowInput | None = None,
         **kwargs
     ) -> FlowOutput:

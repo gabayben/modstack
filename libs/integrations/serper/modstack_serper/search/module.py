@@ -5,12 +5,12 @@ from typing import Any
 import requests
 
 from modstack.auth import Secret
-from modstack.containers import feature
-from modstack.contracts.websearch import SearchEngineQuery, SearchEngineResponse
+from modstack.contracts.websearch import SearchEngineResponse
+from modstack.endpoints import endpoint
 from modstack.modules import Module
 from modstack.typing import LinkArtifact, TextArtifact
 from modstack.utils.display import mapping_to_str
-from modstack_serper.search import MapSerperSearch, SerperError, SerperSearchQuery, SerperSearchResponse
+from modstack_serper.search import SerperError, SerperSearchResponse
 from modstack_serper.search.builders import build_search_response
 
 SERPER_BASE_URL = 'https://google.serper.dev/search'
@@ -36,7 +36,7 @@ class SerperSearch(Module):
         self.timeout = timeout
         _ = self.api_key.resolve_value()
 
-    @feature(name=SearchEngineQuery.name())
+    @endpoint
     def search(
         self,
         query: str,
@@ -47,7 +47,7 @@ class SerperSearch(Module):
         serper_response = self.serper_search(query, allowed_domains=allowed_domains, search_params=search_params, **kwargs)
         return self.map(serper_response)
 
-    @feature(name=SerperSearchQuery.name())
+    @endpoint
     def serper_search(
         self,
         query: str,
@@ -84,7 +84,7 @@ class SerperSearch(Module):
 
         return build_search_response(response.json())
 
-    @feature(name=MapSerperSearch.name())
+    @endpoint(name='map_serper')
     def map(self, response: SerperSearchResponse, **kwargs) -> SearchEngineResponse:
         links: list[LinkArtifact] = [
             LinkArtifact(
