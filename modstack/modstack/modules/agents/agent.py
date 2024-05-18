@@ -1,18 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable
+from typing import Any, Iterable
 
-from modstack.engines import EngineContext
 from modstack.modules import Module
 from modstack.typing import ChatMessage, Tool
 
 class Agent(Module, ABC):
     def __init__(
         self,
-        context: EngineContext,
         llm_path: str,
         tools: list[Tool] | None = None
     ):
-        self.context = context
+        super().__init__()
         self.llm_path = llm_path
         self._tools = tools or []
 
@@ -24,6 +22,6 @@ class Agent(Module, ABC):
         self,
         prompt: str,
         history: Iterable[ChatMessage] | None = None,
-        generation_args: Dict[str, Any] | None = None
+        generation_args: dict[str, Any] | None = None
     ) -> Iterable[ChatMessage]:
         pass

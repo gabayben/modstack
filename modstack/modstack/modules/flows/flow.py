@@ -9,4 +9,5 @@ class Flow(FlowBase):
         node_id: str | None = None,
         data: FlowInput | None = None,
     ) -> FlowOutput:
-        pass
+        self.validate_context()
+        return {}

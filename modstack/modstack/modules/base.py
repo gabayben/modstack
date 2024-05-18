@@ -1,14 +1,24 @@
 import inspect
 from inspect import Parameter
 from types import MappingProxyType
-from typing import Any, Type
+from typing import Any, TYPE_CHECKING, Type, final
 
 from pydantic import BaseModel
 
 from modstack.constants import MODSTACK_ENDPOINT
 from modstack.endpoints import Endpoint, EndpointNotFound
 
+if TYPE_CHECKING:
+    from modstack.engines.engine import EngineContext
+else:
+    EngineContext = Any
+
+class ModuleError(Exception):
+    pass
+
 class Module:
+    context: EngineContext
+
     @property
     def endpoints(self) -> dict[str, Endpoint]:
         return self._endpoints
@@ -17,6 +27,23 @@ class Module:
         self._endpoints: dict[str, Endpoint] = {}
         for _, func in inspect.getmembers(self, lambda x: callable(x) and hasattr(x, MODSTACK_ENDPOINT)):
             self.add_endpoint(Endpoint(func))
+
+    def __engine_init__(self) -> None:
+        pass
+
+    @final
+    def add_context(self, context: EngineContext) -> None:
+        self.context = context
+        self.__engine_init__()
+
+    @final
+    def has_context(self) -> bool:
+        return hasattr(self, 'context')
+
+    @final
+    def validate_context(self) -> None:
+        if not self.has_context():
+            raise ModuleError(f'Context is not set. You must add {self.__class__.__name__} to an Engine.')
 
     def get_endpoint[Out](self, name: str, output_type: Type[Out] = Any) -> Endpoint[Out]:
         if name not in self.endpoints:

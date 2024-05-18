@@ -1,28 +1,29 @@
 from abc import ABC
 from typing import Type
 
-import networkx
+import networkx as nx
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
 from modstack.contracts.flows import SocketId
 from modstack.endpoints import Endpoint
-from modstack.engines import EngineContext
 from modstack.modules import Module
 from modstack.modules.flows import FlowConnectError, FlowError, FlowNode, NodeNotFound
 from modstack.utils.func import tproduct
 from modstack.utils.reflection import types_are_compatible
 
 class FlowBase(Module, ABC):
-    def __init__(self, context: EngineContext):
-        self.context = context
-        self.graph = networkx.MultiDiGraph()
+    def __init__(self):
+        super().__init__()
+        self.graph = nx.MultiDiGraph()
 
     def connect(
         self,
         source: SocketId,
         target: SocketId
     ) -> None:
+        self.validate_context()
+
         if source.node == target.node:
             raise FlowError(f'Source and target node are both {target.node}. Cannot connect node to itself.')
 

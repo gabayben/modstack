@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterable
+from typing import Any, Iterable
 
 from modstack.endpoints import endpoint
 from modstack.modules.agents import Agent
@@ -10,6 +10,6 @@ class ReactAgent(Agent):
         self,
         prompt: str,
         history: Iterable[ChatMessage] | None = None,
-        generation_args: Dict[str, Any] | None = None
+        generation_args: dict[str, Any] | None = None
     ) -> Iterable[ChatMessage]:
         pass

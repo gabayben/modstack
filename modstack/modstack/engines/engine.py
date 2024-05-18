@@ -1,41 +1,14 @@
-from abc import ABC, abstractmethod
-from typing import Any, AsyncIterator, Iterator, Type
+from typing import Any, TYPE_CHECKING, Type
 
-from modstack.contracts import Contract
 from modstack.endpoints import Endpoint
-from modstack.modules import Module
-from modstack.typing import Effect
+from modstack.engines import EngineEndpointError, EngineModuleError
+from modstack.engines.base import EngineBase
 from modstack.typing.vars import Out
 
-class EngineBase(ABC):
-    @abstractmethod
-    def get_endpoint(self, path: str, output_type: Type[Out] = Any) -> Endpoint[Out]:
-        pass
-
-    def call(
-        self,
-        path: str,
-        *args,
-        output_type: Type[Out] = Any,
-        **kwargs
-    ) -> Effect[Out]:
-        return self.get_endpoint(path, output_type=output_type)(*args, **kwargs)
-
-    def effect(self, path: str, contract: Contract[Out]) -> Effect[Out]:
-        return self.get_endpoint(path, type(Out)).effect(contract)
-
-    def invoke(self, path: str, contract: Contract[Out]) -> Out:
-        return self.effect(path, contract).invoke()
-
-    async def ainvoke(self, path: str, contract: Contract[Out]) -> Out:
-        return await self.effect(path, contract).ainvoke()
-
-    def iter(self, path: str, contract: Contract[Out]) -> Iterator[Out]:
-        yield from self.effect(path, contract).iter()
-
-    async def aiter(self, path: str, contract: Contract[Out]) -> AsyncIterator[Out]:
-        async for item in self.effect(path, contract).aiter():  # type: ignore
-            yield item
+if TYPE_CHECKING:
+    from modstack.modules.base import Module
+else:
+    Module = Any
 
 class Engine(EngineBase):
     @property
@@ -46,25 +19,38 @@ class Engine(EngineBase):
     def endpoints(self) -> dict[str, Endpoint]:
         return self._endpoints
 
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self, name: str | None = None):
+        self.name = name or self.__class__.__name__
         self._modules: dict[str, Module] = {}
         self._endpoints: dict[str, Endpoint] = {}
 
     def as_context(self) -> 'EngineContext':
         return EngineContext(self)
 
-    def add_module(self, name: str, module: Module):
+    def add_module[TModule: Module](self, name: str, module: TModule) -> TModule:
+        if name in self.modules:
+            raise EngineModuleError(f"Module '{name}' already exists.")
         self.modules[name] = module
 
-    def add_endpoint(self, endpoint: Endpoint, name: str | None = None) -> None:
-        pass
+        for endpoint in module.endpoints.values():
+            self.add_endpoint(endpoint, path=f'{name}.{endpoint.name}')
+
+        module.add_context(self.as_context())
+        return module
+
+    def add_endpoint(self, endpoint: Endpoint, path: str | None = None) -> None:
+        path = path or endpoint.name
+        if path in self.endpoints:
+            raise EngineEndpointError(f"Endpoint '{path}' already exists.")
+        self.endpoints[path] = endpoint
 
     def get_endpoint(
         self,
         path: str,
         output_type: Type[Out] = Any
     ) -> Endpoint[Out]:
+        if path not in self.endpoints:
+            raise EngineEndpointError(f"Endpoint '{path}' does not exist.")
         return self.endpoints[path]
 
 class EngineContext(EngineBase):
