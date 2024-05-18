@@ -1,11 +1,11 @@
+from abc import ABC, abstractmethod
 from typing import Any, Dict, Iterable
 
-from modstack.endpoints import endpoint
 from modstack.engines import EngineContext
 from modstack.modules import Module
 from modstack.typing import ChatMessage, Tool
 
-class Agent(Module):
+class Agent(Module, ABC):
     def __init__(
         self,
         context: EngineContext,
@@ -19,10 +19,11 @@ class Agent(Module):
     def add_tools(self, *tools: str | Tool) -> None:
         pass
 
-    @endpoint
+    @abstractmethod
     def call(
         self,
-        messages: Iterable[ChatMessage],
-        generation_args: Dict[str, Any]
+        prompt: str,
+        history: Iterable[ChatMessage] | None = None,
+        generation_args: Dict[str, Any] | None = None
     ) -> Iterable[ChatMessage]:
         pass

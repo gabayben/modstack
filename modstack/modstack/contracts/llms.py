@@ -1,10 +1,11 @@
 from typing import Any, Iterable
 
 from modstack.contracts import Contract
-from modstack.typing import ChatMessage, Tool
+from modstack.typing import ChatMessage, ChatRole, Tool
 
 class CallLLM(Contract[Iterable[ChatMessage]]):
     prompt: str
+    role: ChatRole | None = None
     history: Iterable[ChatMessage] | None = None
     tools: list[Tool] | None = None
     generation_args: dict[str, Any] | None = None
@@ -12,6 +13,7 @@ class CallLLM(Contract[Iterable[ChatMessage]]):
     def __init__(
         self,
         prompt: str,
+        role: ChatRole | None = None,
         history: Iterable[ChatMessage] | None = None,
         tools: list[Tool] | None = None,
         generation_args: dict[str, Any] | None = None,
@@ -19,6 +21,7 @@ class CallLLM(Contract[Iterable[ChatMessage]]):
     ):
         super().__init__(
             prompt=prompt,
+            role=role,
             history=history,
             tools=tools,
             generation_args=generation_args,
