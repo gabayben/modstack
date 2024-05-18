@@ -5,11 +5,11 @@ import cohere
 from modstack.auth import Secret
 from modstack.endpoints import endpoint
 from modstack.modules import Module
-from modstack.typing import ChatMessage, ChatRole, StreamingCallback, Tool
+from modstack.typing import ChatMessage, ChatRole, StreamingCallback, Tool, ToolResult
 from modstack_cohere.utils import build_cohore_metadata
 
 class CohereLLM(Module):
-    ROLES_MAP: ClassVar[dict[ChatRole, cohere.ChatMessageRole]] = {
+    ROLES_MAP: ClassVar[dict[ChatRole, str]] = {
         ChatRole.USER: 'USER',
         ChatRole.FUNCTION: 'USER',
         ChatRole.ASSISTANT: 'CHAT',
@@ -42,8 +42,10 @@ class CohereLLM(Module):
     def call(
         self,
         prompt: str,
+        role: ChatRole | None = None,
         history: Iterable[ChatMessage] | None = None,
         tools: list[Tool] | None = None,
+        tool_results: list[ToolResult] | None = None,
         generation_args: dict[str, Any] | None = None,
         **kwargs
     ) -> Iterable[ChatMessage]:
@@ -56,8 +58,9 @@ class CohereLLM(Module):
         if self.stream:
             response = self.client.chat_stream(
                 message=prompt,
-                tools=self._build_cohere_tools(tools) if tools else None,
                 chat_history=chat_history,
+                tools=self._build_cohere_tools(tools) if tools else None,
+                tool_results=self._build_cohere_tool_results(tool_results) if tool_results else None,
                 model=self.model,
                 **generation_args
             )
@@ -81,8 +84,9 @@ class CohereLLM(Module):
         else:
             response = self.client.chat(
                 message=prompt,
-                tools=self._build_cohere_tools(tools) if tools else None,
                 chat_history=chat_history,
+                tools=self._build_cohere_tools(tools) if tools else None,
+                tool_results=self._build_cohere_tool_results(tool_results) if tool_results else None,
                 model=self.model,
                 **generation_args
             )
@@ -97,6 +101,9 @@ class CohereLLM(Module):
         )
 
     def _build_cohere_tools(self, tools: list[Tool]) -> list[cohere.Tool]:
+        pass
+
+    def _build_cohere_tool_results(self, tool_results: list[ToolResult]) -> list[cohere.ToolResult]:
         pass
 
     def _build_metadata(self, metadata: dict[str, Any], response: cohere.NonStreamedChatResponse) -> None:

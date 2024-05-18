@@ -32,3 +32,19 @@ class Tool(Serializable):
             metadata=metadata,
             **kwargs
         )
+
+class ToolResult(Serializable):
+    tool: str
+    result: Any | None
+
+    def __init__(
+        self,
+        tool: str,
+        result: Any | None,
+        **kwargs
+    ):
+        super().__init__(
+            tool=tool,
+            result=result,
+            **kwargs
+        )

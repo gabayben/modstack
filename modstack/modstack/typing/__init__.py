@@ -23,7 +23,7 @@ from .types import (
 
 from .effect import Effect, Effects
 from .serializable import Serializable
-from .tools import ToolParameter, Tool
+from .tools import ToolParameter, Tool, ToolResult
 
 from .artifact import Artifact, ArtifactSource, StrictArtifactSource, Utf8Artifact
 from .blob import AudioArtifact, BlobArtifact, ImageArtifact, MediaArtifact, VideoArtifact
