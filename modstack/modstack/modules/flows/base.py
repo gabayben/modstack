@@ -59,6 +59,9 @@ class FlowBase(Module, ABC):
             source_socket = possible_connections[0][0]
             target_socket = possible_connections[0][1]
 
+        if len(possible_connections) > 1:
+            pass
+
     def get_node(self, path: str) -> FlowNode:
         if not self.graph.has_node(path):
             raise NodeNotFound(f'Node with path {path} not found in graph.')
