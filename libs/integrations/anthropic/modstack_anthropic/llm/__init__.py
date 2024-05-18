@@ -1,2 +1,2 @@
-from .contracts import AnthropicLLMCall
+from .contracts import CallAnthropicLLM
 from .module import AnthropicLLM

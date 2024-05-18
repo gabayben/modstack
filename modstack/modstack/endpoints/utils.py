@@ -6,6 +6,10 @@ from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
 
 @minimal_endpoint
+def to_text_artifact(content: str, metadata: dict[str, Any] | None = None) -> TextArtifact:
+    return TextArtifact(content, metadata=metadata or {})
+
+@minimal_endpoint
 def to_text_artifacts(content: list[str], metadata: list[dict[str, Any]] | None = None) -> list[TextArtifact]:
     metadata = normalize_metadata(metadata or [], len(content))
     return [

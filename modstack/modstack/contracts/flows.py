@@ -1,8 +1,8 @@
-from typing import Any
+from typing import Any, NamedTuple
 
 from modstack.contracts import Contract
 
-class SocketId:
+class SocketId(NamedTuple):
     node: str
     field: str | None = None
 

@@ -5,7 +5,7 @@ import cohere
 from modstack.auth import Secret
 from modstack.endpoints import endpoint
 from modstack.modules import Module
-from modstack.typing import ChatMessage, ChatRole, StreamingCallback
+from modstack.typing import ChatMessage, ChatRole, StreamingCallback, Tool
 from modstack_cohere.utils import build_cohore_metadata
 
 class CohereLLM(Module):
@@ -41,21 +41,22 @@ class CohereLLM(Module):
     @endpoint
     def call(
         self,
-        messages: Iterable[ChatMessage],
+        prompt: str,
+        history: Iterable[ChatMessage] | None = None,
+        tools: list[Tool] | None = None,
         generation_args: dict[str, Any] | None = None,
         **kwargs
     ) -> Iterable[ChatMessage]:
-        if not messages:
-            yield from []
-
         generation_args = {**self.generation_args, **(generation_args or {})}
         chat_history = [
             self._build_cohere_message(message)
-            for message in messages[:-1]
-        ]
+            for message in history
+        ] if history else []
+
         if self.stream:
             response = self.client.chat_stream(
-                message=messages[-1].content,
+                message=prompt,
+                tools=self._build_cohere_tools(tools) if tools else None,
                 chat_history=chat_history,
                 model=self.model,
                 **generation_args
@@ -79,7 +80,8 @@ class CohereLLM(Module):
             return [chat_message]
         else:
             response = self.client.chat(
-                message=messages[-1].content,
+                message=prompt,
+                tools=self._build_cohere_tools(tools) if tools else None,
                 chat_history=chat_history,
                 model=self.model,
                 **generation_args
@@ -93,6 +95,9 @@ class CohereLLM(Module):
             role=self.ROLES_MAP[message.role],
             message=message.content
         )
+
+    def _build_cohere_tools(self, tools: list[Tool]) -> list[cohere.Tool]:
+        pass
 
     def _build_metadata(self, metadata: dict[str, Any], response: cohere.NonStreamedChatResponse) -> None:
         metadata['model'] = self.model

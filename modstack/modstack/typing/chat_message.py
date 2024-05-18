@@ -11,7 +11,7 @@ class ChatRole(StrEnum):
 
 class ChatMessage(Utf8Artifact):
     content: str
-    role: ChatRole | str
+    role: ChatRole | str | None = None
     name: str | None = None
 
     def __init__(
@@ -40,6 +40,8 @@ class ChatMessage(Utf8Artifact):
         return cls(content, ChatRole.FUNCTION, name=name, **kwargs)
 
     def to_utf8(self) -> str:
+        if not self.role:
+            return self.content
         text = self.role
         if self.name:
             text += f' {self.name}'

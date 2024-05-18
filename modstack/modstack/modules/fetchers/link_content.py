@@ -51,6 +51,7 @@ class LinkContentFetcher(Module):
         self.retry_attempts = retry_attempts
         self.wait_multiplier = wait_multiplier
         self.wait_min = wait_min
+        self.wait_max = wait_max
         self.timeout = timeout
         self.raise_on_failure = raise_on_failure
         self._current_user_agent_idx = 0

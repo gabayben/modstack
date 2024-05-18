@@ -1,5 +1,4 @@
 import typing
-from typing import Annotated, Iterable
 
 from docarray import (
     BaseDoc as DocArrayBaseDoc,
@@ -14,7 +13,9 @@ from modstack.constants import VARIADIC_TYPE
 
 _T = typing.TypeVar('_T')
 
-Variadic = Annotated[Iterable[_T], VARIADIC_TYPE]
+CallableType = typing.Literal['invoke', 'ainvoke', 'iter', 'aiter']
+ReturnType = _T | typing.Coroutine[typing.Any, typing.Any, _T] | typing.Iterator[_T] | typing.AsyncIterator[_T]
+Variadic = typing.Annotated[typing.Iterable[_T], VARIADIC_TYPE]
 StreamingChunk = tuple[str, dict[str, typing.Any]]
 StreamingCallback = typing.Callable[[str, dict[str, typing.Any]], None]
 

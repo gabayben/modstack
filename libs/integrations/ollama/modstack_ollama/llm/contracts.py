@@ -1,8 +1,8 @@
 from typing import override
 
-from modstack.contracts import LLMCall
+from modstack.contracts import CallLLM
 
-class OllamaLLMCall(LLMCall):
+class CallOllamaLLM(CallLLM):
     images: list[str] | None = None
     system_prompt: str | None = None
     template: str | None = None
@@ -12,4 +12,4 @@ class OllamaLLMCall(LLMCall):
     @classmethod
     @override
     def name(cls) -> str:
-        return 'ollama_llm_call'
+        return 'call_ollama_llm'

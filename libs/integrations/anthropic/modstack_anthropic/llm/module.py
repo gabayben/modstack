@@ -47,7 +47,8 @@ class AnthropicLLM(Module):
     @endpoint
     def call(
         self,
-        messages: Iterable[ChatMessage],
+        prompt: str,
+        history: Iterable[ChatMessage] | None = None,
         generation_args: dict[str, Any] | None = None,
         max_tokens: int | None = None,
         system_prompt: str | None = None,
@@ -58,9 +59,6 @@ class AnthropicLLM(Module):
         stream: bool = False,
         **kwargs
     ) -> Iterable[ChatMessage]:
-        if not messages:
-            return []
-
         generation_args = {**self.generation_args, **(generation_args or {})}
         max_tokens = max_tokens or self.max_tokens
         system_prompt = system_prompt or self.system_prompt
@@ -69,3 +67,4 @@ class AnthropicLLM(Module):
         temperature = temperature or self.temperature
         stop_sequences = stop_sequences or self.stop_sequences
         stream = stream if stream is not None else self.stream
+        return [ChatMessage.from_user(prompt)]

@@ -1,4 +1,5 @@
 from functools import partial, reduce
+import itertools
 from itertools import chain
 from typing import Callable, Iterable, overload
 
@@ -15,6 +16,9 @@ def tmap[In, Out](func: Callable[[In], Out], *args: In) -> Iterable[Out]:
 
 def treduce[T, S](func: Callable[[T, S], T], sequence: Iterable[S], initial: T = _initial_missing):
     return reduce(func, sequence, initial=initial)
+
+def tproduct[T](*args: Iterable[T]) -> Iterable[tuple[T, ...]]:
+    return itertools.product(*args)
 
 def chain_iterables[T](iterables: Iterable[Iterable[T]]) -> Iterable[T]:
     return chain.from_iterable(iterables)
