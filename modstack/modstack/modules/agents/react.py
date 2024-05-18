@@ -12,4 +12,5 @@ class ReactAgent(Agent):
         history: Iterable[ChatMessage] | None = None,
         generation_args: dict[str, Any] | None = None
     ) -> Iterable[ChatMessage]:
-        pass
+        self.validate_context()
+        return []
