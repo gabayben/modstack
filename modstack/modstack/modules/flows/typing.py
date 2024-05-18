@@ -1,19 +1,25 @@
-from typing import Type
+from typing import NamedTuple, Type, TypedDict
 
 from pydantic.fields import FieldInfo
 
 from modstack.endpoints import Endpoint
 
-def FlowNode(TypedDict):
+class FlowSocket(NamedTuple):
+    name: str
+    field: FieldInfo
+    connections: list[str]
+
+class FlowNode(TypedDict):
+    name: str
     instance: Endpoint
+    input_sockets: dict[str, FlowSocket]
+    output_sockets: dict[str, FlowSocket]
     visits: int
 
-def FlowEdge(TypedDict):
+class FlowEdge(TypedDict):
     key: str
     source: str
-    source_field: str
-    source_field_info: FieldInfo
+    source_socket: FlowSocket
     target: str
-    target_field: str
-    target_field_info: FieldInfo
+    target_socket: FlowSocket
     connection_type: Type
