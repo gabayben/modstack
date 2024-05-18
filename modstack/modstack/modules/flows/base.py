@@ -7,15 +7,15 @@ from pydantic.fields import FieldInfo
 
 from modstack.contracts.flows import SocketId
 from modstack.endpoints import Endpoint
-from modstack.engines import Engine
+from modstack.engines import EngineContext
 from modstack.modules import Module
 from modstack.modules.flows import FlowConnectError, FlowError, FlowNode, NodeNotFound
 from modstack.utils.func import tproduct
 from modstack.utils.reflection import types_are_compatible
 
 class FlowBase(Module, ABC):
-    def __init__(self, engine: Engine):
-        self.engine = engine
+    def __init__(self, context: EngineContext):
+        self.context = context
         self.graph = networkx.MultiDiGraph()
 
     def connect(
@@ -66,7 +66,7 @@ class FlowBase(Module, ABC):
 
     def _get_or_add_node(self, path: str) -> Endpoint:
         if not self.graph.has_node(path):
-            endpoint = self.engine.get_endpoint(path)
+            endpoint = self.context.get_endpoint(path)
             self.graph.add_node(path, endpoint=endpoint, visits=0)
             return endpoint
         return self.graph.nodes[path]['endpoint']
