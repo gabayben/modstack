@@ -134,8 +134,24 @@ class FlowBase(Module, ABC):
 
 def _connection_status(
     source: str,
-    source_fields: list[FlowSocket],
+    source_sockets: list[FlowSocket],
     target: str,
-    target_fields: list[FlowSocket]
+    target_sockets: list[FlowSocket]
 ) -> str:
-    pass
+    source_socket_entries = []
+    for source_socket in source_sockets:
+        source_socket_entries.append(f' - {source_socket.name}: {source_socket.field.annotation}')
+    source_sockets_list = '\n'.join(source_socket_entries)
+
+    target_socket_entries = []
+    for target_socket in target_sockets:
+        if target_socket.connections:
+            source_status = f'sent by {', '.join(target_socket.connections)}'
+        else:
+            source_status = 'available'
+        target_socket_entries.append(
+            f' - {target_socket.name}: {target_socket.field.annotation} ({source_status})'
+        )
+    target_sockets_list = "\n".join(target_socket_entries)
+
+    return f"'{source}':\n{source_sockets_list}\n'{target}':\n{target_sockets_list}"
