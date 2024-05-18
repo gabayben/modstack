@@ -1,22 +1,22 @@
 from typing import Any, Dict, Iterable
 
-from modstack.contracts import Tool
 from modstack.endpoints import endpoint
-from modstack.engines import Engine
+from modstack.engines import EngineContext
 from modstack.modules import Module
-from modstack.typing import ChatMessage
+from modstack.typing import ChatMessage, Tool
 
 class Agent(Module):
     def __init__(
         self,
-        engine: Engine,
+        context: EngineContext,
         llm_path: str,
         tools: list[Tool] | None = None
     ):
+        self.context = context
         self.llm_path = llm_path
         self._tools = tools or []
 
-    def add_tools(self, *tools: Tool) -> None:
+    def add_tools(self, *tools: str | Tool) -> None:
         pass
 
     @endpoint
