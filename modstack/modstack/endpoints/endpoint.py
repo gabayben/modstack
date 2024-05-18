@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from modstack.constants import IGNORE_INPUT_SCHEMA, IGNORE_OUTPUT_SCHEMA, MODSTACK_ENDPOINT
 from modstack.typing.vars import Out
+from modstack.utils.serialization import create_model, create_schema, from_parameters
 
 class EndpointNotFound(Exception):
     pass
@@ -65,9 +66,12 @@ class Endpoint(Generic[Out]):
         self.return_annotation = self._get_return_annotation(signature.return_annotation)
 
         if not getattr(self, IGNORE_INPUT_SCHEMA, False):
-            pass
+            self.input_schema = create_model(
+                f'{self.name}Input',
+                **from_parameters(self.parameters)
+            )
         if not getattr(self, IGNORE_OUTPUT_SCHEMA, False):
-            pass
+            self.output_schema = create_schema(f'{self.name}Output', self.return_annotation)
 
     def __call__(self, *args, **kwargs) -> Effect[Out]:
         return self._call(*args, **kwargs)

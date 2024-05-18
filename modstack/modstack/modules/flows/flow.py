@@ -11,12 +11,3 @@ class Flow(FlowBase):
         **kwargs
     ) -> FlowOutput:
         pass
-
-    @endpoint
-    async def arun(
-        self,
-        node_id: str | None = None,
-        data: FlowInput | None = None,
-        **kwargs
-    ) -> FlowOutput:
-        pass

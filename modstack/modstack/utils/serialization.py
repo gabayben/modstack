@@ -84,9 +84,10 @@ def from_parameters(parameters: MappingProxyType[str, Parameter]) -> dict[str, t
         name: (
             (parameter.annotation, parameter.default)
             if parameter.default != inspect.Parameter.empty
-            else (parameter.annotation, None)
+            else (parameter.annotation, ...)
         )
         for name, parameter in parameters.items()
+        if parameter.annotation != inspect.Parameter.empty
     }
 
 def to_dict(data: Any) -> dict[str, Any]:
