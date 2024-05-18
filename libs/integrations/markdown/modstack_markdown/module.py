@@ -22,7 +22,7 @@ class Markdown(Module):
     }
 
     @endpoint
-    def markdown_to_text(
+    def to_text(
         self,
         sources: list[ArtifactSource],
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
@@ -65,7 +65,7 @@ class Markdown(Module):
         metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
         **kwargs
     ) -> list[Utf8Artifact]:
-        return self.markdown_to_text(
+        return self.to_text(
             sources,
             metadata=metadata,
             renderer_type='Html',

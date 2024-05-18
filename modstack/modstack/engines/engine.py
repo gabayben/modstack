@@ -27,13 +27,28 @@ class Engine(EngineBase):
     def as_context(self) -> 'EngineContext':
         return EngineContext(self)
 
-    def add_module[TModule: Module](self, name: str, module: TModule) -> TModule:
+    def add_module[TModule: Module](
+        self,
+        name: str,
+        module: TModule,
+        flatten_single: bool = True
+    ) -> TModule:
         if name in self.modules:
             raise EngineModuleError(f"Module '{name}' already exists.")
         self.modules[name] = module
 
-        for endpoint in module.endpoints.values():
-            self.add_endpoint(endpoint, path=f'{name}.{endpoint.name}')
+        endpoints: list[Endpoint] = list(module.endpoints.values())
+        if flatten_single and len(endpoints) == 1:
+            try:
+                self.add_endpoint(endpoints[0], path=name)
+            except EngineEndpointError as e:
+                raise EngineEndpointError(
+                    f"Endpoint '{name}' already exists. Set `flatten_single` to False "
+                    f"in order to include both the module and endpoint names in the path."
+                ) from e
+        else:
+            for endpoint in endpoints:
+                self.add_endpoint(endpoint, path=f'{name}.{endpoint.name}')
 
         module.add_context(self.as_context())
         return module
