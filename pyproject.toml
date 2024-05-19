@@ -18,9 +18,10 @@ modstack-serper = { path = "libs/integrations/serper/", develop = true }
 modstack-langdetect = { path = "libs/integrations/langdetect/", develop = true }
 #modstack-fastembed = { path = "libs/integrations/fastembed/", develop = true }
 #modstack-openai = { path = "libs/integrations/openai/", develop = true }
-modstack-cohere = { path = "libs/integrations/cohere/", develop = true }
-modstack-anthropic = { path = "libs/integrations/anthropic/", develop = true }
+#modstack-cohere = { path = "libs/integrations/cohere/", develop = true }
+#modstack-anthropic = { path = "libs/integrations/anthropic/", develop = true }
 #modstack-ollama = { path = "libs/integrations/ollama/", develop = true }
+modstack-hf-hub = { path = "libs/integrations/hf-hub", develop = true }
 jupyter = "^1.0.0"
 
 [tool.poetry.group.test]

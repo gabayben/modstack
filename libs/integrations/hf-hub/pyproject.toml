@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "modstack-hf-hub"
+version = "0.1.0"
+description = ""
+authors = ["bengabay <ben@netop.cloud>"]
+packages = [{ include = "modstack_hf_hub" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+modstack = { path = "../../../modstack/" }
+huggingface-hub = { version = "^0.23.0", extras = ["inference"] }
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

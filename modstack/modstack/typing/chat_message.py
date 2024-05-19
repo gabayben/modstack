@@ -46,3 +46,9 @@ class ChatMessage(Utf8Artifact):
         if self.name:
             text += f' {self.name}'
         return f'{text}:\n{self.content}'
+
+    def to_common_format(self) -> dict[str, str]:
+        msg = {'content': self.content, 'role': self.role}
+        if self.name:
+            msg['name'] = self.name
+        return msg
