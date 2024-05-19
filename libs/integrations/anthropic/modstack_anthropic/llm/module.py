@@ -1,11 +1,12 @@
 from typing import Any, Iterable, Mapping
 
-from anthropic import Anthropic, NOT_GIVEN
+from anthropic import Anthropic, NOT_GIVEN, Stream
+from anthropic.types import ContentBlockDeltaEvent, Message, MessageDeltaEvent, MessageStartEvent, TextBlock
 
 from modstack.auth import Secret
 from modstack.endpoints import endpoint
 from modstack.modules import Module
-from modstack.typing import ChatMessage, StreamingCallback
+from modstack.typing import ChatMessage, ChatRole, StreamingCallback, StreamingChunk
 
 class AnthropicLLM(Module):
     def __init__(
@@ -48,6 +49,7 @@ class AnthropicLLM(Module):
     def call(
         self,
         prompt: str,
+        role: ChatRole | None = None,
         history: Iterable[ChatMessage] | None = None,
         generation_args: dict[str, Any] | None = None,
         max_tokens: int | None = None,
@@ -56,7 +58,7 @@ class AnthropicLLM(Module):
         top_p: float | None = None,
         temperature: float | None = None,
         stop_sequences: list[str] | None = None,
-        stream: bool = False,
+        stream: bool | None = None,
         **kwargs
     ) -> Iterable[ChatMessage]:
         generation_args = {**self.generation_args, **(generation_args or {})}
@@ -67,4 +69,74 @@ class AnthropicLLM(Module):
         temperature = temperature or self.temperature
         stop_sequences = stop_sequences or self.stop_sequences
         stream = stream if stream is not None else self.stream
-        return [ChatMessage.from_user(prompt)]
+
+        history = history or []
+        history.append(ChatMessage(prompt, role or ChatRole.USER))
+        formatted_messages = _convert_to_anthropic_format(history)
+
+        response = self.client.messages.create(
+            max_tokens=max_tokens,
+            messages=formatted_messages,
+            model=self.model,
+            system=system_prompt,
+            top_k=top_k,
+            top_p=top_p,
+            temperature=temperature,
+            stop_sequences=stop_sequences,
+            stream=stream,
+            **generation_args
+        )
+
+        completions: list[ChatMessage] = []
+        if isinstance(response, Stream):
+            chunks: list[StreamingChunk] = []
+            stream_event, delta, message_start = None, None, None
+            for stream_event in response:
+                if isinstance(stream_event, MessageStartEvent):
+                    message_start = stream_event
+                if isinstance(stream_event, ContentBlockDeltaEvent):
+                    chunk = (stream_event.delta.text, {})
+                    chunks.append(chunk)
+                    if self.streaming_callback:
+                        self.streaming_callback(chunk[0], chunk[1])
+                if isinstance(stream_event, MessageDeltaEvent):
+                    delta = stream_event
+            completions = [self._connect_chunks(chunks, message_start, delta)]
+        elif isinstance(response, Message):
+            completions = [self._build_message(response, block) for block in response.content]
+
+        return completions
+
+    def _connect_chunks(
+        self,
+        chunks: list[StreamingChunk],
+        message_start: MessageStartEvent,
+        delta: MessageDeltaEvent
+    ) -> ChatMessage:
+        complete_response = ChatMessage.from_assistant(''.join(chunk[0] for chunk in chunks))
+        complete_response.metadata.update({
+            'model': self.model,
+            'index': 0,
+            'finish_reason': delta.delta.stop_reason if delta else 'end_turn',
+            'usage': dict(message_start.message.usage, **dict(delta.usage)) if message_start and delta else {}
+        })
+        return complete_response
+
+    def _build_message(self, message: Message, block: TextBlock) -> ChatMessage:
+        result = ChatMessage.from_assistant(block.text)
+        result.metadata.update({
+            'model': self.model,
+            'index': 0,
+            'finish_reason': message.stop_reason,
+            'usage': dict(message.usage or {})
+        })
+        return result
+
+def _convert_to_anthropic_format(messages: Iterable[ChatMessage]) -> list[dict[str, Any]]:
+    formatted_messages: list[dict[str, Any]] = []
+    for message in messages:
+        message_dict = dict(message)
+        formatted_messages.append(
+            {k: v for k, v in message_dict.items() if k in ['content', 'role'] and v}
+        )
+    return formatted_messages
