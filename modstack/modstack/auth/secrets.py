@@ -1,8 +1,14 @@
 from abc import ABC, abstractmethod
 from enum import StrEnum
+import logging
+import os
 from typing import Any
 
+from pydantic import PrivateAttr
+
 from modstack.typing import Serializable
+
+logger = logging.getLogger(__name__)
 
 class SecretType(StrEnum):
     TOKEN = 'token'
@@ -30,17 +36,17 @@ class Secret(Serializable, ABC):
         pass
 
 class TokenSecret(Secret):
-    token: str
+    _token: str = PrivateAttr()
 
     @property
     def secret_type(self) -> str:
         return SecretType.TOKEN
 
     def __init__(self, token: str, **kwargs):
-        super().__init__(token=token, **kwargs)
+        super().__init__(_token=token, **kwargs)
 
     def resolve_value(self) -> Any | None:
-        pass
+        return self._token
 
 class EnvVarSecret(Secret):
     variables: tuple[str, ...]
@@ -58,5 +64,20 @@ class EnvVarSecret(Secret):
     ):
         super().__init__(variables=variables, strict=strict, **kwargs)
 
+    def __post_init__(self):
+        if len(self.variables) == 0:
+            raise ValueError('One or more environment variables must be provided for the secret.')
+
     def resolve_value(self) -> Any | None:
-        pass
+        out: Any | None = None
+        for var in self.variables:
+            out = os.getenv(var)
+            if out is not None:
+                break
+        if out is None:
+            msg = f'None of the following environment variables are set: {', '.join(self.variables)}.'
+            if self.strict:
+                raise ValueError(msg)
+            else:
+                logger.warning(msg)
+        return out
