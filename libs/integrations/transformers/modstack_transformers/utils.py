@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2022-present deepset GmbH <info@deepset.ai>
 # SPDX-License-Identifier: Apache-2.0
 
-import torch
+import modstack_torch
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast, StoppingCriteria, TextStreamer
 
 from modstack.typing import StreamingCallback
@@ -11,7 +11,7 @@ class StopWordsCriteria(StoppingCriteria):
         self,
         tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast,
         stop_words: list[str],
-        device: str | torch.device = 'cpu'
+        device: str | modstack_torch.device = 'cpu'
     ):
         if not tokenizer.pad_token:
             if tokenizer.eos_token:
@@ -23,8 +23,8 @@ class StopWordsCriteria(StoppingCriteria):
 
     def __call__(
         self,
-        input_ids: torch.IntTensor,
-        scores: torch.FloatTensor,
+        input_ids: modstack_torch.IntTensor,
+        scores: modstack_torch.FloatTensor,
         **kwargs
     ) -> bool:
         for stop_id in self.stop_ids:
@@ -33,7 +33,7 @@ class StopWordsCriteria(StoppingCriteria):
         return False
 
     @classmethod
-    def is_stop_word_found(cls, generated_text_ids: torch.Tensor, stop_id: torch.Tensor) -> bool:
+    def is_stop_word_found(cls, generated_text_ids: modstack_torch.Tensor, stop_id: modstack_torch.Tensor) -> bool:
         generated_text_ids = generated_text_ids[-1]
         generated_text_size = generated_text_ids.size(0)
         stop_id_size = stop_id.size(0)

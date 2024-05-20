@@ -1,16 +1,14 @@
 [tool.poetry]
-name = "modstack-transformers"
+name = "modstack-torch"
 version = "0.1.0"
 description = ""
 authors = ["bengabay <ben@netop.cloud>"]
-packages = [{ include = "modstack_transformers" }]
+packages = [{ include = "modstack_torch" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
 modstack = { path = "../../../modstack/" }
-modstack-huggingface = { path = "../huggingface/" }
-modstack-torch = { path = "../torch/" }
-transformers = { version = "^4.41.0", extras = ["torch"] }
+torch = "^2.3.0"
 
 
 [build-system]
