@@ -54,7 +54,6 @@ class Engine(EngineBase):
             for endpoint in endpoints:
                 self.add_endpoint(endpoint, path=f'{name}.{endpoint.name}')
 
-        module.add_context(self.as_context())
         return module
 
     def add_endpoint(self, endpoint: Endpoint, path: str | None = None) -> None:

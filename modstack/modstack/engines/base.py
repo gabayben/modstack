@@ -15,10 +15,10 @@ class EngineBase(ABC):
         self,
         path: str,
         *args,
-        output_type: Type[Out] = Any,
+        __output_type__: Type[Out] = Any,
         **kwargs
     ) -> Effect[Out]:
-        return self.get_endpoint(path, output_type=output_type)(*args, **kwargs)
+        return self.get_endpoint(path, output_type=__output_type__)(*args, **kwargs)
 
     def effect(self, path: str, contract: Contract[Out]) -> Effect[Out]:
         return self.get_endpoint(path, type(Out)).effect(contract)
