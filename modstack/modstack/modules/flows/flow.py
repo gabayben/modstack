@@ -1,13 +1,7 @@
-from modstack.contracts.flows import FlowInput, FlowOutput
-from modstack.endpoints import endpoint
+from modstack.contracts.flows import FlowOutput, RunFlow
+from modstack.modules import Modules
 from modstack.modules.flows.base import FlowBase
 
-class Flow(FlowBase):
-    @endpoint
-    def run(
-        self,
-        node_id: str | None = None,
-        data: FlowInput | None = None,
-    ) -> FlowOutput:
-        self.validate_context()
-        return {}
+class Flow(Modules.Sync[RunFlow, FlowOutput], FlowBase):
+    def _invoke(self, data: RunFlow) -> FlowOutput:
+        pass

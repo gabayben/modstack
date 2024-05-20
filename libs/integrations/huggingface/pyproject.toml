@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "modstack-hf-hub"
+name = "modstack-huggingface"
 version = "0.1.0"
 description = ""
 authors = ["bengabay <ben@netop.cloud>"]
-packages = [{ include = "modstack_hf_hub" }]
+packages = [{ include = "modstack_huggingface" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"

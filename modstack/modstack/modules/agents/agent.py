@@ -1,10 +1,8 @@
-from abc import ABC, abstractmethod
-from typing import Any, Iterable
+from abc import ABC
 
-from modstack.modules import Module
-from modstack.typing import ChatMessage, Tool
+from modstack.typing import Tool
 
-class Agent(Module, ABC):
+class Agent(ABC):
     @property
     def tools(self) -> list[Tool]:
         return self._tools
@@ -19,18 +17,5 @@ class Agent(Module, ABC):
         self._initial_tools = tools
         self._tools: list[Tool] = []
 
-    def __engine_init__(self) -> None:
-        if self._initial_tools:
-            self.add_tools(*self._initial_tools)
-
     def add_tools(self, *tools: str | Tool) -> None:
-        self.validate_context()
-
-    @abstractmethod
-    def call(
-        self,
-        prompt: str,
-        history: Iterable[ChatMessage] | None = None,
-        generation_args: dict[str, Any] | None = None
-    ) -> Iterable[ChatMessage]:
         pass

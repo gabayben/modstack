@@ -13,8 +13,7 @@ from modstack.constants import VARIADIC_TYPE
 
 _T = typing.TypeVar('_T')
 
-CallableType = typing.Literal['invoke', 'ainvoke', 'iter', 'aiter']
-ReturnType = _T | typing.Coroutine[typing.Any, typing.Any, _T] | typing.Iterator[_T] | typing.AsyncIterator[_T]
+CallableType = typing.Literal['invoke', 'ainvoke', 'iter', 'aiter', 'effect']
 Variadic = typing.Annotated[typing.Iterable[_T], VARIADIC_TYPE]
 StreamingChunk = tuple[str, dict[str, typing.Any]]
 StreamingCallback = typing.Callable[[str, dict[str, typing.Any]], None]

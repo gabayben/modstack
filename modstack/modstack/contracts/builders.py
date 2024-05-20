@@ -2,15 +2,9 @@ from typing import Any
 
 from modstack.contracts import Contract
 
-class BuildPrompt(Contract[str]):
-    @classmethod
-    def name(cls) -> str:
-        return 'build_prompt'
+class BuildPrompt(Contract):
+    pass
 
-class BuildDynamicPrompt(Contract[str]):
+class BuildDynamicPrompt(Contract):
     prompt_source: str
     template_variables: dict[str, Any] | None = None
-
-    @classmethod
-    def name(cls) -> str:
-        return 'build_dynamic_prompt'

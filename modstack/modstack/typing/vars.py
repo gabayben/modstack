@@ -1,7 +1,9 @@
-from typing import TypeVar
+from typing import ParamSpec, TypeVar, TypeVarTuple
 
-from typing import ParamSpec
+from pydantic import BaseModel
 
+Args = TypeVarTuple('Args')
 P = ParamSpec('P')
+In = TypeVar('In', bound=BaseModel)
 Out = TypeVar('Out')
 Other = TypeVar('Other')

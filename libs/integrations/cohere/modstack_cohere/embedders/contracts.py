@@ -1,4 +1,4 @@
-from typing import Any, Sequence, override
+from typing import Any, Sequence
 
 import cohere
 
@@ -13,8 +13,3 @@ class CohereEmbedText(EmbedText):
     meta_fields_to_embed: list[str] | None = None
     embedding_seperator: str | None = None
     batch_size: int | None = None
-
-    @classmethod
-    @override
-    def name(cls) -> str:
-        return 'cohere_embed_text'

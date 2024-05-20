@@ -1,6 +1,5 @@
 from .types import (
     CallableType,
-    ReturnType,
     Variadic,
     StreamingChunk,
     StreamingCallback,
@@ -21,7 +20,7 @@ from .types import (
     VideoUrl
 )
 
-from .effect import Effect, Effects
+from .effect import Effect, Effects, ReturnType
 from .serializable import Serializable
 from .tools import ToolParameter, Tool, ToolResult
 

@@ -1,33 +1,26 @@
 from collections import defaultdict
 import logging
+from typing import Type, override
 
 import langdetect
+from pydantic import BaseModel
 
-from modstack.endpoints import endpoint
-from modstack.modules import Module
+from modstack.contracts import RouteByLanguage
+from modstack.modules import Modules
 from modstack.typing import Utf8Artifact
 from modstack.utils.serialization import create_model
 
 logger = logging.getLogger(__name__)
 
-class LangDetectRouter(Module):
+class LangDetectRouter(Modules.Sync[RouteByLanguage, dict[str, list[Utf8Artifact]]]):
     def __init__(self, languages: list[str] | None = None):
         super().__init__()
         languages = languages or ['en']
-        self.set_output_schema(
-            'route',
-            create_model(
-                'RouteByLanguageOutput',
-                unmatched=(list[Utf8Artifact], []),
-                **{language: (list[Utf8Artifact], []) for language in languages}
-            )
-        )
         self.languages = languages
 
-    @endpoint(ignore_output_schema=True)
-    def route(self, artifacts: list[Utf8Artifact], **kwargs) -> dict[str, list[Utf8Artifact]]:
+    def _invoke(self, data: RouteByLanguage) -> dict[str, list[Utf8Artifact]]:
         artifacts_by_language: defaultdict[str, list[Utf8Artifact]] = defaultdict(list)
-        for artifact in artifacts:
+        for artifact in data.artifacts:
             detected_language = self._detect_language(artifact)
             if detected_language in self.languages:
                 artifacts_by_language[detected_language].append(artifact)
@@ -42,3 +35,11 @@ class LangDetectRouter(Module):
             logger.warning(f'LangDetect cannot detect the language of artifact with id: {artifact.id}. Error: {e}.')
             detected_language = None
         return detected_language
+
+    @override
+    def output_schema(self) -> Type[BaseModel]:
+        return create_model(
+            'RouteByLanguageOutput',
+            unmatched=(list[Utf8Artifact], []),
+            **{language: (list[Utf8Artifact], []) for language in self.languages}
+        )

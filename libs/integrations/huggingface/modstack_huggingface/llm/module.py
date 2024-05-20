@@ -3,14 +3,15 @@ from typing import Any, Iterable
 from huggingface_hub import ChatCompletionOutput, ChatCompletionStreamOutput, InferenceClient
 
 from modstack.auth import Secret
-from modstack.endpoints import endpoint
-from modstack.modules import Module
+
+from modstack.contracts import CallLLM
+from modstack.modules import Modules
 from modstack.typing import ChatMessage, ChatRole, StreamingCallback
 from modstack.utils.paths import validate_url
-from modstack_hf_hub import HFGenerationApiType, HFModelType
-from modstack_hf_hub.utils import validate_hf_model
+from modstack_huggingface import HFGenerationApiType, HFModelType
+from modstack_huggingface.utils import validate_hf_model
 
-class HuggingFaceApiLLM(Module):
+class HuggingFaceApiLLM(Modules.Sync[CallLLM, Iterable[ChatMessage]]):
     def __init__(
         self,
         model_or_url: str,
@@ -37,18 +38,10 @@ class HuggingFaceApiLLM(Module):
         self.streaming_callback = streaming_callback
         self.client = InferenceClient(model_or_url, token=token.resolve_value() if token else None)
 
-    @endpoint
-    def call(
-        self,
-        prompt: str,
-        role: ChatRole | None = None,
-        history: Iterable[ChatMessage] | None = None,
-        generation_args: dict[str, Any] | None = None,
-        **kwargs
-    ) -> Iterable[ChatMessage]:
-        generation_args = {**self.generation_args, **(generation_args or {})}
-        history = history or []
-        history.append(ChatMessage(prompt, role or ChatRole.USER))
+    def _invoke(self, data: CallLLM) -> Iterable[ChatMessage]:
+        generation_args = {**self.generation_args, **(data.model_extra or {})}
+        history = data.history or []
+        history.append(ChatMessage(data.prompt, data.role or ChatRole.USER))
         messages = [message.to_common_format() for message in history]
 
         if generation_args.get('stream'):
