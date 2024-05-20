@@ -39,7 +39,7 @@ class HuggingFaceApiLLM(Modules.Sync[CallLLM, Iterable[ChatMessage]]):
         self.client = InferenceClient(model_or_url, token=token.resolve_value() if token else None)
 
     def _invoke(self, data: CallLLM) -> Iterable[ChatMessage]:
-        generation_args = {**self.generation_args, **(data.generation_args or {})}
+        generation_args = {**self.generation_args, **(data.model_extra or {})}
         history = data.history or []
         history.append(ChatMessage(data.prompt, data.role or ChatRole.USER))
         messages = [message.to_common_format() for message in history]

@@ -1,4 +1,4 @@
-from typing import Any, Iterable
+from typing import Iterable
 
 from modstack.contracts import Contract
 from modstack.typing import ChatMessage, ChatRole, Tool, ToolResult
@@ -9,7 +9,6 @@ class CallLLM(Contract):
     history: Iterable[ChatMessage] | None = None
     tools: list[Tool] | None = None
     tool_results: list[ToolResult] | None = None
-    generation_args: dict[str, Any] | None = None
 
     def __init__(
         self,
@@ -18,7 +17,6 @@ class CallLLM(Contract):
         history: Iterable[ChatMessage] | None = None,
         tools: list[Tool] | None = None,
         tool_results: list[ToolResult] | None = None,
-        generation_args: dict[str, Any] | None = None,
         **kwargs
     ):
         super().__init__(
@@ -27,6 +25,5 @@ class CallLLM(Contract):
             history=history,
             tools=tools,
             tool_results=tool_results,
-            generation_args=generation_args,
             **kwargs
         )

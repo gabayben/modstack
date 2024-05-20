@@ -39,7 +39,7 @@ class CohereLLM(Modules.Sync[CallLLM, Iterable[ChatMessage]]):
         )
 
     def _invoke(self, data: CallLLM) -> Iterable[ChatMessage]:
-        generation_args = {**self.generation_args, **(data.generation_args or {})}
+        generation_args = {**self.generation_args, **(data.model_extra or {})}
         chat_history = [
             self._build_cohere_message(message)
             for message in data.history

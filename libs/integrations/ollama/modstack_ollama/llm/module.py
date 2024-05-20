@@ -32,7 +32,7 @@ class OllamaLLM(Modules.Sync[CallOllamaLLM, Iterable[ChatMessage]]):
         self.generation_args = generation_args
 
     def _invoke(self, data: CallOllamaLLM) -> Iterable[ChatMessage]:
-        generation_args = {**self.generation_args, **(data.generation_args or {})}
+        generation_args = {**self.generation_args, **(data.model_extra or {})}
         system_prompt = data.system_prompt or self.system_prompt
         template = data.template or self.template
         timeout = data.timeout or self.timeout

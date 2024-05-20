@@ -47,7 +47,7 @@ class AnthropicLLM(Modules.Sync[CallAnthropicLLM, Iterable[ChatMessage]]):
         self.stream = stream
 
     def _invoke(self, data: CallAnthropicLLM) -> Iterable[ChatMessage]:
-        generation_args = {**self.generation_args, **(data.generation_args or {})}
+        generation_args = {**self.generation_args, **(data.model_extra or {})}
         max_tokens = data.max_tokens or self.max_tokens
         system_prompt = data.system_prompt or self.system_prompt
         top_k = data.top_k or self.top_k
