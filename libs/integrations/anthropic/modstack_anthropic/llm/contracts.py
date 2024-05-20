@@ -1,5 +1,3 @@
-from typing import override
-
 from modstack.contracts import CallLLM
 
 class CallAnthropicLLM(CallLLM):
@@ -10,8 +8,3 @@ class CallAnthropicLLM(CallLLM):
     temperature: float | None = None
     stop_sequences: list[str] | None = None
     stream: bool = False
-
-    @classmethod
-    @override
-    def name(cls) -> str:
-        return 'call_anthropic_llm'

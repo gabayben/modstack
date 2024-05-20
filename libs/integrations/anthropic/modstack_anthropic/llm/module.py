@@ -4,11 +4,12 @@ from anthropic import Anthropic, NOT_GIVEN, Stream
 from anthropic.types import ContentBlockDeltaEvent, Message, MessageDeltaEvent, MessageStartEvent, TextBlock
 
 from modstack.auth import Secret
-from modstack.endpoints import endpoint
-from modstack.modules import Module
-from modstack.typing import ChatMessage, ChatRole, StreamingCallback, StreamingChunk
 
-class AnthropicLLM(Module):
+from modstack.modules import Modules
+from modstack.typing import ChatMessage, ChatRole, StreamingCallback, StreamingChunk
+from modstack_anthropic.llm import CallAnthropicLLM
+
+class AnthropicLLM(Modules.Sync[CallAnthropicLLM, Iterable[ChatMessage]]):
     def __init__(
         self,
         token: Secret = Secret.from_env_var('ANTHROPIC_API_KEY'),
@@ -45,33 +46,18 @@ class AnthropicLLM(Module):
         self.stop_sequences = stop_sequences
         self.stream = stream
 
-    @endpoint
-    def effect(
-        self,
-        prompt: str,
-        role: ChatRole | None = None,
-        history: Iterable[ChatMessage] | None = None,
-        generation_args: dict[str, Any] | None = None,
-        max_tokens: int | None = None,
-        system_prompt: str | None = None,
-        top_k: int | None = None,
-        top_p: float | None = None,
-        temperature: float | None = None,
-        stop_sequences: list[str] | None = None,
-        stream: bool | None = None,
-        **kwargs
-    ) -> Iterable[ChatMessage]:
-        generation_args = {**self.generation_args, **(generation_args or {})}
-        max_tokens = max_tokens or self.max_tokens
-        system_prompt = system_prompt or self.system_prompt
-        top_k = top_k or self.top_k
-        top_p = top_p or self.top_p
-        temperature = temperature or self.temperature
-        stop_sequences = stop_sequences or self.stop_sequences
-        stream = stream if stream is not None else self.stream
+    def _invoke(self, data: CallAnthropicLLM) -> Iterable[ChatMessage]:
+        generation_args = {**self.generation_args, **(data.generation_args or {})}
+        max_tokens = data.max_tokens or self.max_tokens
+        system_prompt = data.system_prompt or self.system_prompt
+        top_k = data.top_k or self.top_k
+        top_p = data.top_p or self.top_p
+        temperature = data.temperature or self.temperature
+        stop_sequences = data.stop_sequences or self.stop_sequences
+        stream = data.stream if data.stream is not None else self.stream
 
-        history = history or []
-        history.append(ChatMessage(prompt, role or ChatRole.USER))
+        history = data.history or []
+        history.append(ChatMessage(data.prompt, data.role or ChatRole.USER))
         formatted_messages = _convert_to_anthropic_format(history)
 
         response = self.client.messages.create(

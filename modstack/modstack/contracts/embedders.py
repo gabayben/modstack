@@ -17,12 +17,8 @@ class EmbedTextResponse(Serializable):
     ):
         super().__init__(artifacts=artifacts, metadata=metadata, **kwargs)
 
-class EmbedText(Contract[list[Utf8Artifact]]):
+class EmbedText(Contract):
     artifacts: list[Utf8Artifact]
 
     def __init__(self, artifacts: list[Utf8Artifact], **kwargs):
         super().__init__(artifacts=artifacts, **kwargs)
-
-    @classmethod
-    def name(cls) -> str:
-        return 'embed_text'
