@@ -1,36 +1,30 @@
+from typing import Type
+
 from jinja2 import TemplateError
 from jinja2.nativetypes import NativeEnvironment
+from pydantic import BaseModel
 
-from modstack.endpoints import endpoint
-from modstack.modules import Module
+from modstack.contracts import RouteArtifacts
+from modstack.modules import Modules
 from modstack.typing import Artifact
 from modstack.utils.serialization import create_model
 
-class ArtifactRouter(Module):
+class ArtifactRouter(Modules.Sync[RouteArtifacts, dict[str, list[Artifact]]]):
     def __init__(
         self,
         branches: dict[str, str],
         included_variables: list[str] | None = None
     ):
         super().__init__()
-        self.set_output_schema(
-            'route',
-            create_model(
-                'RouteArtifactsOutput',
-                unmatched=(list[Artifact], []),
-                **{key: (list[Artifact], []) for key in branches.keys()}
-            )
-        )
         self.branches = branches
         self.included_variables = included_variables
 
-    @endpoint(ignore_output_schema=True)
-    def route(self, artifacts: list[Artifact], **kwargs) -> dict[str, list[Artifact]]:
+    def _invoke(self, data: RouteArtifacts) -> dict[str, list[Artifact]]:
         unmatched_artifacts: list[Artifact] = []
         artifacts_by_branch: dict[str, list[Artifact]] = {branch: [] for branch in self.branches}
         env = NativeEnvironment()
 
-        for artifact in artifacts:
+        for artifact in data.artifacts:
             template_variables = {
                 k: v
                 for k, v in dict(artifact).items()
@@ -53,3 +47,10 @@ class ArtifactRouter(Module):
                 unmatched_artifacts.append(artifact)
 
         return {'unmatched': unmatched_artifacts, **artifacts_by_branch}
+
+    def output_schema(self) -> Type[BaseModel]:
+        return create_model(
+            'RouteArtifactsOutput',
+            unmatched=(list[Artifact], []),
+            **{key: (list[Artifact], []) for key in self.branches.keys()}
+        )

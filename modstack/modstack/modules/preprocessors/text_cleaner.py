@@ -4,14 +4,14 @@ import logging
 import re
 from typing import Generator
 
-from modstack.endpoints import endpoint
-from modstack.modules import Module
+from modstack.contracts import CleanText
+from modstack.modules import Modules
 from modstack.typing import TextArtifact, Utf8Artifact
 from modstack.utils.func import tintersection, tmap, tpartial, treduce
 
 logger = logging.getLogger(__name__)
 
-class TextCleaner(Module):
+class TextCleaner(Modules.Sync[CleanText, list[Utf8Artifact]]):
     def __init__(
         self,
         remove_extra_whitespaces: bool = True,
@@ -27,11 +27,10 @@ class TextCleaner(Module):
         self.remove_regex = remove_regex
         self.remove_repeated_substrings = remove_repeated_substrings
 
-    @endpoint
-    def clean(self, artifacts: list[Utf8Artifact], **kwargs) -> list[Utf8Artifact]:
+    def _invoke(self, data: CleanText) -> list[Utf8Artifact]:
         cleaned_artifacts: list[TextArtifact] = []
 
-        for artifact in artifacts:
+        for artifact in data.artifacts:
             try:
                 text = artifact.to_utf8()
             except UnicodeDecodeError as e:

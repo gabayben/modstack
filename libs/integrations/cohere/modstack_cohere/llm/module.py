@@ -39,7 +39,7 @@ class CohereLLM(Module):
         )
 
     @endpoint
-    def call(
+    def effect(
         self,
         prompt: str,
         role: ChatRole | None = None,

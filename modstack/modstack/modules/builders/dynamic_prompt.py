@@ -1,35 +1,22 @@
-from typing import Any
+from typing import Any, Type, override
 
 from jinja2 import Template, meta
+from pydantic import BaseModel
 
-from modstack.endpoints import endpoint
-from modstack.modules import Module
+from modstack.contracts import BuildDynamicPrompt
+from modstack.modules import Modules
 from modstack.utils.serialization import create_model, from_parameters
 
-class DynamicPromptBuilder(Module):
+class DynamicPromptBuilder(Modules.Sync[BuildDynamicPrompt, str]):
     def __init__(self, runtime_variables: list[str] | None = None):
         super().__init__()
         self.runtime_variables = runtime_variables or []
-        schema_fields = from_parameters(self.get_parameters('build'))
-        runtime_fields = {v: (Any | None, None) for v in self.runtime_variables}
-        self.set_input_schema(
-            'build',
-            create_model(
-                'BuildDynamicPromptInput',
-                **schema_fields,
-                **runtime_fields
-            )
-        )
+        self.schema_fields = from_parameters(self.input_schema().parameters)
+        self.runtime_fields = {v: (Any | None, None) for v in self.runtime_variables}
 
-    @endpoint(ignore_input_schema=True)
-    def build(
-        self,
-        prompt_source: str,
-        template_variables: dict[str, Any] | None = None,
-        **variables
-    ) -> str:
-        template_variables = template_variables or {}
-        variables = variables or {}
+    def _invoke(self, data: BuildDynamicPrompt) -> str:
+        template_variables = data.template_variables or {}
+        variables = data.model_extra or {}
         variables_combined = {**variables, **template_variables}
 
         if not variables_combined:
@@ -38,7 +25,7 @@ class DynamicPromptBuilder(Module):
                 'Please provide template variables to enable prompt generation.'
             )
 
-        template = self._validate_template(prompt_source, set(variables_combined.keys()))
+        template = self._validate_template(data.prompt_source, set(variables_combined.keys()))
         return template.render(variables_combined)
 
     def _validate_template(self, prompt_source: str, provided_variables: set[str]) -> Template:
@@ -53,3 +40,11 @@ class DynamicPromptBuilder(Module):
                 f'were provided: {provided_variables}. Please provide all the required template variables.'
             )
         return template
+
+    @override
+    def input_schema(self) -> Type[BaseModel]:
+        return create_model(
+            'BuildDynamicPromptInput',
+            **self.schema_fields,
+            **self.runtime_fields
+        )

@@ -5,7 +5,7 @@ from .converters import ConvertTextFile, HtmlToText, JinjaMapping, MarkdownToTex
 from .embedders import EmbedText, EmbedTextResponse
 from .fetchers import FetchFromLinks
 from .llms import CallLLM
-from .joiners import ConcatArtifacts, MergeArtifacts, ReciprocalRankFusion
+from .joiners import JoinArtifacts
 from .preprocessors import CleanText, SplitText
 from .rankers import RankArtifacts, RankLostInTheMiddle
 from .routers import RouteArtifacts, RouteByLanguage, RouteByMimeType

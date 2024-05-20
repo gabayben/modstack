@@ -1,12 +1,13 @@
-from typing import Any, Type
+from typing import Any, Type, override
 
 from jinja2 import Template, meta
 from pydantic import BaseModel
 
+from modstack.contracts import BuildPrompt
 from modstack.modules import Modules
 from modstack.utils.serialization import create_model
 
-class PromptBuilder(Modules.Sync[str, ()]):
+class PromptBuilder(Modules.Sync[BuildPrompt, str]):
     def __init__(
         self,
         template: str,
@@ -19,12 +20,14 @@ class PromptBuilder(Modules.Sync[str, ()]):
         ast = self.template.environment.parse(template)
         self.template_variables = meta.find_undeclared_variables(ast)
 
-    def _invoke(self, **variables) -> str:
+    def _invoke(self, prompt: BuildPrompt) -> str:
+        variables = dict(prompt)
         missing_variables = [v for v in self.required_variables if v not in variables]
         if missing_variables:
             raise ValueError(f'Missing required input variables: {', '.join(missing_variables)}.')
         return self.template.render(variables)
 
+    @override
     def input_schema(self) -> Type[BaseModel]:
         return create_model(
             self.get_name(suffix='Input'),

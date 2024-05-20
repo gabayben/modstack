@@ -4,14 +4,13 @@ import logging
 import networkx as nx
 
 from modstack.contracts.flows import SocketId
-from modstack.modules import Module
 from modstack.modules.flows import FlowConnectError, FlowError, FlowNode, FlowSocket, NodeNotFound
 from modstack.utils.func import tproduct
 from modstack.utils.reflection import types_are_compatible
 
 logger = logging.getLogger(__name__)
 
-class FlowBase(Module, ABC):
+class FlowBase(ABC):
     def __init__(self):
         super().__init__()
         self.graph = nx.MultiDiGraph()
@@ -21,7 +20,7 @@ class FlowBase(Module, ABC):
         source: SocketId,
         target: SocketId
     ) -> None:
-        self.validate_context()
+        pass
 
         if source.node == target.node:
             raise FlowError(f'Source and target node are both {target.node}. Cannot connect node to itself.')
@@ -109,18 +108,18 @@ class FlowBase(Module, ABC):
         return self.graph.nodes[path]
 
     def _get_or_add_node(self, path: str) -> FlowNode:
-        if not self.graph.has_node(path):
-            endpoint = self.context.get_endpoint(path)
-            node = FlowNode(
-                name=path,
-                instance=endpoint,
-                input_sockets={field: FlowSocket(field, info, []) for field, info in endpoint.input_schema.model_fields.items()},
-                output_sockets={field: FlowSocket(field, info, []) for field, info in endpoint.output_schema.model_fields.items()},
-                visits=0
-            )
-            self.graph.add_node(path, **node)
-            return node
-        return self.graph.nodes[path]
+        pass
+        # if not self.graph.has_node(path):
+        #     node = FlowNode(
+        #         name=path,
+        #         instance=endpoint,
+        #         input_sockets={field: FlowSocket(field, info, []) for field, info in endpoint.input_schema.model_fields.items()},
+        #         output_sockets={field: FlowSocket(field, info, []) for field, info in endpoint.output_schema.model_fields.items()},
+        #         visits=0
+        #     )
+        #     self.graph.add_node(path, **node)
+        #     return node
+        # return self.graph.nodes[path]
 
     def _get_field_info(self, node: str, sockets: dict[str, FlowSocket], field: str | None) -> FlowSocket | None:
         if field:

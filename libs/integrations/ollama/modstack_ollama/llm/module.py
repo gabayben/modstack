@@ -28,7 +28,7 @@ class OllamaLLM(Module):
         self.streaming_callback = streaming_callback
 
     @endpoint
-    def call(
+    def effect(
         self,
         prompt: str,
         history: Iterable[ChatMessage] | None = None,

@@ -1,1 +1,1 @@
-from .artifacts import ArtifactJoiner
+from .artifacts import ArtifactJoiners

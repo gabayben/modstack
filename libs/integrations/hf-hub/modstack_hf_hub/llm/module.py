@@ -38,7 +38,7 @@ class HuggingFaceApiLLM(Module):
         self.client = InferenceClient(model_or_url, token=token.resolve_value() if token else None)
 
     @endpoint
-    def call(
+    def effect(
         self,
         prompt: str,
         role: ChatRole | None = None,

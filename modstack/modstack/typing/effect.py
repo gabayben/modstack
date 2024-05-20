@@ -1,12 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Any, AsyncIterator, Callable, Coroutine, Generic, Iterator, final
+from typing import Any, AsyncIterator, Callable, Coroutine, Generic, Iterator, TypeVar, final
 
 from unsync import unsync
 
 from modstack.typing.vars import Other, Out
 from modstack.utils.coroutines import run_sync
-
-ReturnType = Out | Coroutine[Any, Any, Out] | Iterator[Out] | AsyncIterator[Out]
 
 class Effect(Generic[Out], ABC):
     def map(
@@ -191,3 +189,6 @@ class Effects:
         async def aiter(self) -> AsyncIterator[Out]:
             async for item in self.effect.aiter(): #type: ignore
                 yield await self.func(item, **self.kwargs).ainvoke()
+
+_T = TypeVar('_T')
+ReturnType = _T | Coroutine[Any, Any, _T] | Iterator[_T] | AsyncIterator[_T] | Effect[_T]

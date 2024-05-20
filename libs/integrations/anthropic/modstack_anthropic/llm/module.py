@@ -46,7 +46,7 @@ class AnthropicLLM(Module):
         self.stream = stream
 
     @endpoint
-    def call(
+    def effect(
         self,
         prompt: str,
         role: ChatRole | None = None,
