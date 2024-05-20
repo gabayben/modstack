@@ -1,1 +1,1 @@
-from .typing import HFGenerationApiType, HFModelType
+from .typing import HFGenerationApiType, HFModelType, HFTextGenerationTask
