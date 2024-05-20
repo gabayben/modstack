@@ -8,8 +8,8 @@ from modstack.contracts import CallLLM
 from modstack.modules import Modules
 from modstack.typing import ChatMessage, ChatRole, StreamingCallback
 from modstack.utils.paths import validate_url
-from modstack_hf_hub import HFGenerationApiType, HFModelType
-from modstack_hf_hub.utils import validate_hf_model
+from modstack_huggingface import HFGenerationApiType, HFModelType
+from modstack_huggingface.utils import validate_hf_model
 
 class HuggingFaceApiLLM(Modules.Sync[CallLLM, Iterable[ChatMessage]]):
     def __init__(
