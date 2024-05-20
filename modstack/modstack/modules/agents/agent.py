@@ -1,11 +1,8 @@
-from abc import ABC, abstractmethod
-from typing import Iterable
+from abc import ABC
 
-from modstack.contracts.agents import CallAgent
-from modstack.modules import Modules
-from modstack.typing import ChatMessage, Tool
+from modstack.typing import Tool
 
-class Agent(Modules.Sync[CallAgent, Iterable[ChatMessage]], ABC):
+class Agent(ABC):
     @property
     def tools(self) -> list[Tool]:
         return self._tools
@@ -21,8 +18,4 @@ class Agent(Modules.Sync[CallAgent, Iterable[ChatMessage]], ABC):
         self._tools: list[Tool] = []
 
     def add_tools(self, *tools: str | Tool) -> None:
-        pass
-
-    @abstractmethod
-    def _invoke(self, data: CallAgent) -> Iterable[ChatMessage]:
         pass
