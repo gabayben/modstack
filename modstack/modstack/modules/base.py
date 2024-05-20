@@ -1,74 +1,133 @@
-import inspect
-from inspect import Parameter
-from types import MappingProxyType
-from typing import Any, TYPE_CHECKING, Type, final
+from abc import ABC, abstractmethod
+from typing import AsyncIterator, Callable, Generic, Iterator, Type, final, get_args
 
 from pydantic import BaseModel
 
-from modstack.constants import MODSTACK_ENDPOINT
-from modstack.endpoints import Endpoint, EndpointNotFound
+from modstack.typing import Effect, Effects
+from modstack.typing.vars import Out
+from modstack.utils.serialization import create_schema, model_from_callable
 
-if TYPE_CHECKING:
-    from modstack.engines.engine import EngineContext
-else:
-    EngineContext = Any
-
-class ModuleError(Exception):
-    pass
-
-class Module:
-    context: EngineContext
+class Module(Generic[Out], ABC):
+    name: str | None = None
 
     @property
-    def endpoints(self) -> dict[str, Endpoint]:
-        return self._endpoints
+    def OutputType(self) -> Type[Out]:
+        """
+        The type of output this module accepts specified as a type annotation.
+        """
+        for cls in self.__class__.__orig_bases__: # type: ignore[attr-defined]
+            type_args = get_args(cls)
+            if type_args and len(type_args) == 2:
+                return type_args[1]
+        raise TypeError(
+            f"Module {self.get_name()} doesn't have an inferrable OutputType."
+            'Override the OutputType property to specify the output type.'
+        )
 
-    def __init__(self, **kwargs):
-        self._endpoints: dict[str, Endpoint] = {}
-        for _, func in inspect.getmembers(self, lambda x: callable(x) and hasattr(x, MODSTACK_ENDPOINT)):
-            self.add_endpoint(Endpoint(func))
-
-    def __engine_init__(self) -> None:
+    @abstractmethod
+    def forward(self, *args, **kwargs) -> Effect[Out]:
         pass
 
     @final
-    def add_context(self, context: EngineContext) -> None:
-        self.context = context
-        self.__engine_init__()
+    def invoke(self, *args, **kwargs) -> Out:
+        return self.forward(*args, **kwargs).invoke()
 
     @final
-    def has_context(self) -> bool:
-        return hasattr(self, 'context')
+    async def ainvoke(self, *args, **kwargs) -> Out:
+        return await self.forward(*args, **kwargs).ainvoke()
 
     @final
-    def validate_context(self) -> None:
-        if not self.has_context():
-            raise ModuleError(f'Context is not set. You must add {self.__class__.__name__} to an Engine.')
+    def iter(self, *args, **kwargs) -> Iterator[Out]:
+        yield from self.forward(*args, **kwargs).iter()
 
-    def get_endpoint[Out](self, name: str, output_type: Type[Out] = Any) -> Endpoint[Out]:
-        if name not in self.endpoints:
-            raise EndpointNotFound(f'Endpoint {name} not found in Module {self.__class__.__name__}')
-        return self.endpoints[name]
+    @final
+    async def aiter(self, *args, **kwargs) -> AsyncIterator[Out]:
+        async for item in self.forward(*args, **kwargs).aiter(): #type: ignore
+            yield item
 
-    def add_endpoint[Out](self, endpoint: Endpoint[Out]) -> None:
-        self.endpoints[endpoint.name] = endpoint
+    def get_name(
+        self,
+        name: str | None = None,
+        suffix: str | None = None
+    ) -> str:
+        """
+        Get the name of the module.
+        """
+        name = name or self.name or self.__class__.__name__
+        if suffix:
+            if name[0].isupper():
+                return name + suffix.title()
+            else:
+                return name + '_' + suffix.lower()
+        else:
+            return name
 
-    def get_parameters(self, endpoint_name: str) -> MappingProxyType[str, Parameter]:
-        return self.get_endpoint(endpoint_name).parameters
+    def input_schema(self) -> Type[BaseModel]:
+        return model_from_callable(self.get_name(suffix='Input'), self.forward)
 
-    def get_return_annotation(self, endpoint_name: str) -> Any:
-        return self.get_endpoint(endpoint_name).return_annotation
+    def output_schema(self) -> Type[BaseModel]:
+        return create_schema(self.get_name(suffix='Output'), self.OutputType)
 
-    def get_input_schema(self, endpoint_name: str) -> Type[BaseModel]:
-        return self.get_endpoint(endpoint_name).input_schema
+class Modules:
+    class Sync(Module[Out], ABC):
+        @final
+        def forward(self, *args, **kwargs) -> Effect[Out]:
+            def _invoke() -> Out:
+                return self._invoke(*args, **kwargs)
+            return Effects.Sync(_invoke)
 
-    def set_input_schema(self, endpoint_name: str, input_schema: Type[BaseModel]) -> None:
-        endpoint = self.get_endpoint(endpoint_name)
-        setattr(endpoint, 'input_schema', input_schema)
+        @abstractmethod
+        def _invoke(self, *args, **kwargs) -> Out:
+            pass
 
-    def get_output_schema(self, endpoint_name: str) -> Type[BaseModel]:
-        return self.get_endpoint(endpoint_name).output_schema
+        def input_schema(self) -> Type[BaseModel]:
+            return model_from_callable(self.get_name(suffix='Input'), self._invoke)
 
-    def set_output_schema(self, endpoint_name: str, output_schema: Type[BaseModel]) -> None:
-        endpoint = self.get_endpoint(endpoint_name)
-        setattr(endpoint, 'output_schema', output_schema)
+    class Async(Module[Out], ABC):
+        @final
+        def forward(self, *args, **kwargs) -> Effect[Out]:
+            async def _ainvoke() -> Out:
+                return await self._ainvoke(*args, **kwargs)
+            return Effects.Async(_ainvoke)
+
+        @abstractmethod
+        async def _ainvoke(self, *args, **kwargs) -> Out:
+            pass
+
+        def input_schema(self) -> Type[BaseModel]:
+            return model_from_callable(self.get_name(suffix='Input'), self._ainvoke)
+
+    class Stream(Module[Out], ABC):
+        @final
+        def forward(self, *args, **kwargs) -> Effect[Out]:
+            def _iter() -> Iterator[Out]:
+                yield from self._iter(*args, **kwargs)
+            return Effects.Iterator(_iter)
+
+        @abstractmethod
+        def _iter(self, *args, **kwargs) -> Iterator[Out]:
+            pass
+
+        def input_schema(self) -> Type[BaseModel]:
+            return model_from_callable(self.get_name(suffix='Input'), self._iter)
+
+    class AsyncStream(Module[Out], ABC):
+        @final
+        def forward(self, *args, **kwargs) -> Effect[Out]:
+            async def _aiter() -> AsyncIterator[Out]:
+                async for item in self._aiter(*args, **kwargs): #type: ignore
+                    yield item
+            return Effects.AsyncIterator(_aiter)
+
+        @abstractmethod
+        async def _aiter(self, *args, **kwargs) -> AsyncIterator[Out]:
+            pass
+
+        def input_schema(self) -> Type[BaseModel]:
+            return model_from_callable(self.get_name(suffix='Input'), self._aiter)
+
+def coerce_to_module(func: Callable[[...], Out]) -> Module[Out]:
+    pass
+
+def module(func: Callable[[...], Out]) -> Module[Out]:
+    pass

@@ -1,1 +1,1 @@
-from .base import ModuleError, Module
+from .base import Module, Modules, module

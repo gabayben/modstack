@@ -1,7 +1,7 @@
-from typing import TypeVar
+from typing import ParamSpec, TypeVar, TypeVarTuple
 
-from typing import ParamSpec
-
+Args = TypeVarTuple('Args')
 P = ParamSpec('P')
+In = TypeVar('In', bound=dict)
 Out = TypeVar('Out')
 Other = TypeVar('Other')

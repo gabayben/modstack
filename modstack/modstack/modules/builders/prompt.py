@@ -1,12 +1,12 @@
-from typing import Any
+from typing import Any, Type
 
 from jinja2 import Template, meta
+from pydantic import BaseModel
 
-from modstack.endpoints import endpoint
-from modstack.modules import Module
+from modstack.modules import Modules
 from modstack.utils.serialization import create_model
 
-class PromptBuilder(Module):
+class PromptBuilder(Modules.Sync[str, ()]):
     def __init__(
         self,
         template: str,
@@ -17,23 +17,21 @@ class PromptBuilder(Module):
         self.template = Template(template)
         self.required_variables = required_variables or []
         ast = self.template.environment.parse(template)
-        template_variables = meta.find_undeclared_variables(ast)
-        self.set_input_schema(
-            'build',
-            create_model(
-                'BuildPromptInput',
-                **{
-                    k: (Any, ...)
-                    if k in self.required_variables
-                    else (Any, '')
-                    for k in template_variables
-                }
-            )
-        )
+        self.template_variables = meta.find_undeclared_variables(ast)
 
-    @endpoint(ignore_input_schema=True)
-    def build(self, **variables) -> str:
+    def _invoke(self, **variables) -> str:
         missing_variables = [v for v in self.required_variables if v not in variables]
         if missing_variables:
             raise ValueError(f'Missing required input variables: {', '.join(missing_variables)}.')
         return self.template.render(variables)
+
+    def input_schema(self) -> Type[BaseModel]:
+        return create_model(
+            self.get_name(suffix='Input'),
+            **{
+                k: (Any, ...)
+                if k in self.required_variables
+                else (Any, '')
+                for k in self.template_variables
+            }
+        )

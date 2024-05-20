@@ -2,7 +2,7 @@ from functools import lru_cache
 import inspect
 from inspect import Parameter
 from types import MappingProxyType
-from typing import Any, Type
+from typing import Any, Callable, Type
 
 from pydantic import BaseModel, ConfigDict, create_model as create_model_base
 from pydantic.main import Model
@@ -57,6 +57,13 @@ def create_model(
             __slots__=__slots__,
             **field_descriptions
         )
+
+def model_from_callable(name: str, func: Callable) -> Type[BaseModel]:
+    signature = inspect.signature(func)
+    return create_model(
+        name,
+        **from_parameters(signature.parameters)
+    )
 
 def create_schema[T](name: str, type_: Type[T]) -> Type[BaseModel]:
     if issubclass(type_.__class__, BaseModel):
