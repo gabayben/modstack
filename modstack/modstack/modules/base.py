@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from modstack.typing import Effect, Effects, ReturnType
 from modstack.typing.vars import In, Out
+from modstack.typing.vars import Other
 from modstack.utils.serialization import create_schema
 
 class Module(Generic[In, Out], ABC):
@@ -27,6 +28,9 @@ class Module(Generic[In, Out], ABC):
             f"Module {self.get_name()} doesn't have an inferrable OutputType."
             'Override the OutputType property to specify the output type.'
         )
+
+    def map(self, mapper: 'ModuleLike[In, Other]') -> 'Module[In, Other]':
+        pass
 
     @abstractmethod
     def forward(self, data: In) -> Effect[Out]:
@@ -123,8 +127,9 @@ class Modules:
             pass
 
 ModuleFunction = Callable[[In], ReturnType[Out]] | Callable[..., ReturnType[Out]]
+ModuleLike = Module[In, Out] | ModuleFunction[In, Out]
 
-def coerce_to_module(func: ModuleFunction[In, Out]) -> Module[In, Out]:
+def coerce_to_module(thing: ModuleLike[In, Out]) -> Module[In, Out]:
     pass
 
 def module(func: ModuleFunction[In, Out]) -> Module[In, Out]:

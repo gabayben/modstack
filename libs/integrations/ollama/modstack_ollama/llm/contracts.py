@@ -1,5 +1,3 @@
-from typing import override
-
 from modstack.contracts import CallLLM
 
 class CallOllamaLLM(CallLLM):
@@ -8,8 +6,4 @@ class CallOllamaLLM(CallLLM):
     template: str | None = None
     timeout: int | None = None
     raw: bool | None = None
-
-    @classmethod
-    @override
-    def name(cls) -> str:
-        return 'call_ollama_llm'
+    stream: bool | None = None

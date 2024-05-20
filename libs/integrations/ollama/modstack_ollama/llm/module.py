@@ -3,11 +3,11 @@ from typing import Any, Iterable
 
 import requests
 
-from modstack.endpoints import endpoint
-from modstack.modules import Module
+from modstack.modules import Modules
 from modstack.typing import ChatMessage, StreamingCallback, StreamingChunk
+from modstack_ollama.llm import CallOllamaLLM
 
-class OllamaLLM(Module):
+class OllamaLLM(Modules.Sync[CallOllamaLLM, Iterable[ChatMessage]]):
     def __init__(
         self,
         url: str = 'http://localhost:11434/api/generate',
@@ -16,7 +16,9 @@ class OllamaLLM(Module):
         template: str | None = None,
         timeout: int = 120,
         raw: bool = False,
-        streaming_callback: StreamingCallback | None = None
+        streaming_callback: StreamingCallback | None = None,
+        stream: bool = False,
+        generation_args: dict[str, Any] = {}
     ):
         super().__init__()
         self.url = url
@@ -26,29 +28,19 @@ class OllamaLLM(Module):
         self.timeout = timeout
         self.raw = raw
         self.streaming_callback = streaming_callback
+        self.stream = stream
+        self.generation_args = generation_args
 
-    @endpoint
-    def effect(
-        self,
-        prompt: str,
-        history: Iterable[ChatMessage] | None = None,
-        generation_args: dict[str, Any] | None = None,
-        images: list[str] | None = None,
-        system_prompt: str | None = None,
-        template: str | None = None,
-        timeout: int | None = None,
-        raw: bool | None = None,
-        **kwargs
-    ) -> Iterable[ChatMessage]:
-        generation_args = {**(generation_args or {})}
-        system_prompt = system_prompt or self.system_prompt
-        template = template or self.template
-        timeout = timeout or self.timeout
-        raw = raw if raw is not None else self.raw
-        stream = self.streaming_callback is not None
+    def _invoke(self, data: CallOllamaLLM) -> Iterable[ChatMessage]:
+        generation_args = {**self.generation_args, **(data.generation_args or {})}
+        system_prompt = data.system_prompt or self.system_prompt
+        template = data.template or self.template
+        timeout = data.timeout or self.timeout
+        raw = data.raw if data.raw is not None else self.raw
+        stream = data.stream if data.stream is not None else self.stream
 
         payload = {
-            'prompt': prompt,
+            'prompt': data.prompt,
             'model': self.model,
             'system': system_prompt,
             'template': template,

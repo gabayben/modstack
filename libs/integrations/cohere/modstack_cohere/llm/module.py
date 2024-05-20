@@ -3,12 +3,12 @@ from typing import Any, ClassVar, Iterable
 import cohere
 
 from modstack.auth import Secret
-from modstack.endpoints import endpoint
-from modstack.modules import Module
+from modstack.contracts import CallLLM
+from modstack.modules import Modules
 from modstack.typing import ChatMessage, ChatRole, StreamingCallback, Tool, ToolResult
 from modstack_cohere.utils import build_cohore_metadata
 
-class CohereLLM(Module):
+class CohereLLM(Modules.Sync[CallLLM, Iterable[ChatMessage]]):
     ROLES_MAP: ClassVar[dict[ChatRole, str]] = {
         ChatRole.USER: 'USER',
         ChatRole.FUNCTION: 'USER',
@@ -38,29 +38,21 @@ class CohereLLM(Module):
             timeout=timeout
         )
 
-    @endpoint
-    def effect(
-        self,
-        prompt: str,
-        role: ChatRole | None = None,
-        history: Iterable[ChatMessage] | None = None,
-        tools: list[Tool] | None = None,
-        tool_results: list[ToolResult] | None = None,
-        generation_args: dict[str, Any] | None = None,
-        **kwargs
-    ) -> Iterable[ChatMessage]:
-        generation_args = {**self.generation_args, **(generation_args or {})}
+    def _invoke(self, data: CallLLM) -> Iterable[ChatMessage]:
+        generation_args = {**self.generation_args, **(data.generation_args or {})}
         chat_history = [
             self._build_cohere_message(message)
-            for message in history
-        ] if history else []
+            for message in data.history
+        ] if data.history else []
+        cohere_tools: list[cohere.Tool] = self._build_cohere_tools(data.tools) if data.tools else None
+        cohere_tool_results: list[cohere.ToolResult] = self._build_cohere_tool_results(data.tool_results) if data.tool_results else None
 
         if self.stream:
             response = self.client.chat_stream(
-                message=prompt,
+                message=data.prompt,
                 chat_history=chat_history,
-                tools=self._build_cohere_tools(tools) if tools else None,
-                tool_results=self._build_cohere_tool_results(tool_results) if tool_results else None,
+                tools=cohere_tools,
+                tool_results=cohere_tool_results,
                 model=self.model,
                 **generation_args
             )
@@ -83,10 +75,10 @@ class CohereLLM(Module):
             return [chat_message]
         else:
             response = self.client.chat(
-                message=prompt,
+                message=data.prompt,
                 chat_history=chat_history,
-                tools=self._build_cohere_tools(tools) if tools else None,
-                tool_results=self._build_cohere_tool_results(tool_results) if tool_results else None,
+                tools=cohere_tools,
+                tool_results=cohere_tool_results,
                 model=self.model,
                 **generation_args
             )

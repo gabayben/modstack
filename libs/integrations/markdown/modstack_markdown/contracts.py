@@ -1,4 +1,4 @@
-from typing import Any, Literal, Mapping, override
+from typing import Any, Literal, Mapping
 
 from markdown_it.utils import PresetType
 from pydantic import Field
@@ -13,8 +13,3 @@ class MdItToText(MarkdownToText):
     options_update: Mapping[str, Any] | None = None
     features: list[str] = Field(default_factory=list)
     ignore_invalid_features: bool = False
-
-    @classmethod
-    @override
-    def name(cls) -> str:
-        return 'mdit_to_text'

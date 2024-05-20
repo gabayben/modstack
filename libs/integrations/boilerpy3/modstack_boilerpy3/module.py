@@ -1,19 +1,18 @@
 import logging
-from typing import Any, ClassVar
+from typing import ClassVar
 
 from boilerpy3 import extractors
 from boilerpy3.extractors import Extractor
 
-from modstack.endpoints import endpoint
-from modstack.modules import Module
-from modstack.typing import ArtifactSource, TextArtifact
+from modstack.modules import Modules
+from modstack.typing import TextArtifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
-from modstack_boilerpy3 import ExtractorType
+from modstack_boilerpy3 import BoilerToText
 
 logger = logging.getLogger(__name__)
 
-class BoilerPy3(Module):
+class BoilerPy3(Modules.Sync[BoilerToText, list[TextArtifact]]):
     known_html_extractors: ClassVar[list[str]] = [
         'DefaultExtractor',
         'KeepEverythingExtractor',
@@ -24,29 +23,22 @@ class BoilerPy3(Module):
         'NumWordsRulesExtractor'
     ]
 
-    @endpoint
-    def html_to_text(
-        self,
-        sources: list[ArtifactSource],
-        metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
-        extractor_type: ExtractorType = 'DefaultExtractor',
-        try_others: bool = True,
-        **kwargs
-    ) -> list[TextArtifact]:
-        metadata = normalize_metadata(metadata, len(sources))
+    def _invoke(self, data: BoilerToText) -> list[TextArtifact]:
+        metadata = normalize_metadata(data.metadata, len(data.sources))
         results: list[TextArtifact] = []
 
         extractors_list = (
-            list(dict.fromkeys([extractor_type, *self.known_html_extractors]))
-            if try_others
-            else [extractor_type]
+            list(dict.fromkeys([data.extractor_type, *self.known_html_extractors]))
+            if data.try_others
+            else [data.extractor_type]
         )
 
-        for source, md in tzip(sources, metadata):
+        for source, md in tzip(data.sources, metadata):
             try:
                 artifact = TextArtifact.from_source(source, metadata=md)
             except Exception as e:
-                logger.warning(f'Could not read {source}. Skipping it. Error: {e}.')
+                logger.warning(f'Could not read {source}. Skipping it.')
+                logger.exception(e)
                 continue
             for extractor_name in extractors_list:
                 extractor_cls = getattr(extractors, extractor_name)
@@ -56,8 +48,9 @@ class BoilerPy3(Module):
                     if text:
                         break
                 except Exception as e:
-                    if try_others:
-                        logger.warning(f'Failed to extract using {extractor_name} from {source}. Trying next extractor. Error: {e}.')
+                    if data.try_others:
+                        logger.warning(f'Failed to extract using {extractor_name} from {source}. Trying next extractor.')
+                        logger.exception(e)
             if not text:
                 logger.warning(f'Failed to extract text using extractors {extractors_list}. Skipping it.')
                 continue

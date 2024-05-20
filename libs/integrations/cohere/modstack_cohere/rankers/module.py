@@ -4,14 +4,14 @@ from typing import ClassVar
 import cohere
 
 from modstack.auth import Secret
-from modstack.endpoints import endpoint
-from modstack.modules import Module
+from modstack.modules import Modules
 from modstack.typing import Utf8Artifact
 from modstack.utils.func import tzip
+from modstack_cohere.rankers import CohereRank
 
 logger = logging.getLogger(__name__)
 
-class CohereRanker(Module):
+class CohereRanker(Modules.Async[CohereRank, list[Utf8Artifact]]):
     MAX_NUM_DOCS_FOR_COHERE_RANKER: ClassVar[int] = 1000
 
     def __init__(
@@ -36,31 +36,23 @@ class CohereRanker(Module):
         self.meta_fields_to_embed = meta_fields_to_embed or []
         self.metadata_seperator = metadata_seperator
 
-    @endpoint
-    async def rank(
-        self,
-        query: str,
-        artifacts: list[Utf8Artifact],
-        top_k: int | None = None,
-        max_chunks_per_doc: int | None = None,
-        meta_fields_to_embed: list[str] | None = None,
-        metadata_seperator: str | None = None
-    ) -> list[Utf8Artifact]:
-        if not query or not artifacts:
+    async def _ainvoke(self, data: CohereRank) -> list[Utf8Artifact]:
+        if not data.query or not data.artifacts:
             return []
 
-        top_k = top_k or self.top_k
+        top_k = data.top_k or self.top_k
         if top_k <= 0:
             raise ValueError(f'top_k must be greater than 0, but got {top_k}.')
 
-        max_chunks_per_doc = max_chunks_per_doc or self.max_chunks_per_doc
+        max_chunks_per_doc = data.max_chunks_per_doc or self.max_chunks_per_doc
         max_chunks_per_doc = min(max_chunks_per_doc, 10000) if max_chunks_per_doc else None
-        meta_fields_to_embed = list({*self.meta_fields_to_embed, *(meta_fields_to_embed or [])})
-        metadata_seperator = metadata_seperator or self.metadata_seperator
+        meta_fields_to_embed = list({*self.meta_fields_to_embed, *(data.meta_fields_to_embed or [])})
+        metadata_seperator = data.metadata_seperator or self.metadata_seperator
 
         cohere_input_docs = []
-        for artifact in artifacts:
-            meta_values_to_embed = [str(artifact.metadata[key]) for key in meta_fields_to_embed if artifact.metadata.get(key, None)]
+        for artifact in data.artifacts:
+            meta_values_to_embed = [str(artifact.metadata[key]) for key in meta_fields_to_embed if
+                                    artifact.metadata.get(key, None)]
             cohere_input_docs.append(
                 metadata_seperator.join([*meta_values_to_embed, str(artifact)])
             )
@@ -75,7 +67,7 @@ class CohereRanker(Module):
 
         response = await self.client.rerank(
             model=self.model,
-            query=query,
+            query=data.query,
             documents=cohere_input_docs,
             top_n=top_k,
             max_chunks_per_doc=max_chunks_per_doc
@@ -89,7 +81,7 @@ class CohereRanker(Module):
 
         sorted_artifacts: list[Utf8Artifact] = []
         for index, score in tzip(indices, scores):
-            artifact = artifacts[index]
+            artifact = data.artifacts[index]
             artifact.score = score
             sorted_artifacts.append(artifact)
 
