@@ -1,7 +1,6 @@
 from functools import lru_cache
 import inspect
 from inspect import Parameter
-from types import MappingProxyType
 from typing import Any, Callable, Type
 
 from pydantic import BaseModel, ConfigDict, create_model as create_model_base
@@ -86,7 +85,7 @@ def create_schema[T](name: str, type_: Type[T]) -> Type[BaseModel]:
 
     return create_model(name, **field_descriptions)
 
-def from_parameters(parameters: MappingProxyType[str, Parameter]) -> dict[str, tuple[Any, Any | None]]:
+def from_parameters(parameters: dict[str, Parameter]) -> dict[str, tuple[Any, Any | None]]:
     return {
         name: (
             (parameter.annotation, parameter.default)

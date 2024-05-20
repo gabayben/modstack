@@ -17,9 +17,6 @@ class Module(Generic[In, Out], ABC):
 
     @property
     def OutputType(self) -> Type[Out]:
-        """
-        The type of output this module accepts specified as a type annotation.
-        """
         for cls in self.__class__.__orig_bases__: # type: ignore[attr-defined]
             type_args = get_args(cls)
             if type_args and len(type_args) == 2:
@@ -36,7 +33,6 @@ class Module(Generic[In, Out], ABC):
     def forward(self, data: In) -> Effect[Out]:
         pass
 
-    @final
     def effect(self, *args, **kwargs) -> Effect[Out]:
         return self.forward(self.input_schema().model_construct(*args, **kwargs))
 
@@ -62,9 +58,6 @@ class Module(Generic[In, Out], ABC):
         name: str | None = None,
         suffix: str | None = None
     ) -> str:
-        """
-        Get the name of the module.
-        """
         name = name or self.name or self.__class__.__name__
         if suffix:
             if name[0].isupper():
@@ -81,12 +74,21 @@ class Module(Generic[In, Out], ABC):
         return create_schema(self.get_name(suffix='Output'), self.OutputType)
 
 class Modules:
+    class Forward(Module[In, Out], ABC):
+        @final
+        def effect(self, *args, **kwargs) -> Effect[Out]:
+            return super().effect(*args, **kwargs)
+
     class Sync(Module[In, Out], ABC):
         @final
         def forward(self, data: In) -> Effect[Out]:
             def _invoke() -> Out:
                 return self._invoke(data)
             return Effects.Sync(_invoke)
+
+        @final
+        def effect(self, *args, **kwargs) -> Effect[Out]:
+            return super().effect(*args, **kwargs)
 
         @abstractmethod
         def _invoke(self, data: In) -> Out:
@@ -99,6 +101,10 @@ class Modules:
                 return await self._ainvoke(data)
             return Effects.Async(_ainvoke)
 
+        @final
+        def effect(self, *args, **kwargs) -> Effect[Out]:
+            return super().effect(*args, **kwargs)
+
         @abstractmethod
         async def _ainvoke(self, data: In) -> Out:
             pass
@@ -109,6 +115,10 @@ class Modules:
             def _iter() -> Iterator[Out]:
                 yield from self._iter(data)
             return Effects.Iterator(_iter)
+
+        @final
+        def effect(self, *args, **kwargs) -> Effect[Out]:
+            return super().effect(*args, **kwargs)
 
         @abstractmethod
         def _iter(self, data: In) -> Iterator[Out]:
@@ -122,6 +132,10 @@ class Modules:
                     yield item
             return Effects.AsyncIterator(_aiter)
 
+        @final
+        def effect(self, *args, **kwargs) -> Effect[Out]:
+            return super().effect(*args, **kwargs)
+
         @abstractmethod
         async def _aiter(self, data: In) -> AsyncIterator[Out]:
             pass
@@ -130,7 +144,11 @@ ModuleFunction = Callable[[In], ReturnType[Out]] | Callable[..., ReturnType[Out]
 ModuleLike = Module[In, Out] | ModuleFunction[In, Out]
 
 def coerce_to_module(thing: ModuleLike[In, Out]) -> Module[In, Out]:
-    pass
+    from modstack.modules.functional import Functional
+    if isinstance(thing, Module):
+        return thing
+    return Functional(thing)
 
 def module(func: ModuleFunction[In, Out]) -> Module[In, Out]:
-    return coerce_to_module(func)
+    from modstack.modules.functional import Functional
+    return Functional(func)

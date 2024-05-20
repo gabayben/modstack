@@ -39,7 +39,7 @@ class _ArtifactJoiner(Modules.Sync[JoinArtifacts, list[Artifact]], ABC):
 
 class ArtifactJoiners:
     class Concatenate(_ArtifactJoiner):
-        def _invoke(self, data: JoinArtifacts) -> Iterable[Artifact]:
+        def _invoke(self, data: JoinArtifacts) -> list[Artifact]:
             joined_artifacts: list[Artifact] = []
             artifacts_by_id: dict[str, list[Artifact]] = defaultdict(list)
             for artifact in chain_iterables(data.artifacts):
