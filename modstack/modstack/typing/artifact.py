@@ -19,8 +19,6 @@ class Artifact(BaseDoc, ABC):
         if isinstance(source, Artifact):
             metadata['mime_type'] = metadata.get('mime_type', None) or source.mime_type
             return cls.from_artifact(source, metadata)
-        elif isinstance(source, BaseUrl):
-            return cls.from_url(source, metadata)
         return cls.from_path(source, metadata)
 
     @classmethod
@@ -61,15 +59,26 @@ class Artifact(BaseDoc, ABC):
         arbitrary_types_allowed = True
 
 class Utf8Artifact(Artifact, ABC):
-    def to_bytes(self, **kwargs) -> bytes:
-        return str(self).encode(encoding='utf-8')
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, str):
+            return str(self) == other
+        return super().__eq__(other)
 
     def __str__(self) -> str:
         return self.to_utf8()
 
+    def __contains__(self, item: str) -> bool:
+        return str(self).__contains__(item)
+
     @abstractmethod
     def to_utf8(self) -> str:
         pass
+
+    def to_bytes(self, **kwargs) -> bytes:
+        return str(self).encode(encoding='utf-8')
+
+    def _get_string_for_regex_filter(self) -> str:
+        return str(self)
 
 StrictArtifactSource = Path | Artifact
 ArtifactSource = str | StrictArtifactSource

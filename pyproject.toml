@@ -21,7 +21,7 @@ modstack-langdetect = { path = "libs/integrations/langdetect/", develop = true }
 #modstack-cohere = { path = "libs/integrations/cohere/", develop = true }
 #modstack-anthropic = { path = "libs/integrations/anthropic/", develop = true }
 #modstack-ollama = { path = "libs/integrations/ollama/", develop = true }
-modstack-transformers = { path = "libs/integrations/transformers", develop = true }
+#modstack-transformers = { path = "libs/integrations/transformers", develop = true }
 jupyter = "^1.0.0"
 
 [tool.poetry.group.test]

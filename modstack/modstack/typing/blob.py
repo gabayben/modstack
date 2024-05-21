@@ -1,13 +1,13 @@
 from abc import ABC
-from typing import Generic, Optional, TypeVar, override
+from typing import Any, Generic, Optional, TypeVar, override
 
 from docarray.utils._internal.misc import ProtocolType
 from pydantic import Field
 
-from modstack.typing import Artifact, AudioBytes, AudioUrl, BaseBytes, BaseUrl, ImageBytes, ImageUrl, VideoBytes, VideoUrl
+from modstack.typing import Artifact, AudioBytes, AudioUrl, BaseUrl, ImageBytes, ImageUrl, VideoBytes, VideoUrl
 
 _Url = TypeVar('_Url', bound=BaseUrl)
-_Bytes = TypeVar('_Bytes', bound=BaseBytes)
+_Bytes = TypeVar('_Bytes', bound=bytes)
 
 class BlobArtifact(Artifact, ABC):
     base64: Optional[str] = Field(default=None, kw_only=True)
@@ -31,8 +31,18 @@ class MediaArtifact(BlobArtifact, Generic[_Url, _Bytes]):
 class ImageArtifact(MediaArtifact[ImageUrl, ImageBytes]):
     pass
 
-class VideoArtifact(MediaArtifact[VideoUrl, VideoBytes]):
-    pass
-
 class AudioArtifact(MediaArtifact[AudioUrl, AudioBytes]):
-    pass
+    frame_rate: int | None = Field(default=None, kw_only=True)
+
+    def __init__(
+        self,
+        metadata: dict[str, Any] | None = None,
+        frame_rate: int | None = None,
+        **kwargs
+    ):
+        metadata = metadata or {}
+        frame_rate = frame_rate or metadata.pop('frame_rate', None)
+        super().__init__(metadata=metadata, frame_rate=frame_rate, **kwargs)
+
+class VideoArtifact(MediaArtifact[VideoUrl, VideoBytes]):
+    audio: AudioArtifact | None = Field(default=None, kw_only=True)
