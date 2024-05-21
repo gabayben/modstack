@@ -4,8 +4,7 @@ from typing import Any, AsyncIterator, Callable, Generic, Iterator, TYPE_CHECKIN
 from pydantic import BaseModel
 
 from modstack.typing import Effect, Effects, ReturnType
-from modstack.typing.vars import In, Out
-from modstack.typing.vars import Other
+from modstack.typing.vars import In, Out, Other
 from modstack.utils.serialization import create_schema
 
 if TYPE_CHECKING:
@@ -19,7 +18,14 @@ class Module(Generic[In, Out], AsGraph, ABC):
 
     @property
     def InputType(self) -> Type[In]:
-        return type(In)
+        for cls in self.__class__.__orig_bases__: # type: ignore[attr-defined]
+            type_args = get_args(cls)
+            if type_args and len(type_args) == 1:
+                return type_args[0]
+        raise TypeError(
+            f"Module {self.get_name()} doesn't have an inferrable InputType."
+            'Override the OutputType property to specify the output type.'
+        )
 
     @property
     def OutputType(self) -> Type[Out]:
@@ -32,31 +38,34 @@ class Module(Generic[In, Out], AsGraph, ABC):
             'Override the OutputType property to specify the output type.'
         )
 
-    def map(self, mapper: 'ModuleLike[In, Other]') -> 'Module[In, Other]':
+    def __or__(self, other: 'ModuleLike[Out, Other]') -> 'Module[In, Other]':
+        pass
+
+    def __ror__(self, other: 'ModuleLike[Other, In]') -> 'Module[Other, Out]':
+        pass
+
+    def map(self, mapper: Callable[[Out], Other]) -> 'Module[In, Other]':
         pass
 
     @abstractmethod
-    def forward(self, data: In) -> Effect[Out]:
+    def forward(self, data: In, **kwargs) -> Effect[Out]:
         pass
 
-    def effect(self, *args, **kwargs) -> Effect[Out]:
-        return self.forward(self.input_schema().model_construct(*args, **kwargs))
+    @final
+    def invoke(self, data: In, **kwargs) -> Out:
+        return self.forward(data, **kwargs).invoke()
 
     @final
-    def invoke(self, *args, **kwargs) -> Out:
-        return self.effect(*args, **kwargs).invoke()
+    async def ainvoke(self, data: In, **kwargs) -> Out:
+        return await self.forward(data, **kwargs).ainvoke()
 
     @final
-    async def ainvoke(self, *args, **kwargs) -> Out:
-        return await self.effect(*args, **kwargs).ainvoke()
+    def iter(self, data: In, **kwargs) -> Iterator[Out]:
+        yield from self.forward(data, **kwargs).iter()
 
     @final
-    def iter(self, *args, **kwargs) -> Iterator[Out]:
-        yield from self.effect(*args, **kwargs).iter()
-
-    @final
-    async def aiter(self, *args, **kwargs) -> AsyncIterator[Out]:
-        async for item in self.effect(*args, **kwargs).aiter(): #type: ignore
+    async def aiter(self, data: In, **kwargs) -> AsyncIterator[Out]:
+        async for item in self.effect(data, **kwargs).aiter(): #type: ignore
             yield item
 
     def get_name(
@@ -74,7 +83,7 @@ class Module(Generic[In, Out], AsGraph, ABC):
             return name
 
     def input_schema(self) -> Type[BaseModel]:
-        return self.InputType
+        return create_schema(self.get_name(suffix='Input'), self.InputType)
 
     def output_schema(self) -> Type[BaseModel]:
         return create_schema(self.get_name(suffix='Output'), self.OutputType)
@@ -83,70 +92,49 @@ class Module(Generic[In, Out], AsGraph, ABC):
         pass
 
 class Modules:
-    class Forward(Module[In, Out], ABC):
-        @final
-        def effect(self, *args, **kwargs) -> Effect[Out]:
-            return super().effect(*args, **kwargs)
-
     class Sync(Module[In, Out], ABC):
         @final
-        def forward(self, data: In) -> Effect[Out]:
+        def forward(self, data: In, **kwargs) -> Effect[Out]:
             def _invoke() -> Out:
-                return self._invoke(data)
+                return self._invoke(data, **kwargs)
             return Effects.Sync(_invoke)
 
-        @final
-        def effect(self, *args, **kwargs) -> Effect[Out]:
-            return super().effect(*args, **kwargs)
-
         @abstractmethod
-        def _invoke(self, data: In) -> Out:
+        def _invoke(self, data: In, **kwargs) -> Out:
             pass
 
     class Async(Module[In, Out], ABC):
         @final
-        def forward(self, data: In) -> Effect[Out]:
+        def forward(self, data: In, **kwargs) -> Effect[Out]:
             async def _ainvoke() -> Out:
-                return await self._ainvoke(data)
+                return await self._ainvoke(data, **kwargs)
             return Effects.Async(_ainvoke)
 
-        @final
-        def effect(self, *args, **kwargs) -> Effect[Out]:
-            return super().effect(*args, **kwargs)
-
         @abstractmethod
-        async def _ainvoke(self, data: In) -> Out:
+        async def _ainvoke(self, data: In, **kwargs) -> Out:
             pass
 
     class Stream(Module[In, Out], ABC):
         @final
-        def forward(self, data: In) -> Effect[Out]:
+        def forward(self, data: In, **kwargs) -> Effect[Out]:
             def _iter() -> Iterator[Out]:
-                yield from self._iter(data)
+                yield from self._iter(data, **kwargs)
             return Effects.Iterator(_iter)
 
-        @final
-        def effect(self, *args, **kwargs) -> Effect[Out]:
-            return super().effect(*args, **kwargs)
-
         @abstractmethod
-        def _iter(self, data: In) -> Iterator[Out]:
+        def _iter(self, data: In, **kwargs) -> Iterator[Out]:
             pass
 
     class AsyncStream(Module[In, Out], ABC):
         @final
-        def forward(self, data: In) -> Effect[Out]:
+        def forward(self, data: In, **kwargs) -> Effect[Out]:
             async def _aiter() -> AsyncIterator[Out]:
-                async for item in self._aiter(data): #type: ignore
+                async for item in self._aiter(data, **kwargs): #type: ignore
                     yield item
             return Effects.AsyncIterator(_aiter)
 
-        @final
-        def effect(self, *args, **kwargs) -> Effect[Out]:
-            return super().effect(*args, **kwargs)
-
         @abstractmethod
-        async def _aiter(self, data: In) -> AsyncIterator[Out]:
+        async def _aiter(self, data: In, **kwargs) -> AsyncIterator[Out]:
             pass
 
 ModuleFunction = Callable[[In], ReturnType[Out]] | Callable[..., ReturnType[Out]]

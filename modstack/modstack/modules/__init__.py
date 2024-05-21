@@ -6,3 +6,4 @@ from .base import (
     coerce_to_module,
     module
 )
+from .sequential import Sequential

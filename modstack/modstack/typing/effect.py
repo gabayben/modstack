@@ -3,22 +3,22 @@ from typing import Any, AsyncIterator, Callable, Coroutine, Generic, Iterator, T
 
 from unsync import unsync
 
-from modstack.typing.vars import Other, Out
+from modstack.typing.vars import OtherIn, Out
 from modstack.utils.coroutines import run_sync
 
 class Effect(Generic[Out], ABC):
     def map(
         self,
-        func: Callable[[Out, ...], Other],
+        func: Callable[[Out, ...], OtherIn],
         **kwargs
-    ) -> 'Effect[Other]':
+    ) -> 'Effect[OtherIn]':
         return Effects.Map(self, func, **kwargs)
 
     def flat_map(
         self,
-        func: Callable[[Out, ...], 'Effect[Other]'],
+        func: Callable[[Out, ...], 'Effect[OtherIn]'],
         **kwargs
-    ) -> 'Effect[Other]':
+    ) -> 'Effect[OtherIn]':
         return Effects.FlatMap(self, func, **kwargs)
 
     @abstractmethod
@@ -139,11 +139,11 @@ class Effects:
                 yield item
 
     @final
-    class Map(Generic[Out, Other], Effect[Out]):
+    class Map(Generic[Out, OtherIn], Effect[Out]):
         def __init__(
             self,
-            effect: Effect[Other],
-            func: Callable[[Other, ...], Out],
+            effect: Effect[OtherIn],
+            func: Callable[[OtherIn, ...], Out],
             **kwargs
         ):
             self.effect = effect
@@ -165,11 +165,11 @@ class Effects:
                 yield self.func(item, **self.kwargs)
 
     @final
-    class FlatMap(Generic[Out, Other], Effect[Out]):
+    class FlatMap(Generic[Out, OtherIn], Effect[Out]):
         def __init__(
             self,
-            effect: Effect[Other],
-            func: Callable[[Other, ...], Effect[Out]],
+            effect: Effect[OtherIn],
+            func: Callable[[OtherIn, ...], Effect[Out]],
             **kwargs
         ):
             self.effect = effect

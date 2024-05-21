@@ -61,7 +61,7 @@ def model_from_callable(name: str, func: Callable) -> Type[BaseModel]:
     signature = inspect.signature(func)
     return create_model(
         name,
-        **from_parameters(signature.parameters)
+        **from_parameters(dict(signature.parameters))
     )
 
 def create_schema[T](name: str, type_: Type[T]) -> Type[BaseModel]:
@@ -95,6 +95,13 @@ def from_parameters(parameters: dict[str, Parameter]) -> dict[str, tuple[Any, An
         for name, parameter in parameters.items()
         if parameter.annotation != inspect.Parameter.empty
     }
+
+def to_input[T](input_type: Type[T], **kwargs) -> T:
+    if issubclass(input_type, BaseModel):
+        return input_type.model_construct(**kwargs)
+    elif issubclass(input_type, dict):
+        return kwargs
+    raise TypeError(f'Expected a dict or BaseModel, got {input_type}.')
 
 def to_dict(data: Any) -> dict[str, Any]:
     if isinstance(data, dict):
