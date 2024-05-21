@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, AsyncIterator, Callable, Generic, Iterator, Sequence, TYPE_CHECKING, Type, final, get_args
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, Type, final, get_args
 
 from pydantic import BaseModel
 
@@ -38,13 +38,13 @@ class Module(Generic[In, Out], AsGraph, ABC):
             'Override the OutputType property to specify the output type.'
         )
 
-    def __or__(self, other: 'ModuleLike[Out, Other]') -> 'Module[In, Other]':
+    def __or__(self, other: 'ModuleLike[Out, Other]' | 'ModuleMapping[Out]') -> 'Module[In, Other]':
         from modstack.modules.sequential import Sequential
-        return Sequential(self, other)
+        return Sequential(self, coerce_to_module(other))
 
     def __ror__(self, other: 'ModuleLike[Other, In]') -> 'Module[Other, Out]':
         from modstack.modules.sequential import Sequential
-        return Sequential(other, self)
+        return Sequential(coerce_to_module(other), self)
 
     def map(self, mapper: Callable[[Out], Other]) -> 'Module[In, Other]':
         return self | mapper
@@ -185,6 +185,7 @@ class Modules:
 
 ModuleFunction = Callable[[In], ReturnType[Out]] | Callable[..., ReturnType[Out]]
 ModuleLike = Module[In, Out] | ModuleFunction[In, Out]
+ModuleMapping = Mapping[str, ModuleLike[In, Any]]
 
 def coerce_to_module(thing: ModuleLike[In, Out]) -> Module[In, Out]:
     from modstack.modules.functional import Functional
