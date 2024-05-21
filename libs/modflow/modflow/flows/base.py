@@ -1,6 +1,6 @@
 import networkx as nx
 
-from modflow.typing import FlowOutput, RunFlow
+from modflow.contracts import FlowOutput, RunFlow
 from modstack.modules import Modules
 
 class PregelBase:

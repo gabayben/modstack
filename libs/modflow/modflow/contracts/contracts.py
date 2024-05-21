@@ -1,4 +1,4 @@
-from modflow.typing import FlowData
+from modflow.contracts import FlowData
 from modstack.typing import Serializable
 
 class RunFlow(Serializable):
