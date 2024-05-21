@@ -18,6 +18,7 @@ from .types import (
     TextUrl,
     VideoBytes,
     VideoUrl,
+    BaseTensor,
     ImageTenser,
     AudioTensor,
     VideoTensor,

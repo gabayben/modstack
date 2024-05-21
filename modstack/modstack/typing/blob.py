@@ -10,6 +10,7 @@ from modstack.typing import (
     AudioBytes,
     AudioTensor,
     AudioUrl,
+    BaseTensor,
     BaseUrl,
     ImageBytes,
     ImageTenser,
@@ -87,6 +88,7 @@ class AudioArtifact(MediaArtifact[AudioUrl, AudioBytes]):
 
 class VideoArtifact(MediaArtifact[VideoUrl, VideoBytes]):
     tensor: VideoTensor | None = Field(default=None, kw_only=True)
+    key_frame_indices: BaseTensor | None = Field(default=None, kw_only=True)
     audio: AudioArtifact | None = Field(default=None, kw_only=True)
 
 class Mesh3D(MediaArtifact[Mesh3DUrl, bytes]):
