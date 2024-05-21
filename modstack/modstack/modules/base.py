@@ -39,13 +39,15 @@ class Module(Generic[In, Out], AsGraph, ABC):
         )
 
     def __or__(self, other: 'ModuleLike[Out, Other]') -> 'Module[In, Other]':
-        pass
+        from modstack.modules.sequential import Sequential
+        return Sequential(self, other)
 
     def __ror__(self, other: 'ModuleLike[Other, In]') -> 'Module[Other, Out]':
-        pass
+        from modstack.modules.sequential import Sequential
+        return Sequential(other, self)
 
     def map(self, mapper: Callable[[Out], Other]) -> 'Module[In, Other]':
-        pass
+        return self | mapper
 
     def bind(self, **kwargs) -> 'Module[In, Out]':
         from modstack.modules.decorator import Decorator
