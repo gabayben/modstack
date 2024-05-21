@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from modstack.typing import AfterRetryFailure, Effect, Effects, RetryStrategy, ReturnType, StopStrategy, WaitStrategy
 from modstack.typing.vars import In, Out, Other
-from modstack.utils.serialization import create_schema
+from modstack.utils.serialization import create_schema, from_dict
 
 if TYPE_CHECKING:
     from modstack.graphs.base import Graph, AsGraph
@@ -15,6 +15,7 @@ else:
 
 class Module(Generic[In, Out], AsGraph, ABC):
     name: str | None = None
+    description: str | None = None
 
     @property
     def InputType(self) -> Type[In]:
@@ -128,6 +129,9 @@ class Module(Generic[In, Out], AsGraph, ABC):
         else:
             return name
 
+    def get_description(self, description: str | None = None) -> str:
+        return description or self.description or self.__doc__ or ''
+
     def input_schema(self) -> Type[BaseModel]:
         return create_schema(self.get_name(suffix='Input'), self.InputType)
 
@@ -136,6 +140,9 @@ class Module(Generic[In, Out], AsGraph, ABC):
 
     def as_graph(self, **kwargs) -> Graph:
         pass
+
+    def construct_input(self, data: dict[str, Any]) -> In:
+        return from_dict(data, self.input_schema())
 
 class Modules:
     class Sync(Module[In, Out], ABC):
@@ -193,6 +200,20 @@ def coerce_to_module(thing: ModuleLike[In, Out]) -> Module[In, Out]:
         return thing
     return Functional(thing)
 
-def module(func: ModuleFunction[In, Out]) -> Module[In, Out]:
+def module(
+    func: ModuleFunction[In, Out] | None = None,
+    name: str | None = None,
+    description: str | None = None,
+    input_schema: Type[BaseModel] | None = None,
+    output_schema: Type[BaseModel] | None = None
+) -> Module[In, Out]:
     from modstack.modules.functional import Functional
-    return Functional(func)
+    def wrapper(fn: ModuleFunction[In, Out]) -> Module[In, Out]:
+        return Functional(
+            fn,
+            name=name,
+            description=description,
+            input_schema=input_schema,
+            output_schema=output_schema
+        )
+    return wrapper(func) if func else wrapper

@@ -1,14 +1,13 @@
-from abc import ABC, abstractmethod
-from typing import Any, Iterable
+from typing import Iterable
 
 from modstack.contracts import AgenticLLMRequest
 from modstack.contracts.agents import AgentRequest
 from modstack.modules import Module
-from modstack.tools import Tool
+from modstack.modules.agents import Tool
 from modstack.typing import ChatMessage, Effect
 from modstack.typing.vars import In, Out
 
-class Agent(Module[AgentRequest, Iterable[ChatMessage]], ABC):
+class Agent(Module[AgentRequest, Iterable[ChatMessage]]):
     @property
     def tools(self) -> dict[str, Tool]:
         return self._tools
@@ -29,8 +28,4 @@ class Agent(Module[AgentRequest, Iterable[ChatMessage]], ABC):
             self.tools[tool.name] = tool
 
     def forward(self, data: In, **kwargs) -> Effect[Out]:
-        pass
-
-    @abstractmethod
-    def _step(self, data: Any, **kwargs) -> Any:
         pass

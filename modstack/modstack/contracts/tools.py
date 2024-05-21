@@ -1,34 +1,30 @@
-from typing import Any, NotRequired, Type, TypedDict
+from typing import Any, Type
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from modstack.typing import Serializable
 
-class ToolParameter(TypedDict):
-    type: Type
-    required: bool
-    allowed_values: NotRequired[list[Any] | None]
-    description: NotRequired[str | None]
-    metadata: NotRequired[dict[str, Any] | None]
-
 class ToolDef(Serializable):
     name: str
-    description: str | None = None
-    parameters: dict[str, ToolParameter] = Field(default_factory=dict)
+    description: str
+    args_schema: Type[BaseModel]
+    result_schema: Type[BaseModel]
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     def __init__(
         self,
         name: str,
-        description: str | None = None,
-        parameters: dict[str, ToolParameter] = {},
+        description: str,
+        args_schema: Type[BaseModel],
+        result_schema: Type[BaseModel],
         metadata: dict[str, Any] = {},
         **kwargs
     ):
         super().__init__(
             name=name,
             description=description,
-            parameters=parameters,
+            args_schema=args_schema,
+            result_schema=result_schema,
             metadata=metadata,
             **kwargs
         )

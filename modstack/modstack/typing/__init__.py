@@ -1,4 +1,5 @@
 from .types import (
+    SchemaType,
     CallableType,
     Variadic,
     StreamingChunk,

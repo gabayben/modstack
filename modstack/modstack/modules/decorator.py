@@ -58,6 +58,10 @@ class DecoratorBase(Module[In, Out]):
         return self.bound.get_name(name=name, suffix=suffix)
 
     @override
+    def get_description(self, description: str | None = None) -> str:
+        return self.bound.get_description(description=description)
+
+    @override
     def input_schema(self) -> Type[BaseModel]:
         if self.custom_input_type is not None:
             return super().input_schema()

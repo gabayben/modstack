@@ -1,3 +1,4 @@
+import enum
 import typing
 
 import docarray
@@ -10,6 +11,12 @@ import tenacity
 from modstack.constants import VARIADIC_TYPE
 
 _T = typing.TypeVar('_T')
+
+class SchemaType(enum.StrEnum):
+    PYDANTIC = 'pydantic'
+    TYPED_DICT = 'typed_dict'
+    NAMED_TUPLE = 'named_tuple'
+    VALUE = 'value'
 
 CallableType = typing.Literal['invoke', 'ainvoke', 'iter', 'aiter', 'effect']
 Variadic = typing.Annotated[typing.Iterable[_T], VARIADIC_TYPE]

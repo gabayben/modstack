@@ -3,9 +3,8 @@ from typing import Any, ClassVar, Iterable
 import cohere
 
 from modstack.auth import Secret
-from modstack.contracts import AgenticLLMRequest
+from modstack.contracts import AgenticLLMRequest, ToolDef, ToolResult
 from modstack.modules import Modules
-from modstack.tools import ToolDef, ToolResult
 from modstack.typing import ChatMessage, ChatRole, StreamingCallback
 from modstack_cohere.utils import build_cohore_metadata
 
@@ -45,7 +44,7 @@ class CohereLLM(Modules.Sync[AgenticLLMRequest, Iterable[ChatMessage]]):
             self._build_cohere_message(message)
             for message in data.history
         ] if data.history else []
-        cohere_tools: list[cohere.ToolDef] = self._build_cohere_tools(data.tools) if data.tools else None
+        cohere_tools: list[cohere.Tool] = self._build_cohere_tools(data.tools) if data.tools else None
         cohere_tool_results: list[cohere.ToolResult] = self._build_cohere_tool_results(data.tool_results) if data.tool_results else None
 
         if self.stream:
@@ -93,7 +92,7 @@ class CohereLLM(Modules.Sync[AgenticLLMRequest, Iterable[ChatMessage]]):
             message=message.content
         )
 
-    def _build_cohere_tools(self, tools: list[ToolDef]) -> list[cohere.ToolDef]:
+    def _build_cohere_tools(self, tools: list[ToolDef]) -> list[cohere.Tool]:
         pass
 
     def _build_cohere_tool_results(self, tool_results: list[ToolResult]) -> list[cohere.ToolResult]:

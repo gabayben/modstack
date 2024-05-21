@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from modstack.tools import ToolDef, ToolResult
+from modstack.contracts import ToolDef, ToolResult
 from modstack.typing import ChatMessage, ChatRole, Serializable
 
 class LLMRequest(Serializable):
