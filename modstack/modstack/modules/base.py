@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import AsyncIterator, Callable, Generic, Iterator, Type, final, get_args
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, TYPE_CHECKING, Type, final, get_args
 
 from pydantic import BaseModel
 
@@ -8,7 +8,13 @@ from modstack.typing.vars import In, Out
 from modstack.typing.vars import Other
 from modstack.utils.serialization import create_schema
 
-class Module(Generic[In, Out], ABC):
+if TYPE_CHECKING:
+    from modstack.graphs.base import Graph, AsGraph
+else:
+    Graph = Any
+    AsGraph = Any
+
+class Module(Generic[In, Out], AsGraph, ABC):
     name: str | None = None
 
     @property
@@ -72,6 +78,9 @@ class Module(Generic[In, Out], ABC):
 
     def output_schema(self) -> Type[BaseModel]:
         return create_schema(self.get_name(suffix='Output'), self.OutputType)
+
+    def as_graph(self, **kwargs) -> Graph:
+        pass
 
 class Modules:
     class Forward(Module[In, Out], ABC):

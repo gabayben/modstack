@@ -7,7 +7,7 @@ from modstack.auth import Secret
 from modstack.contracts.websearch import SearchEngineResponse
 from modstack.modules import Modules
 from modstack.typing import LinkArtifact, TextArtifact
-from modstack.utils.display import mapping_to_str
+from modstack.utils.string import mapping_to_str
 from modstack_serper.search import SerperError, SerperSearchQuery, SerperSearchResponse
 from modstack_serper.search.builders import build_search_response
 

@@ -1,7 +1,7 @@
 from typing import Any
 
 from modstack.typing import TextArtifact, TextUrl, Utf8Artifact
-from modstack.utils.display import mapping_to_str
+from modstack.utils.string import mapping_to_str
 
 class LinkArtifact(Utf8Artifact):
     link: TextUrl
