@@ -70,14 +70,26 @@ class Module(Generic[In, Out], AsGraph, ABC):
         wait: WaitStrategy | None = None,
         after: AfterRetryFailure | None = None
     ) -> 'Module[In, Out]':
-        pass
+        from modstack.modules.fault_handling.retry import Retry
+        return Retry(
+            bound=self,
+            retry=retry,
+            stop=stop,
+            wait=wait,
+            after=after
+        )
 
     def with_fallbacks(
         self,
         fallbacks: Sequence['Module[In, Out]'],
         exceptions_to_handle: tuple[BaseException, ...] | None = None
     ) -> 'Module[In, Out]':
-        pass
+        from modstack.modules.fault_handling.fallbacks import Fallbacks
+        return Fallbacks(
+            bound=self,
+            fallbacks=fallbacks,
+            exceptions_to_handle=exceptions_to_handle
+        )
 
     @abstractmethod
     def forward(self, data: In, **kwargs) -> Effect[Out]:
