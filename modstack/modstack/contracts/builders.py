@@ -1,10 +1,10 @@
 from typing import Any
 
-from modstack.contracts import Contract
+from modstack.typing import Serializable
 
-class BuildPrompt(Contract):
+class PromptData(Serializable):
     pass
 
-class BuildDynamicPrompt(Contract):
+class DynamicPromptData(Serializable):
     prompt_source: str
     template_variables: dict[str, Any] | None = None

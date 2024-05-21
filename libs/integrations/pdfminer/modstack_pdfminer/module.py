@@ -14,7 +14,7 @@ from modstack_pdfminer import PDFMinerToText
 logger = logging.getLogger(__name__)
 
 class PDFMiner(Modules.Sync[PDFMinerToText, list[Utf8Artifact]]):
-    def _invoke(self, data: PDFMinerToText) -> list[Utf8Artifact]:
+    def _invoke(self, data: PDFMinerToText, **kwargs) -> list[Utf8Artifact]:
         metadata = normalize_metadata(data.metadata, len(data.sources))
         results: list[TextArtifact] = []
 

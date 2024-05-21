@@ -1,7 +1,6 @@
-from modstack.contracts import Contract
-from modstack.typing import Artifact, Variadic
+from modstack.typing import Artifact, Serializable, Variadic
 
-class JoinArtifacts(Contract):
+class JoinArtifacts(Serializable):
     artifacts: Variadic[list[Artifact]]
     weights: list[float] | None = None
     top_k: int | None = None,

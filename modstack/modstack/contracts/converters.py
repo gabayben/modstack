@@ -1,20 +1,7 @@
 from typing import Any
 
-from modstack.contracts import Contract
-from modstack.typing import ArtifactSource
+from modstack.typing import ArtifactSource, Serializable
 
-class ConvertTextFile(Contract):
-    sources: list[ArtifactSource]
-    metadata: dict[str, Any] | list[dict[str, Any]] | None = None
-
-class MarkdownToText(Contract):
-    sources: list[ArtifactSource]
-    metadata: dict[str, Any] | list[dict[str, Any]] | None = None
-
-class HtmlToText(Contract):
-    sources: list[ArtifactSource]
-    metadata: dict[str, Any] | list[dict[str, Any]] | None = None
-
-class PDFToText(Contract):
+class ToText(Serializable):
     sources: list[ArtifactSource]
     metadata: dict[str, Any] | list[dict[str, Any]] | None = None

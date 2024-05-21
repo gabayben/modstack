@@ -3,18 +3,18 @@ from typing import Any, Type, override
 from jinja2 import Template, meta
 from pydantic import BaseModel
 
-from modstack.contracts import BuildDynamicPrompt
+from modstack.contracts import DynamicPromptData
 from modstack.modules import Modules
 from modstack.utils.serialization import create_model, from_parameters
 
-class DynamicPromptBuilder(Modules.Sync[BuildDynamicPrompt, str]):
+class DynamicPromptBuilder(Modules.Sync[DynamicPromptData, str]):
     def __init__(self, runtime_variables: list[str] | None = None):
         super().__init__()
         self.runtime_variables = runtime_variables or []
         self.schema_fields = from_parameters(self.input_schema().parameters)
         self.runtime_fields = {v: (Any | None, None) for v in self.runtime_variables}
 
-    def _invoke(self, data: BuildDynamicPrompt) -> str:
+    def _invoke(self, data: DynamicPromptData, **kwargs) -> str:
         template_variables = data.template_variables or {}
         variables = data.model_extra or {}
         variables_combined = {**variables, **template_variables}

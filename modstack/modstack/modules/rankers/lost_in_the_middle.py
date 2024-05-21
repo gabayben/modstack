@@ -3,7 +3,7 @@ from modstack.modules import Modules
 from modstack.typing import Artifact
 
 class LostInTheMiddleRanker(Modules.Sync[RankLostInTheMiddle, list[Artifact]]):
-    def _invoke(self, data: RankLostInTheMiddle) -> list[Artifact]:
+    def _invoke(self, data: RankLostInTheMiddle, **kwargs) -> list[Artifact]:
         if not data.artifacts:
             return []
 

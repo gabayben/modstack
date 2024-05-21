@@ -1,6 +1,6 @@
 from typing import Literal
 
-from modstack.contracts import HtmlToText
+from modstack.contracts import ToText
 
 ExtractorType = Literal[
     'DefaultExtractor',
@@ -12,6 +12,6 @@ ExtractorType = Literal[
     'NumWordsRulesExtractor',
 ]
 
-class BoilerToText(HtmlToText):
+class BoilerToText(ToText):
     extractor_type: ExtractorType = 'DefaultExtractor'
     try_others: bool = True

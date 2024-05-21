@@ -7,9 +7,9 @@ from modstack.auth import Secret
 
 from modstack.modules import Modules
 from modstack.typing import ChatMessage, ChatRole, StreamingCallback, StreamingChunk
-from modstack_anthropic.llm import CallAnthropicLLM
+from modstack_anthropic.llm import AnthropicLLMRequest
 
-class AnthropicLLM(Modules.Sync[CallAnthropicLLM, Iterable[ChatMessage]]):
+class AnthropicLLM(Modules.Sync[AnthropicLLMRequest, Iterable[ChatMessage]]):
     def __init__(
         self,
         token: Secret = Secret.from_env_var('ANTHROPIC_API_KEY'),
@@ -46,7 +46,7 @@ class AnthropicLLM(Modules.Sync[CallAnthropicLLM, Iterable[ChatMessage]]):
         self.stop_sequences = stop_sequences
         self.stream = stream
 
-    def _invoke(self, data: CallAnthropicLLM) -> Iterable[ChatMessage]:
+    def _invoke(self, data: AnthropicLLMRequest, **kwargs) -> Iterable[ChatMessage]:
         generation_args = {**self.generation_args, **(data.model_extra or {})}
         max_tokens = data.max_tokens or self.max_tokens
         system_prompt = data.system_prompt or self.system_prompt

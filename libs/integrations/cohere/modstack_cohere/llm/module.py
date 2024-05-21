@@ -3,12 +3,12 @@ from typing import Any, ClassVar, Iterable
 import cohere
 
 from modstack.auth import Secret
-from modstack.contracts import CallLLM
+from modstack.contracts import LLMRequest
 from modstack.modules import Modules
 from modstack.typing import ChatMessage, ChatRole, StreamingCallback, Tool, ToolResult
 from modstack_cohere.utils import build_cohore_metadata
 
-class CohereLLM(Modules.Sync[CallLLM, Iterable[ChatMessage]]):
+class CohereLLM(Modules.Sync[LLMRequest, Iterable[ChatMessage]]):
     ROLES_MAP: ClassVar[dict[ChatRole, str]] = {
         ChatRole.USER: 'USER',
         ChatRole.FUNCTION: 'USER',
@@ -38,7 +38,7 @@ class CohereLLM(Modules.Sync[CallLLM, Iterable[ChatMessage]]):
             timeout=timeout
         )
 
-    def _invoke(self, data: CallLLM) -> Iterable[ChatMessage]:
+    def _invoke(self, data: LLMRequest, **kwargs) -> Iterable[ChatMessage]:
         generation_args = {**self.generation_args, **(data.model_extra or {})}
         chat_history = [
             self._build_cohere_message(message)

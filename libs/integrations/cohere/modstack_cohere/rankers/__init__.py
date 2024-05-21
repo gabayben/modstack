@@ -1,2 +1,2 @@
-from .contracts import CohereRank
+from .contracts import CohereRankRequest
 from .module import CohereRanker

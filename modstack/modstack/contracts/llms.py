@@ -1,9 +1,8 @@
 from typing import Iterable
 
-from modstack.contracts import Contract
-from modstack.typing import ChatMessage, ChatRole, Tool, ToolResult
+from modstack.typing import ChatMessage, ChatRole, Serializable, Tool, ToolResult
 
-class CallLLM(Contract):
+class LLMRequest(Serializable):
     prompt: str
     role: ChatRole | None = None
     history: Iterable[ChatMessage] | None = None

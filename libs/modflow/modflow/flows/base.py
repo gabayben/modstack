@@ -8,5 +8,5 @@ class PregelBase:
         self.graph = nx.MultiDiGraph()
 
 class Pregel(Modules.Sync[RunFlow, FlowOutput], PregelBase):
-    def _invoke(self, data: RunFlow) -> FlowOutput:
+    def _invoke(self, data: RunFlow, **kwargs) -> FlowOutput:
         pass

@@ -4,12 +4,11 @@ from jinja2 import TemplateError
 from jinja2.nativetypes import NativeEnvironment
 from pydantic import BaseModel
 
-from modstack.contracts import RouteArtifacts
 from modstack.modules import Modules
 from modstack.typing import Artifact
 from modstack.utils.serialization import create_model
 
-class ArtifactRouter(Modules.Sync[RouteArtifacts, dict[str, list[Artifact]]]):
+class ArtifactRouter(Modules.Sync[list[Artifact], dict[str, list[Artifact]]]):
     def __init__(
         self,
         branches: dict[str, str],
@@ -19,12 +18,12 @@ class ArtifactRouter(Modules.Sync[RouteArtifacts, dict[str, list[Artifact]]]):
         self.branches = branches
         self.included_variables = included_variables
 
-    def _invoke(self, data: RouteArtifacts) -> dict[str, list[Artifact]]:
+    def _invoke(self, artifacts: list[Artifact], **kwargs) -> dict[str, list[Artifact]]:
         unmatched_artifacts: list[Artifact] = []
         artifacts_by_branch: dict[str, list[Artifact]] = {branch: [] for branch in self.branches}
         env = NativeEnvironment()
 
-        for artifact in data.artifacts:
+        for artifact in artifacts:
             template_variables = {
                 k: v
                 for k, v in dict(artifact).items()

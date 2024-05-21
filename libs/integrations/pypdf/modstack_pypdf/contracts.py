@@ -1,5 +1,5 @@
-from modstack.contracts import PDFToText
+from modstack.contracts import ToText
 from modstack_pypdf import PyPDFConverter
 
-class PyPDFToText(PDFToText):
+class PyPDFToText(ToText):
     converter: PyPDFConverter | None = None

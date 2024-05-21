@@ -1,6 +1,6 @@
 from pdfminer.layout import LAParams
 
-from modstack.contracts import PDFToText
+from modstack.contracts import ToText
 
-class PDFMinerToText(PDFToText):
+class PDFMinerToText(ToText):
     layout_params: LAParams | None = None

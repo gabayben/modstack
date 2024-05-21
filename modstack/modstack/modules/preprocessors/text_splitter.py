@@ -4,7 +4,6 @@ from typing import Any, Literal
 
 from more_itertools import windowed
 
-from modstack.contracts import SplitText
 from modstack.modules import Modules
 from modstack.typing import TextArtifact, Utf8Artifact
 
@@ -16,7 +15,7 @@ SPLIT_BY_MAPPING: dict[SplitBy, str] = {
     'page': '\f'
 }
 
-class TextSplitter(Modules.Sync[SplitText, list[Utf8Artifact]]):
+class TextSplitter(Modules.Sync[list[Utf8Artifact], list[Utf8Artifact]]):
     def __init__(
         self,
         split_by: SplitBy = 'word',
@@ -32,9 +31,9 @@ class TextSplitter(Modules.Sync[SplitText, list[Utf8Artifact]]):
             raise ValueError('split_overlap must be greater than or equal to 0.')
         self.split_overlap = split_overlap
 
-    def _invoke(self, data: SplitText) -> list[Utf8Artifact]:
+    def _invoke(self, artifacts: list[Utf8Artifact], **kwargs) -> list[Utf8Artifact]:
         split_artifacts: list[TextArtifact] = []
-        for artifact in data.artifacts:
+        for artifact in artifacts:
             try:
                 units = self._split_into_units(artifact.to_utf8())
             except UnicodeDecodeError as e:

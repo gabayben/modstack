@@ -1,7 +1,6 @@
-from modstack.contracts import Contract
-from modstack.typing import Artifact
+from modstack.typing import Artifact, Serializable
 
-class RankArtifacts(Contract):
+class RankArtifacts(Serializable):
     artifacts: list[Artifact]
 
 class RankLostInTheMiddle(RankArtifacts):

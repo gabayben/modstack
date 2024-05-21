@@ -5,12 +5,11 @@ from typing import Type
 
 from pydantic import BaseModel
 
-from modstack.contracts import RouteByMimeType
 from modstack.modules import Modules
-from modstack.typing import Artifact, StrictArtifactSource
+from modstack.typing import Artifact, ArtifactSource, StrictArtifactSource
 from modstack.utils.serialization import create_model
 
-class MimeTypeRouter(Modules.Sync[RouteByMimeType, dict[str, list[StrictArtifactSource]]]):
+class MimeTypeRouter(Modules.Sync[list[ArtifactSource], dict[str, list[StrictArtifactSource]]]):
     def __init__(self, mime_types: list[str]):
         super().__init__()
         if not mime_types:
@@ -22,9 +21,9 @@ class MimeTypeRouter(Modules.Sync[RouteByMimeType, dict[str, list[StrictArtifact
             self.mime_type_patterns.append(re.compile(mime_type))
         self.mime_types = mime_types
 
-    def _invoke(self, data: RouteByMimeType) -> dict[str, list[StrictArtifactSource]]:
+    def _invoke(self, sources: list[ArtifactSource], **kwargs) -> dict[str, list[StrictArtifactSource]]:
         sources_by_mime_type: defaultdict[str, list[StrictArtifactSource]] = defaultdict(list)
-        for source in data.sources:
+        for source in sources:
             mime_type = Artifact.get_mime_type(source)
             matched = False
             if mime_type:

@@ -5,7 +5,6 @@ from typing import Callable
 import requests
 from tenacity import RetryCallState, retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from modstack.contracts import FetchFromLinks
 from modstack.modules import Modules
 from modstack.typing import ByteStream
 from modstack.version import __version__
@@ -20,7 +19,7 @@ REQUEST_HEADERS = {
     'referer': 'https://www.google.com/',
 }
 
-class LinkContentFetcher(Modules.Sync[FetchFromLinks, list[ByteStream]]):
+class LinkContentFetcher(Modules.Sync[list[str], list[ByteStream]]):
     headers: dict[str, str]
     user_agents: list[str]
     max_workers: int | None
@@ -78,17 +77,17 @@ class LinkContentFetcher(Modules.Sync[FetchFromLinks, list[ByteStream]]):
             return response
         self._get_response = get_response
 
-    def _invoke(self, data: FetchFromLinks) -> list[ByteStream]:
+    def _invoke(self, urls: list[str], **kwargs) -> list[ByteStream]:
         streams: list[ByteStream] = []
 
-        if not data.urls:
+        if not urls:
             return streams
 
-        if len(data.urls) == 1:
-            streams.append(self._fetch(data.urls[0]))
+        if len(urls) == 1:
+            streams.append(self._fetch(urls[0]))
         else:
             with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                results = executor.map(self._fetch_with_exception_suppression, data.urls)
+                results = executor.map(self._fetch_with_exception_suppression, urls)
                 for result in results:
                     if not result.is_empty():
                         streams.append(result)

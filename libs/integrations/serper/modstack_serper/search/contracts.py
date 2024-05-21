@@ -1,4 +1,3 @@
-from modstack.contracts import Contract
 from modstack.contracts.websearch import SearchEngineQuery
 from modstack.typing import Serializable
 from modstack_serper.search import SerperKnowledgeGraph, SerperOrganicResult, SerperPeopleAlsoAsk
@@ -13,6 +12,3 @@ class SerperSearchQuery(SearchEngineQuery):
     country: str | None = None
     language: str | None = None
     autocomplete: bool | None = None
-
-class MapSerperSearch(Contract):
-    response: SerperSearchResponse

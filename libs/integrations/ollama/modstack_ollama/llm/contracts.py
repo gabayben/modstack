@@ -1,6 +1,6 @@
-from modstack.contracts import CallLLM
+from modstack.contracts import LLMRequest
 
-class CallOllamaLLM(CallLLM):
+class OllamaLLMRequest(LLMRequest):
     images: list[str] | None = None
     system_prompt: str | None = None
     template: str | None = None

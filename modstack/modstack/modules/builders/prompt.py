@@ -3,11 +3,11 @@ from typing import Any, Type, override
 from jinja2 import Template, meta
 from pydantic import BaseModel
 
-from modstack.contracts import BuildPrompt
+from modstack.contracts import PromptData
 from modstack.modules import Modules
 from modstack.utils.serialization import create_model
 
-class PromptBuilder(Modules.Sync[BuildPrompt, str]):
+class PromptBuilder(Modules.Sync[PromptData, str]):
     def __init__(
         self,
         template: str,
@@ -20,7 +20,7 @@ class PromptBuilder(Modules.Sync[BuildPrompt, str]):
         ast = self.template.environment.parse(template)
         self.template_variables = meta.find_undeclared_variables(ast)
 
-    def _invoke(self, prompt: BuildPrompt) -> str:
+    def _invoke(self, prompt: PromptData, **kwargs) -> str:
         variables = dict(prompt)
         missing_variables = [v for v in self.required_variables if v not in variables]
         if missing_variables:

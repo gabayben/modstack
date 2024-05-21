@@ -1,6 +1,6 @@
-from modstack.contracts import CallLLM
+from modstack.contracts import LLMRequest
 
-class CallAnthropicLLM(CallLLM):
+class AnthropicLLMRequest(LLMRequest):
     max_tokens: int | None = None
     system_prompt: str | None = None
     top_k: int | None = None

@@ -3,20 +3,20 @@ import logging
 
 from tika import parser
 
+from modstack.contracts import ToText
 from modstack.modules import Modules
 from modstack.typing import ByteStream, TextArtifact, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
-from modstack_tika import TikaToText
 
 logger = logging.getLogger(__name__)
 
-class Tika(Modules.Sync[TikaToText, list[Utf8Artifact]]):
+class Tika(Modules.Sync[ToText, list[Utf8Artifact]]):
     def __init__(self, tika_url: str = 'http://localhost:9998/tika'):
         super().__init__()
         self.tika_url = tika_url
 
-    def _invoke(self, data: TikaToText) -> list[Utf8Artifact]:
+    def _invoke(self, data: ToText, **kwargs) -> list[Utf8Artifact]:
         metadata = normalize_metadata(data.metadata, len(data.sources))
         results: list[TextArtifact] = []
 

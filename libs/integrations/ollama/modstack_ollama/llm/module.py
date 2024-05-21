@@ -5,9 +5,9 @@ import requests
 
 from modstack.modules import Modules
 from modstack.typing import ChatMessage, StreamingCallback, StreamingChunk
-from modstack_ollama.llm import CallOllamaLLM
+from modstack_ollama.llm import OllamaLLMRequest
 
-class OllamaLLM(Modules.Sync[CallOllamaLLM, Iterable[ChatMessage]]):
+class OllamaLLM(Modules.Sync[OllamaLLMRequest, Iterable[ChatMessage]]):
     def __init__(
         self,
         url: str = 'http://localhost:11434/api/generate',
@@ -31,7 +31,7 @@ class OllamaLLM(Modules.Sync[CallOllamaLLM, Iterable[ChatMessage]]):
         self.stream = stream
         self.generation_args = generation_args
 
-    def _invoke(self, data: CallOllamaLLM) -> Iterable[ChatMessage]:
+    def _invoke(self, data: OllamaLLMRequest, **kwargs) -> Iterable[ChatMessage]:
         generation_args = {**self.generation_args, **(data.model_extra or {})}
         system_prompt = data.system_prompt or self.system_prompt
         template = data.template or self.template

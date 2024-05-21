@@ -1,7 +1,5 @@
-from typing import Any
+from typing import Any, NamedTuple
 
-from modstack.contracts import Contract
-
-class ToTextArtifacts(Contract):
+class ToTextArtifacts(NamedTuple):
     content: list[str]
     metadata: list[dict[str, Any]] | dict[str, Any] | None = None

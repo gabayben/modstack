@@ -7,11 +7,11 @@ from modstack.auth import Secret
 from modstack.modules import Modules
 from modstack.typing import Utf8Artifact
 from modstack.utils.func import tzip
-from modstack_cohere.rankers import CohereRank
+from modstack_cohere.rankers import CohereRankRequest
 
 logger = logging.getLogger(__name__)
 
-class CohereRanker(Modules.Async[CohereRank, list[Utf8Artifact]]):
+class CohereRanker(Modules.Async[CohereRankRequest, list[Utf8Artifact]]):
     MAX_NUM_DOCS_FOR_COHERE_RANKER: ClassVar[int] = 1000
 
     def __init__(
@@ -36,7 +36,7 @@ class CohereRanker(Modules.Async[CohereRank, list[Utf8Artifact]]):
         self.meta_fields_to_embed = meta_fields_to_embed or []
         self.metadata_seperator = metadata_seperator
 
-    async def _ainvoke(self, data: CohereRank) -> list[Utf8Artifact]:
+    async def _ainvoke(self, data: CohereRankRequest, **kwargs) -> list[Utf8Artifact]:
         if not data.query or not data.artifacts:
             return []
 

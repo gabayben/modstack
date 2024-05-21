@@ -23,7 +23,7 @@ class BoilerPy3(Modules.Sync[BoilerToText, list[TextArtifact]]):
         'NumWordsRulesExtractor'
     ]
 
-    def _invoke(self, data: BoilerToText) -> list[TextArtifact]:
+    def _invoke(self, data: BoilerToText, **kwargs) -> list[TextArtifact]:
         metadata = normalize_metadata(data.metadata, len(data.sources))
         results: list[TextArtifact] = []
 

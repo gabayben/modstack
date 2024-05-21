@@ -4,14 +4,14 @@ from huggingface_hub import ChatCompletionOutput, ChatCompletionStreamOutput, In
 
 from modstack.auth import Secret
 
-from modstack.contracts import CallLLM
+from modstack.contracts import LLMRequest
 from modstack.modules import Modules
 from modstack.typing import ChatMessage, ChatRole, StreamingCallback
 from modstack.utils.paths import validate_url
 from modstack_huggingface import HFGenerationApiType, HFModelType
 from modstack_huggingface.utils import validate_hf_model
 
-class HuggingFaceApiLLM(Modules.Sync[CallLLM, Iterable[ChatMessage]]):
+class HuggingFaceApiLLM(Modules.Sync[LLMRequest, Iterable[ChatMessage]]):
     def __init__(
         self,
         model_or_url: str,
@@ -38,7 +38,7 @@ class HuggingFaceApiLLM(Modules.Sync[CallLLM, Iterable[ChatMessage]]):
         self.streaming_callback = streaming_callback
         self.client = InferenceClient(model_or_url, token=token.resolve_value() if token else None)
 
-    def _invoke(self, data: CallLLM) -> Iterable[ChatMessage]:
+    def _invoke(self, data: LLMRequest, **kwargs) -> Iterable[ChatMessage]:
         generation_args = {**self.generation_args, **(data.model_extra or {})}
         history = data.history or []
         history.append(ChatMessage(data.prompt, data.role or ChatRole.USER))

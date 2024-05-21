@@ -33,7 +33,7 @@ class _SerperSearch:
 
 class SerperSearch:
     class Search(Modules.Sync[SerperSearchQuery, SearchEngineResponse], _SerperSearch):
-        def _invoke(self, data: SerperSearchQuery) -> SearchEngineResponse:
+        def _invoke(self, data: SerperSearchQuery, **kwargs) -> SearchEngineResponse:
             search = SerperSearch.NativeSearch(
                 api_key=self.api_key,
                 allowed_domains=self.allowed_domains,
@@ -50,7 +50,7 @@ class SerperSearch:
     class NativeSearch(Modules.Sync[SerperSearchQuery, SerperSearchResponse], _SerperSearch):
         SERPER_BASE_URL: ClassVar[str] = 'https://google.serper.dev/search'
 
-        def _invoke(self, data: SerperSearchQuery) -> SerperSearchResponse:
+        def _invoke(self, data: SerperSearchQuery, **kwargs) -> SerperSearchResponse:
             allowed_domains = data.allowed_domains
             search_params = data.search_params
             query = data.query
@@ -86,7 +86,7 @@ class SerperSearch:
             return build_search_response(response.json())
 
     class Map(Modules.Sync[SerperSearchResponse, SearchEngineResponse]):
-        def _invoke(self, data: SerperSearchResponse) -> SearchEngineResponse:
+        def _invoke(self, data: SerperSearchResponse, **kwargs) -> SearchEngineResponse:
             links: list[LinkArtifact] = [
                 LinkArtifact(
                     link=result.get('link'),

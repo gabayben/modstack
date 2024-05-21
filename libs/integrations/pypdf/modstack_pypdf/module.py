@@ -13,7 +13,7 @@ from modstack_pypdf.converter import _DefaultConverter
 logger = logging.getLogger(__name__)
 
 class PyPDF(Modules.Sync[PyPDFToText, list[Utf8Artifact]]):
-    def _invoke(self, data: PyPDFToText) -> list[Utf8Artifact]:
+    def _invoke(self, data: PyPDFToText, **kwargs) -> list[Utf8Artifact]:
         metadata = normalize_metadata(data.metadata, len(data.sources))
         converter = data.converter or _DefaultConverter()
         results: list[Utf8Artifact] = []

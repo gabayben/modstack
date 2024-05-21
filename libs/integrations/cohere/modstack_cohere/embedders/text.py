@@ -4,16 +4,16 @@ import cohere
 import numpy as np
 
 from modstack.auth import Secret
-from modstack.contracts import EmbedTextResponse
+from modstack.contracts import TextEmbeddingResponse
 
 from modstack.modules import Modules
 from modstack.utils.func import tzip
-from modstack_cohere.embedders import CohereEmbedText
+from modstack_cohere.embedders import CohereTextEmbeddingRequest
 from modstack_cohere.typing import OMIT
 
 _EMBED_RESPONSE = cohere.EmbedResponse_EmbeddingsFloats | cohere.EmbedResponse_EmbeddingsByType
 
-class CohereTextEmbedder(Modules.Async[CohereEmbedText, EmbedTextResponse]):
+class CohereTextEmbedder(Modules.Async[CohereTextEmbeddingRequest, TextEmbeddingResponse]):
     def __init__(
         self,
         token: Secret = Secret.from_env_var(['COHERE_API_KEY', 'CO_API_KEY']),
@@ -55,9 +55,9 @@ class CohereTextEmbedder(Modules.Async[CohereEmbedText, EmbedTextResponse]):
         self.embedding_seperator = embedding_seperator
         self.batch_size = batch_size
 
-    async def _ainvoke(self, data: CohereEmbedText) -> EmbedTextResponse:
+    async def _ainvoke(self, data: CohereTextEmbeddingRequest, **kwargs) -> TextEmbeddingResponse:
         if not data.artifacts:
-            return EmbedTextResponse(artifacts=[])
+            return TextEmbeddingResponse(artifacts=[])
 
         model = data.model or self.model
         input_type = data.input_type or self.input_type
@@ -110,4 +110,4 @@ class CohereTextEmbedder(Modules.Async[CohereEmbedText, EmbedTextResponse]):
         for artifact, embedding in tzip(data.artifacts, all_embeddings):
             artifact.embedding = np.asarray(embedding)
 
-        return EmbedTextResponse(data.artifacts, metadata=metadata)
+        return TextEmbeddingResponse(data.artifacts, metadata=metadata)

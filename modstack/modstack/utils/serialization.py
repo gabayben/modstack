@@ -96,13 +96,6 @@ def from_parameters(parameters: dict[str, Parameter]) -> dict[str, tuple[Any, An
         if parameter.annotation != inspect.Parameter.empty
     }
 
-def to_input[T](input_type: Type[T], **kwargs) -> T:
-    if issubclass(input_type, BaseModel):
-        return input_type.model_construct(**kwargs)
-    elif issubclass(input_type, dict):
-        return kwargs
-    raise TypeError(f'Expected a dict or BaseModel, got {input_type}.')
-
 def to_dict(data: Any) -> dict[str, Any]:
     if isinstance(data, dict):
         return data

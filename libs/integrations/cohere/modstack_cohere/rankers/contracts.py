@@ -1,7 +1,6 @@
-from modstack.contracts import Contract
-from modstack.typing import Utf8Artifact
+from modstack.typing import Serializable, Utf8Artifact
 
-class CohereRank(Contract):
+class CohereRankRequest(Serializable):
     query: str
     artifacts: list[Utf8Artifact]
     top_k: int | None = None
