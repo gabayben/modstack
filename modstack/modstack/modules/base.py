@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, AsyncIterator, Callable, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, Type, final, get_args
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, Type, Union, final, get_args
 
 from pydantic import BaseModel
 
@@ -38,7 +38,7 @@ class Module(Generic[In, Out], AsGraph, ABC):
             'Override the OutputType property to specify the output type.'
         )
 
-    def __or__(self, other: 'ModuleLike[Out, Other]' | 'ModuleMapping[Out]') -> 'Module[In, Other]':
+    def __or__(self, other: Union['ModuleLike[Out, Other]', 'ModuleMapping[Out]']) -> 'Module[In, Other]':
         from modstack.modules.sequential import Sequential
         return Sequential(self, coerce_to_module(other))
 
@@ -183,8 +183,8 @@ class Modules:
         async def _aiter(self, data: In, **kwargs) -> AsyncIterator[Out]:
             pass
 
-ModuleFunction = Callable[[In], ReturnType[Out]] | Callable[..., ReturnType[Out]]
-ModuleLike = Module[In, Out] | ModuleFunction[In, Out]
+ModuleFunction = Union[Callable[[In], ReturnType[Out]], Callable[..., ReturnType[Out]]]
+ModuleLike = Union[Module[In, Out], ModuleFunction[In, Out]]
 ModuleMapping = Mapping[str, ModuleLike[In, Any]]
 
 def coerce_to_module(thing: ModuleLike[In, Out]) -> Module[In, Out]:
