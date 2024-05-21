@@ -7,3 +7,4 @@ from .base import (
     module
 )
 from .sequential import Sequential
+from .decorator import DecoratorBase, Decorator

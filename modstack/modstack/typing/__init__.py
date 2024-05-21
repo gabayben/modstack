@@ -23,7 +23,11 @@ from .types import (
     AudioTensor,
     VideoTensor,
     VerticesAndFaces,
-    PointsAndColors
+    PointsAndColors,
+    RetryStrategy,
+    StopStrategy,
+    WaitStrategy,
+    AfterRetryFailure
 )
 
 from .effect import Effect, Effects, ReturnType

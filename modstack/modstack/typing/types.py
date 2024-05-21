@@ -5,6 +5,7 @@ import docarray.typing as docarray_typing
 import docarray.documents as docarray_documents
 from docarray.typing.bytes.base_bytes import BaseBytes as DocArrayBaseBytes
 from numpy import ndarray
+import tenacity
 
 from modstack.constants import VARIADIC_TYPE
 
@@ -40,3 +41,8 @@ VerticesAndFaces = docarray_documents.VerticesAndFaces
 PointsAndColors = docarray_documents.PointsAndColors
 
 Embedding = ndarray
+
+RetryStrategy = tenacity.retry_base | typing.Callable[[tenacity.RetryCallState], bool]
+StopStrategy = tenacity.stop.stop_base | typing.Callable[[tenacity.RetryCallState], bool]
+WaitStrategy = tenacity.wait.wait_base | typing.Callable[[tenacity.RetryCallState], int | float]
+AfterRetryFailure = typing.Callable[[tenacity.RetryCallState], None]

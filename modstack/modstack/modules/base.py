@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Any, AsyncIterator, Callable, Generic, Iterator, TYPE_CHECKING, Type, final, get_args
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, Sequence, TYPE_CHECKING, Type, final, get_args
 
 from pydantic import BaseModel
 
-from modstack.typing import Effect, Effects, ReturnType
+from modstack.typing import AfterRetryFailure, Effect, Effects, RetryStrategy, ReturnType, StopStrategy, WaitStrategy
 from modstack.typing.vars import In, Out, Other
 from modstack.utils.serialization import create_schema
 
@@ -45,6 +45,38 @@ class Module(Generic[In, Out], AsGraph, ABC):
         pass
 
     def map(self, mapper: Callable[[Out], Other]) -> 'Module[In, Other]':
+        pass
+
+    def bind(self, **kwargs) -> 'Module[In, Out]':
+        from modstack.modules.decorator import Decorator
+        return Decorator(bound=self, kwargs=kwargs)
+
+    def with_types(
+        self,
+        custom_input_type: Type[In] | BaseModel | None = None,
+        custom_output_type: Type[Out] | BaseModel | None = None
+    ) -> 'Module[In, Out]':
+        from modstack.modules.decorator import Decorator
+        return Decorator(
+            bound=self,
+            custom_input_type=custom_input_type,
+            custom_output_type=custom_output_type
+        )
+
+    def with_retry(
+        self,
+        retry: RetryStrategy | None = None,
+        stop: StopStrategy | None = None,
+        wait: WaitStrategy | None = None,
+        after: AfterRetryFailure | None = None
+    ) -> 'Module[In, Out]':
+        pass
+
+    def with_fallbacks(
+        self,
+        fallbacks: Sequence['Module[In, Out]'],
+        exceptions_to_handle: tuple[BaseException, ...] | None = None
+    ) -> 'Module[In, Out]':
         pass
 
     @abstractmethod
