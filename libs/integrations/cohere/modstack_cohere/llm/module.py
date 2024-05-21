@@ -3,12 +3,13 @@ from typing import Any, ClassVar, Iterable
 import cohere
 
 from modstack.auth import Secret
-from modstack.contracts import LLMRequest
+from modstack.contracts import AgenticLLMRequest
 from modstack.modules import Modules
-from modstack.typing import ChatMessage, ChatRole, StreamingCallback, Tool, ToolResult
+from modstack.tools import ToolDef, ToolResult
+from modstack.typing import ChatMessage, ChatRole, StreamingCallback
 from modstack_cohere.utils import build_cohore_metadata
 
-class CohereLLM(Modules.Sync[LLMRequest, Iterable[ChatMessage]]):
+class CohereLLM(Modules.Sync[AgenticLLMRequest, Iterable[ChatMessage]]):
     ROLES_MAP: ClassVar[dict[ChatRole, str]] = {
         ChatRole.USER: 'USER',
         ChatRole.FUNCTION: 'USER',
@@ -38,13 +39,13 @@ class CohereLLM(Modules.Sync[LLMRequest, Iterable[ChatMessage]]):
             timeout=timeout
         )
 
-    def _invoke(self, data: LLMRequest, **kwargs) -> Iterable[ChatMessage]:
+    def _invoke(self, data: AgenticLLMRequest, **kwargs) -> Iterable[ChatMessage]:
         generation_args = {**self.generation_args, **(data.model_extra or {})}
         chat_history = [
             self._build_cohere_message(message)
             for message in data.history
         ] if data.history else []
-        cohere_tools: list[cohere.Tool] = self._build_cohere_tools(data.tools) if data.tools else None
+        cohere_tools: list[cohere.ToolDef] = self._build_cohere_tools(data.tools) if data.tools else None
         cohere_tool_results: list[cohere.ToolResult] = self._build_cohere_tool_results(data.tool_results) if data.tool_results else None
 
         if self.stream:
@@ -92,7 +93,7 @@ class CohereLLM(Modules.Sync[LLMRequest, Iterable[ChatMessage]]):
             message=message.content
         )
 
-    def _build_cohere_tools(self, tools: list[Tool]) -> list[cohere.Tool]:
+    def _build_cohere_tools(self, tools: list[ToolDef]) -> list[cohere.ToolDef]:
         pass
 
     def _build_cohere_tool_results(self, tool_results: list[ToolResult]) -> list[cohere.ToolResult]:

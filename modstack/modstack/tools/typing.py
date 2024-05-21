@@ -11,7 +11,7 @@ class ToolParameter(TypedDict):
     description: NotRequired[str | None]
     metadata: NotRequired[dict[str, Any] | None]
 
-class Tool(Serializable):
+class ToolDef(Serializable):
     name: str
     description: str | None = None
     parameters: dict[str, ToolParameter] = Field(default_factory=dict)
