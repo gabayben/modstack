@@ -4,27 +4,27 @@ from pydantic import BaseModel, Field
 
 from modstack.typing import Serializable
 
-class ToolDef(Serializable):
+class ToolSpec(Serializable):
     name: str
     description: str
-    args_schema: Type[BaseModel]
-    result_schema: Type[BaseModel]
+    input_schema: Type[BaseModel]
+    output_schema: Type[BaseModel]
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     def __init__(
         self,
         name: str,
         description: str,
-        args_schema: Type[BaseModel],
-        result_schema: Type[BaseModel],
+        input_schema: Type[BaseModel],
+        output_schema: Type[BaseModel],
         metadata: dict[str, Any] = {},
         **kwargs
     ):
         super().__init__(
             name=name,
             description=description,
-            args_schema=args_schema,
-            result_schema=result_schema,
+            input_schema=input_schema,
+            output_schema=output_schema,
             metadata=metadata,
             **kwargs
         )

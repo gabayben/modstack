@@ -3,7 +3,7 @@ from typing import Any, ClassVar, Iterable
 import cohere
 
 from modstack.auth import Secret
-from modstack.contracts import AgenticLLMRequest, ToolDef, ToolResult
+from modstack.contracts import AgenticLLMRequest, ToolSpec, ToolResult
 from modstack.modules import Modules
 from modstack.typing import ChatMessage, ChatRole, StreamingCallback
 from modstack_cohere.utils import build_cohore_metadata
@@ -92,7 +92,7 @@ class CohereLLM(Modules.Sync[AgenticLLMRequest, Iterable[ChatMessage]]):
             message=message.content
         )
 
-    def _build_cohere_tools(self, tools: list[ToolDef]) -> list[cohere.Tool]:
+    def _build_cohere_tools(self, tools: list[ToolSpec]) -> list[cohere.Tool]:
         pass
 
     def _build_cohere_tool_results(self, tool_results: list[ToolResult]) -> list[cohere.ToolResult]:

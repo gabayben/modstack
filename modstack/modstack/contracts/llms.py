@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from modstack.contracts import ToolDef, ToolResult
+from modstack.contracts import ToolSpec, ToolResult
 from modstack.typing import ChatMessage, ChatRole, Serializable
 
 class LLMRequest(Serializable):
@@ -23,7 +23,7 @@ class LLMRequest(Serializable):
         )
 
 class AgenticLLMRequest(LLMRequest):
-    tools: list[ToolDef] | None = None
+    tools: list[ToolSpec] | None = None
     tool_results: list[ToolResult] | None = None
 
     def __init__(
@@ -31,7 +31,7 @@ class AgenticLLMRequest(LLMRequest):
         prompt: str,
         role: ChatRole | None = None,
         history: Iterable[ChatMessage] | None = None,
-        tools: list[ToolDef] | None = None,
+        tools: list[ToolSpec] | None = None,
         tool_results: list[ToolResult] | None = None,
         **kwargs
     ):

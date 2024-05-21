@@ -2,7 +2,7 @@ from typing import Any, Type, override
 
 from pydantic import BaseModel
 
-from modstack.contracts import ToolDef
+from modstack.contracts import ToolSpec
 from modstack.modules import Module, ModuleLike, coerce_to_module
 from modstack.typing import Effect
 
@@ -15,17 +15,16 @@ class Tool(Module[dict[str, Any], Any]):
         function: ModuleLike,
         name: str | None = None,
         description: str | None = None,
-        args_schema: Type[BaseModel] | None = None,
-        result_schema: Type[BaseModel] | None = None,
-        metadata: dict[str, Any] | None = None,
-        **kwargs
+        input_schema: Type[BaseModel] | None = None,
+        output_schema: Type[BaseModel] | None = None,
+        metadata: dict[str, Any] | None = None
     ):
-        super().__init__(**kwargs)
+        super().__init__()
         self.function = coerce_to_module(function)
         self.name = name or self.function.get_name()
         self.description = description or self.function.get_description()
-        self._args_schema = args_schema or self.function.input_schema()
-        self._result_schema = result_schema or self.function.output_schema()
+        self._input_schema = input_schema or self.function.input_schema()
+        self._output_schema = output_schema or self.function.output_schema()
         self.metadata = metadata or {}
 
     def forward(self, data: dict[str, Any], **kwargs) -> Effect[Any]:
@@ -45,17 +44,17 @@ class Tool(Module[dict[str, Any], Any]):
 
     @override
     def input_schema(self) -> Type[BaseModel]:
-        return self._args_schema
+        return self._input_schema
 
     @override
     def output_schema(self) -> Type[BaseModel]:
-        return self._result_schema
+        return self._output_schema
 
-    def definition(self) -> ToolDef:
-        return ToolDef(
+    def spec(self) -> ToolSpec:
+        return ToolSpec(
             name=self.get_name(),
             description=self.get_description(),
-            args_schema=self.input_schema(),
-            result_schema=self.output_schema(),
+            input_schema=self.input_schema(),
+            output_schema=self.output_schema(),
             metadata=self.metadata
         )
