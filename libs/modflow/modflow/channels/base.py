@@ -1,3 +1,7 @@
+"""
+Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/channels/base.py
+"""
+
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager, contextmanager
 from typing import Any, AsyncGenerator, Generator, Mapping, Optional, Self, Sequence
@@ -11,10 +15,6 @@ class InvalidUpdateError(Exception):
     pass
 
 class Channel[Value, Update, C](ABC):
-    """
-    Taken from LangGraph's BaseChannel.
-    """
-
     @property
     @abstractmethod
     def ValueType(self) -> Any:
