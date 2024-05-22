@@ -1,7 +1,7 @@
 from enum import StrEnum
-from typing import Any, Self
+from typing import Any, Literal, Self
 
-from modstack.typing import Utf8Artifact
+from modstack.typing.messages import MessageArtifact, MessageChunk
 
 class ChatRole(StrEnum):
     USER = 'user'
@@ -9,10 +9,9 @@ class ChatRole(StrEnum):
     SYSTEM = 'system'
     FUNCTION = 'function'
 
-class ChatMessage(Utf8Artifact):
-    content: str
-    role: ChatRole | str | None = None
-    name: str | None = None
+class ChatMessage(MessageArtifact):
+    message_type: Literal['chat']
+    role: ChatRole | str
 
     def __init__(
         self,
@@ -21,7 +20,8 @@ class ChatMessage(Utf8Artifact):
         name: str | None = None,
         **kwargs
     ):
-        super().__init__(content=content, role=role, name=name, **kwargs)
+        _ = kwargs.pop('message_type', None)
+        super().__init__(content, 'chat', role=role, name=name, **kwargs)
 
     @classmethod
     def from_user(cls, content: str, **kwargs) -> Self:
@@ -52,3 +52,22 @@ class ChatMessage(Utf8Artifact):
         if self.name:
             msg['name'] = self.name
         return msg
+
+class ChatMessageChunk(MessageChunk, ChatMessage):
+    message_type: Literal['chat_chunk']
+
+    def __init__(
+        self,
+        content: str,
+        role: str,
+        name: str | None = None,
+        **kwargs
+    ):
+        _ = kwargs.pop('message_type', None)
+        super().__init__(
+            content,
+            'chat_chunk',
+            role=role,
+            name=name,
+            **kwargs
+        )

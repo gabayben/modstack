@@ -6,7 +6,8 @@ from anthropic.types import ContentBlockDeltaEvent, Message, MessageDeltaEvent, 
 from modstack.auth import Secret
 
 from modstack.modules import Modules
-from modstack.typing import ChatMessage, ChatRole, StreamingCallback, StreamingChunk
+from modstack.typing import StreamingCallback, StreamingChunk
+from modstack.typing.messages import ChatMessage, ChatRole
 from modstack_anthropic.llm import AnthropicLLMRequest
 
 class AnthropicLLM(Modules.Sync[AnthropicLLMRequest, Iterable[ChatMessage]]):

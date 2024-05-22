@@ -4,7 +4,8 @@ from typing import Any, Iterable
 import requests
 
 from modstack.modules import Modules
-from modstack.typing import ChatMessage, StreamingCallback, StreamingChunk
+from modstack.typing import StreamingCallback, StreamingChunk
+from modstack.typing.messages import ChatMessage
 from modstack_ollama.llm import OllamaLLMRequest
 
 class OllamaLLM(Modules.Sync[OllamaLLMRequest, Iterable[ChatMessage]]):

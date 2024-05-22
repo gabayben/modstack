@@ -1,7 +1,8 @@
 from typing import Iterable
 
 from modstack.contracts import ToolSpec, ToolResult
-from modstack.typing import ChatMessage, ChatRole, Serializable
+from modstack.typing import Serializable
+from modstack.typing.messages import ChatMessage, ChatRole
 
 class LLMRequest(Serializable):
     prompt: str

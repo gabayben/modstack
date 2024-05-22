@@ -5,7 +5,8 @@ import cohere
 from modstack.auth import Secret
 from modstack.contracts import AgenticLLMRequest, ToolSpec, ToolResult
 from modstack.modules import Modules
-from modstack.typing import ChatMessage, ChatRole, StreamingCallback
+from modstack.typing import StreamingCallback
+from modstack.typing.messages import ChatMessage, ChatRole
 from modstack_cohere.utils import build_cohore_metadata
 
 class CohereLLM(Modules.Sync[AgenticLLMRequest, Iterable[ChatMessage]]):

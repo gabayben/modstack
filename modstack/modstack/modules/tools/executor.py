@@ -2,7 +2,8 @@ from typing import Any, Iterable, Sequence
 
 from modstack.modules import SerializableModule
 from modstack.modules.tools import Tool
-from modstack.typing import ChatMessage, Effect
+from modstack.typing import Effect
+from modstack.typing.messages import ChatMessage
 
 class ToolExecutor(SerializableModule[Iterable[ChatMessage], Any]):
     @property

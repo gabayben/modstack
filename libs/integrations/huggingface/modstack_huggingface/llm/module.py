@@ -6,7 +6,8 @@ from modstack.auth import Secret
 
 from modstack.contracts import LLMRequest
 from modstack.modules import Modules
-from modstack.typing import ChatMessage, ChatRole, StreamingCallback
+from modstack.typing import StreamingCallback
+from modstack.typing.messages import ChatMessage, ChatRole
 from modstack.utils.paths import validate_url
 from modstack_huggingface import HFGenerationApiType, HFModelType
 from modstack_huggingface.utils import validate_hf_model
