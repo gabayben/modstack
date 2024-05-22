@@ -3,7 +3,7 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 """
 
 import asyncio
-from collections import defaultdict
+from collections import defaultdict, deque
 from concurrent import futures
 import logging
 from typing import Any, AsyncIterator, Iterator, Literal, Mapping, Optional, Self, Sequence, Union, final, overload
@@ -15,8 +15,9 @@ from modflow import All, FlowInput, FlowOutput, PregelExecutableTask, PregelTask
 from modflow.channels import Channel, EmptyChannelError, InvalidUpdateError
 from modflow.checkpoints import Checkpoint, Checkpointer
 from modflow.constants import INTERRUPT, TAG_HIDDEN
-from modflow.managed import ManagedValueSpec
+from modflow.managed import ManagedValueSpec, is_managed_value
 from modflow.modules import PregelNode
+from modflow.utils.checkpoints import copy_checkpoint
 from modflow.utils.io import read_channel
 from modflow.utils.validation import validate_flow
 from modstack.modules import SerializableModule
@@ -212,8 +213,11 @@ def _prepare_next_tasks(
 ) -> tuple[Checkpoint, Union[list[PregelTaskDescription], list[PregelExecutableTask]]]:
     # Check if any processes should be run in next step
     # If so, prepare the values to be passed to them
+    checkpoint = copy_checkpoint(checkpoint)
+    tasks: list[Union[PregelTaskDescription, PregelExecutableTask]]
     for name, process in processes.items():
         seen = checkpoint['versions_seen'][name]
+        # If any of the channels read by this process were updated
         if triggers := [
             chan
             for chan in process.triggers
@@ -225,4 +229,64 @@ def _prepare_next_tasks(
                 and checkpoint['channel_versions'][chan] > seen[chan]
             )
         ]:
-            pass
+            # If all trigger channels subscribed by this process are not empty
+            # invoke the process with the values of all non-empty channels
+            if isinstance(process.channels, dict):
+                try:
+                    value = {
+                        k: read_channel(channels, chan, catch=chan not in process.triggers)
+                        for k, chan in process.channels
+                        if isinstance(chan, str)
+                    }
+
+                    managed_values = {}
+                    for key, chan in process.channels.items():
+                        if is_managed_value(chan):
+                            managed_values[key] = managed[key](step, PregelTaskDescription(name, value))
+
+                    value.update(managed_values)
+                except EmptyChannelError:
+                    continue
+            elif isinstance(process.channels, list):
+                for chan in process.channels:
+                    try:
+                        value = read_channel(channels, chan, catch=False)
+                        break
+                    except EmptyChannelError:
+                        pass
+                else:
+                    continue
+            else:
+                raise TypeError(
+                    f'Invalid channels type for process. Expected dict or list, got {process.channels}.'
+                )
+
+            # If the process has a mapper, apply it to the value
+            if process.mapper:
+                value = process.mapper(value)
+
+            # update seen versions
+            if for_execution:
+                for chan in process.channels:
+                    seen.update({
+                        chan: checkpoint['channel_versions'][chan]
+                        for chan in process.triggers
+                    })
+
+            if for_execution:
+                if node := process.get_node():
+                    writes = deque()
+                    tasks.append(
+                        PregelExecutableTask(
+                            name=name,
+                            data=value,
+                            process=node,
+                            writes=writes,
+                            triggers=triggers,
+                            kwargs=kwargs
+                        )
+                    )
+            else:
+                tasks.append(PregelTaskDescription(name, value))
+
+    return checkpoint, tasks
