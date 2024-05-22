@@ -13,9 +13,9 @@ from modflow import PregelTaskDescription
 if TYPE_CHECKING:
     from modflow.modules import Pregel
 
-_V = TypeVar('_V')
+V = TypeVar('V')
 
-class ManagedValue(Generic[_V], ABC):
+class ManagedValue(Generic[V], ABC):
     def __init__(self, flow: 'Pregel', **kwargs):
         self.flow = flow
         self.kwargs = kwargs
@@ -45,7 +45,7 @@ class ManagedValue(Generic[_V], ABC):
                 pass
 
     @abstractmethod
-    def __call__(self, step: int, task: PregelTaskDescription) -> _V:
+    def __call__(self, step: int, task: PregelTaskDescription) -> V:
         pass
 
 class ConfiguredManagedValue(NamedTuple):

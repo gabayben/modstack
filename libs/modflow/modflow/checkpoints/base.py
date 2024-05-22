@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import StrEnum
-from typing import Any, Literal, NotRequired, Optional, Protocol, TypedDict
+from typing import Any, Literal, NamedTuple, NotRequired, Optional, Protocol, TypedDict
 
 from modstack.typing import Effect
 
@@ -95,6 +95,11 @@ class CheckpointSerializer(Protocol):
     def dumps(self, data: Any) -> bytes:
         pass
 
+class CheckpointTuple(NamedTuple):
+    checkpoint: Checkpoint
+    metadata: CheckpointMetadata
+    kwargs: dict[str, Any]
+
 """
 Mostly taken from LangGraph's CheckpointSaver.
 """
@@ -109,6 +114,20 @@ class Checkpointer(ABC):
     ):
         self.at = at or self.at
         self.serde = serde or self.serde
+
+    @abstractmethod
+    def list(self, limit: Optional[int] = None, **kwargs) -> Effect[CheckpointTuple]:
+        pass
+
+    @abstractmethod
+    def search(
+        self,
+        metadata: CheckpointMetadata,
+        *,
+        limit: Optional[int] = None,
+        **kwargs
+    ) -> Effect[CheckpointTuple]:
+        pass
 
     @abstractmethod
     def get(self, **kwargs) -> Effect[Checkpoint | None]:

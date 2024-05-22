@@ -6,3 +6,4 @@ from .base import (
     ManagedValuesManager,
     AsyncManagedValuesManager
 )
+from .few_shot import FewShotExamples

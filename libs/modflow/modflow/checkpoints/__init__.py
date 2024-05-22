@@ -1,1 +1,8 @@
-from .base import CheckpointMetadata, Checkpoint, CheckpointAt, CheckpointSerializer, Checkpointer
+from .base import (
+    CheckpointMetadata,
+    Checkpoint,
+    CheckpointAt,
+    CheckpointSerializer,
+    CheckpointTuple,
+    Checkpointer
+)
