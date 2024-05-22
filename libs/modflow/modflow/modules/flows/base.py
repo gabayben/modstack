@@ -1,3 +1,7 @@
+"""
+Majority of credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/pregel/__init__.py
+"""
+
 import networkx as nx
 
 from modflow.contracts import FlowOutput, RunFlow

@@ -1,5 +1,10 @@
+"""
+Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/managed/base.py
+"""
+
 from abc import ABC, abstractmethod
-from contextlib import asynccontextmanager, contextmanager
+import asyncio
+from contextlib import AsyncExitStack, ExitStack, asynccontextmanager, contextmanager
 import inspect
 from typing import Any, AsyncGenerator, Generator, Generic, NamedTuple, Self, TYPE_CHECKING, Type, TypeGuard, TypeVar, Union
 
@@ -10,9 +15,6 @@ if TYPE_CHECKING:
 
 _V = TypeVar('_V')
 
-"""
-Taken from LangGraph's ManagedValue.
-"""
 class ManagedValue(Generic[_V], ABC):
     def __init__(self, flow: 'Pregel', **kwargs):
         self.flow = flow
@@ -63,13 +65,39 @@ def ManagedValuesManager(
     values: dict[str, ManagedValueSpec],
     flow: 'Pregel',
     **kwargs
-) -> Generator[ManagedValue, None, None]:
-    pass
+) -> Generator[dict[str, ManagedValue], None, None]:
+    if values:
+        with ExitStack() as stack:
+            yield {
+                key: stack.enter_context(
+                    value.cls.enter(flow, **{**kwargs, **value.kwargs})
+                    if isinstance(value, ConfiguredManagedValue)
+                    else value.enter(flow, **kwargs)
+                )
+                for key, value in values.items()
+            }
+    else:
+        yield {}
 
 @asynccontextmanager
 async def AsyncManagedValuesManager(
     values: dict[str, ManagedValueSpec],
     flow: 'Pregel',
     **kwargs
-) -> AsyncGenerator[ManagedValue, None]:
-    pass
+) -> AsyncGenerator[dict[str, ManagedValue], None]:
+    if values:
+        with AsyncExitStack as stack:
+            tasks = {
+                asyncio.create_task(
+                    stack.enter_async_context(
+                        value.cls.aenter(flow, **{**kwargs, **value.kwargs})
+                        if isinstance(value, ConfiguredManagedValue)
+                        else value.aenter(flow, **kwargs)
+                    )
+                ): key
+                for key, value in values.items()
+            }
+            done, _ = await asyncio.wait(tasks)
+            yield {tasks[task]: task.result() for task in done}
+    else:
+        yield {}

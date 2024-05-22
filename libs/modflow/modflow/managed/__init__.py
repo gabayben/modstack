@@ -2,5 +2,7 @@ from .base import (
     ManagedValue,
     ConfiguredManagedValue,
     ManagedValueSpec,
-    is_managed_value
+    is_managed_value,
+    ManagedValuesManager,
+    AsyncManagedValuesManager
 )
