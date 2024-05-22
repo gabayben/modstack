@@ -3,6 +3,7 @@ from typing import Any, AsyncIterator, Callable, Coroutine, Generic, Iterator, T
 
 from unsync import unsync
 
+from modstack.typing.protocols import Addable
 from modstack.typing.vars import Other, Out
 from modstack.utils.coroutines import run_sync
 
@@ -96,11 +97,26 @@ class Effects:
 
     @final
     class Iterator(Effect[Out]):
-        def __init__(self, func: Callable[[], Iterator[Out]]):
+        def __init__(
+            self,
+            func: Callable[[], Iterator[Out]],
+            add_values: bool = True,
+            return_last: bool = True
+        ):
             self.func = func
+            self.add_values = add_values
+            self.return_last = return_last
 
         def invoke(self) -> Out:
-            return next(self.iter())
+            if self.add_values and issubclass(Out, Addable):
+                current: Out = next(self.iter())
+                for value in self.iter():
+                    current += value
+                return current
+            values = list(self.iter())
+            if values:
+                return values[-1] if self.return_last else values[0]
+            return None
 
         async def ainvoke(self) -> Out:
             return self.invoke()
@@ -117,16 +133,30 @@ class Effects:
         def __init__(
             self,
             func: Callable[[], AsyncIterator[Out]],
-            max_workers: int | None = None
+            max_workers: int | None = None,
+            add_values: bool = True,
+            return_last: bool = True
         ):
             self.func = func
             self.max_workers = max_workers
+            self.add_values = add_values
+            self.return_last = return_last
 
         def invoke(self) -> Out:
             return run_sync(self.ainvoke(), max_workers=self.max_workers)
 
         async def ainvoke(self) -> Out:
-            return await anext(self.aiter())
+            if self.add_values and issubclass(Out, Addable):
+                current: Out = await anext(self.func())
+                async for item in self.func():
+                    current += item
+                return current
+            items: list[Out] = []
+            async for item in self.func():
+                items.append(item)
+            if items:
+                return items[-1] if self.return_last else items[0]
+            return None
 
         def iter(self) -> Iterator[Out]:
             @unsync

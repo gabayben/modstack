@@ -12,7 +12,7 @@ from modstack.utils.paths import validate_url
 from modstack_huggingface import HFGenerationApiType, HFModelType
 from modstack_huggingface.utils import validate_hf_model
 
-class HuggingFaceApiLLM(Modules.Sync[LLMRequest, Iterable[ChatMessage]]):
+class HuggingFaceApiLLM(Modules.Sync[LLMRequest, list[ChatMessage]]):
     def __init__(
         self,
         model_or_url: str,
@@ -39,7 +39,7 @@ class HuggingFaceApiLLM(Modules.Sync[LLMRequest, Iterable[ChatMessage]]):
         self.streaming_callback = streaming_callback
         self.client = InferenceClient(model_or_url, token=token.resolve_value() if token else None)
 
-    def _invoke(self, data: LLMRequest, **kwargs) -> Iterable[ChatMessage]:
+    def _invoke(self, data: LLMRequest, **kwargs) -> list[ChatMessage]:
         generation_args = {**self.generation_args, **(data.model_extra or {})}
         history = data.history or []
         history.append(ChatMessage(data.prompt, data.role or ChatRole.USER))

@@ -31,6 +31,7 @@ from .types import (
     AfterRetryFailure
 )
 
+from .protocols import Addable
 from .effect import Effect, Effects, ReturnType
 from .serializable import Serializable
 

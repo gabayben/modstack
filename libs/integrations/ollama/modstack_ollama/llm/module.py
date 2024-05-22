@@ -1,5 +1,5 @@
 import json
-from typing import Any, Iterable
+from typing import Any
 
 import requests
 
@@ -8,7 +8,7 @@ from modstack.typing import StreamingCallback, StreamingChunk
 from modstack.typing.messages import ChatMessage
 from modstack_ollama.llm import OllamaLLMRequest
 
-class OllamaLLM(Modules.Sync[OllamaLLMRequest, Iterable[ChatMessage]]):
+class OllamaLLM(Modules.Sync[OllamaLLMRequest, list[ChatMessage]]):
     def __init__(
         self,
         url: str = 'http://localhost:11434/api/generate',
@@ -32,7 +32,7 @@ class OllamaLLM(Modules.Sync[OllamaLLMRequest, Iterable[ChatMessage]]):
         self.stream = stream
         self.generation_args = generation_args
 
-    def _invoke(self, data: OllamaLLMRequest, **kwargs) -> Iterable[ChatMessage]:
+    def _invoke(self, data: OllamaLLMRequest, **kwargs) -> list[ChatMessage]:
         generation_args = {**self.generation_args, **(data.model_extra or {})}
         system_prompt = data.system_prompt or self.system_prompt
         template = data.template or self.template
