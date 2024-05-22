@@ -113,7 +113,7 @@ class Module(Generic[In, Out], AsGraph, ABC):
 
     @final
     async def aiter(self, data: In, **kwargs) -> AsyncIterator[Out]:
-        async for item in self.effect(data, **kwargs).aiter(): #type: ignore
+        async for item in self.forward(data, **kwargs).aiter(): #type: ignore
             yield item
 
     def get_name(

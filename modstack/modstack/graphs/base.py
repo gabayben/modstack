@@ -10,8 +10,6 @@ from modstack.utils.string import is_uuid
 
 if TYPE_CHECKING:
     from modstack.modules.base import Module
-else:
-    Module = Any
 
 logger = logging.getLogger(__name__)
 

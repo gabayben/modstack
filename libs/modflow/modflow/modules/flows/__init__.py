@@ -1,1 +1,1 @@
-from .base import Pregel
+from .base import StreamMode, Pregel
