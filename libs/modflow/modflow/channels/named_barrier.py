@@ -3,7 +3,7 @@ from typing import Any, Generator, Optional, Self, Sequence, Type
 
 from modflow.channels import Channel, EmptyChannelError, InvalidUpdateError
 
-class NamedBarrierChannel[Value](Channel[Value, Value, set[Value]]):
+class NamedBarrierValue[Value](Channel[Value, Value, set[Value]]):
     """
     Taken from LangGraph's NamedBarrierValue.
     A channel that waits until all named values are received before making the value available.

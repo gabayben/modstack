@@ -1,3 +1,7 @@
+"""
+Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/channels/dynamic_barrier_value.py
+"""
+
 from typing import Generator, NamedTuple, Optional, Self, Sequence, Type, Union
 
 from modflow.channels import Channel

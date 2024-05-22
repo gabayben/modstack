@@ -3,7 +3,7 @@ from typing import Any, Generator, Optional, Self, Sequence, Type
 
 from modflow.channels import Channel, EmptyChannelError, InvalidUpdateError
 
-class LastValueChannel[Value](Channel[Value, Value, Value]):
+class LastValue[Value](Channel[Value, Value, Value]):
     """
     Taken from LangGraph's LastValue.
     Stores the last value received, can receive at most one value per step.

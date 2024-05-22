@@ -3,7 +3,7 @@ from typing import Generator, Iterator, Optional, Self, Sequence, Type, Union
 
 from modflow.channels import Channel
 
-class TopicChannel[Value](Channel[Sequence[Value], Union[Value, list[Value]], tuple[set[Value], list[Value]]]):
+class TopicValue[Value](Channel[Sequence[Value], Union[Value, list[Value]], tuple[set[Value], list[Value]]]):
     """
     Taken from LangGraph's Topic.
 

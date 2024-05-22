@@ -5,7 +5,7 @@ from decorator import ContextManager
 
 from modflow.channels import Channel, EmptyChannelError, InvalidUpdateError
 
-class ContextChannel[Value](Channel[Value, None, None]):
+class ContextValue[Value](Channel[Value, None, None]):
     """
     Taken from LangGraph's Context.
     Exposes the value of a context manager, for the duration of an invocation.
