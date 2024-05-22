@@ -11,7 +11,7 @@ type _Checkpoint[Value] = tuple[Optional[set[Value]], set[Value]]
 class WaitForNames[Value](NamedTuple):
     names: set[Value]
 
-class DynamicBarrierValue[Value](Channel[Value, Union[Value, WaitForNames[Value]], set[Value]]):
+class DynamicBarrierValue[Value](Channel[Value, Union[Value, WaitForNames[Value]], _Checkpoint[Value]]):
     """
     A channel that switches between two states
     - in the "priming" state it can't be read from.
