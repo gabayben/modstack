@@ -3,10 +3,10 @@ from typing import Any, Type, override
 from pydantic import BaseModel
 
 from modstack.contracts import ToolSpec
-from modstack.modules import Module, ModuleLike, coerce_to_module
+from modstack.modules import Module, ModuleLike, SerializableModule, coerce_to_module
 from modstack.typing import Effect
 
-class Tool(Module[dict[str, Any], Any]):
+class Tool(SerializableModule[dict[str, Any], Any]):
     function: Module
     metadata: dict[str, Any]
 

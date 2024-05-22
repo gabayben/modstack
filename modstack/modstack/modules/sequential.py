@@ -2,7 +2,7 @@ from typing import Any, Type, cast, override
 
 from pydantic import BaseModel, Field
 
-from modstack.modules import Module, ModuleLike, coerce_to_module
+from modstack.modules import Module, ModuleLike, SerializableModule, coerce_to_module
 from modstack.modules.base import ModuleMapping
 from modstack.modules.traits import HasSequentialSchema
 from modstack.typing import Effect
@@ -24,7 +24,7 @@ def _seq_output_schema(steps: list[Module]) -> Type[BaseModel]:
         return last.seq_output_schema(_seq_output_schema(steps[:-1]))
     return last.output_schema()
 
-class Sequential(Module[In, Out]):
+class Sequential(SerializableModule[In, Out]):
     first: Module[In, Any]
     middle: list[Module] = Field(default_factory=list)
     last: Module[Any, Out]

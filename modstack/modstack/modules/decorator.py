@@ -2,11 +2,11 @@ from typing import Any, Type, cast, override
 
 from pydantic import BaseModel
 
-from modstack.modules import Module
+from modstack.modules import Module, SerializableModule
 from modstack.typing import Effect
 from modstack.typing.vars import In, Out
 
-class DecoratorBase(Module[In, Out]):
+class DecoratorBase(SerializableModule[In, Out]):
     bound: Module[In, Out]
     kwargs: dict[str, Any]
     custom_input_type: Type[In] | BaseModel | None

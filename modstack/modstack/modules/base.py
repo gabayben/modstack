@@ -3,7 +3,8 @@ from typing import Any, AsyncIterator, Callable, Generic, Iterator, Mapping, Seq
 
 from pydantic import BaseModel
 
-from modstack.typing import AfterRetryFailure, Effect, Effects, RetryStrategy, ReturnType, StopStrategy, WaitStrategy
+from modstack.modules import ModuleLike
+from modstack.typing import AfterRetryFailure, Effect, Effects, RetryStrategy, ReturnType, Serializable, StopStrategy, WaitStrategy
 from modstack.typing.vars import In, Out, Other
 from modstack.utils.serialization import create_schema, from_dict
 
@@ -47,7 +48,7 @@ class Module(Generic[In, Out], AsGraph, ABC):
         from modstack.modules.sequential import Sequential
         return Sequential(coerce_to_module(other), self)
 
-    def map(self, mapper: Callable[[Out], Other]) -> 'Module[In, Other]':
+    def map(self, mapper: ModuleLike[Out, Other]) -> 'Module[In, Other]':
         return self | mapper
 
     def bind(self, **kwargs) -> 'Module[In, Out]':
@@ -144,8 +145,11 @@ class Module(Generic[In, Out], AsGraph, ABC):
     def construct_input(self, data: dict[str, Any]) -> In:
         return from_dict(data, self.input_schema())
 
+class SerializableModule(Serializable, Module[In, Out], ABC):
+    pass
+
 class Modules:
-    class Sync(Module[In, Out], ABC):
+    class Sync(SerializableModule[In, Out], ABC):
         @final
         def forward(self, data: In, **kwargs) -> Effect[Out]:
             def _invoke() -> Out:
@@ -156,7 +160,7 @@ class Modules:
         def _invoke(self, data: In, **kwargs) -> Out:
             pass
 
-    class Async(Module[In, Out], ABC):
+    class Async(SerializableModule[In, Out], ABC):
         @final
         def forward(self, data: In, **kwargs) -> Effect[Out]:
             async def _ainvoke() -> Out:
@@ -167,7 +171,7 @@ class Modules:
         async def _ainvoke(self, data: In, **kwargs) -> Out:
             pass
 
-    class Stream(Module[In, Out], ABC):
+    class Stream(SerializableModule[In, Out], ABC):
         @final
         def forward(self, data: In, **kwargs) -> Effect[Out]:
             def _iter() -> Iterator[Out]:
@@ -178,7 +182,7 @@ class Modules:
         def _iter(self, data: In, **kwargs) -> Iterator[Out]:
             pass
 
-    class AsyncStream(Module[In, Out], ABC):
+    class AsyncStream(SerializableModule[In, Out], ABC):
         @final
         def forward(self, data: In, **kwargs) -> Effect[Out]:
             async def _aiter() -> AsyncIterator[Out]:

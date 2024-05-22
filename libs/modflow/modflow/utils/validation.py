@@ -1,7 +1,7 @@
 from typing import Mapping, Optional, Sequence, Type, Union
 
 from modflow.channels import Channel
-from modflow.flows import PregelNode
+from modflow.modules import PregelNode
 
 def validate_pipeline(
     nodes: Mapping[str, PregelNode],

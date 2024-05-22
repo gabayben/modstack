@@ -1,14 +1,52 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import StrEnum
-from typing import Any, Protocol, TypedDict
+from typing import Any, Literal, NotRequired, Optional, Protocol, TypedDict
 
 from modstack.typing import Effect
 
+"""
+Taken from LangGraph's CheckpointMetadata.
+"""
+class CheckpointMetadata(TypedDict, total=False):
+    """
+    The source of the checkpoint.
+    - "input": The checkpoint was created from an input to execute pregel.
+    - "loop": The checkpoint was created from inside the pregel loop.
+    - "update": The checkpoint was created from a manual state update.
+    """
+    source: Literal['input', 'loop', 'update']
+
+    """
+    The step number of the checkpoint.
+    -1 for the first "input" checkpoint.
+    0 for the first "loop" checkpoint.
+    n for the nth checkpoint afterwards.
+    """
+    step: int
+
+    """
+    The writes that were made between the previous checkpoint and this one.
+    Mapping from node name to writes emitted by that node.
+    """
+    writes: dict[str, Any]
+
+    """
+    The score of the checkpoint.
+    The score can be used to mark a checkpoint as "good".
+    """
+    score: NotRequired[Optional[int]]
+
+"""
+Taken from LangGraph's Checkpoint.
+"""
 class Checkpoint(TypedDict):
+
     """
-    Taken from LangGraph's Checkpoint.
+    The ID of the checkpoint. This is both unique and monotonically
+    increasing, so can be used for sorting checkpoints from first to last.
     """
+    id: str
 
     """
     The version of the checkpoint format. Currently 1.
@@ -40,30 +78,27 @@ class Checkpoint(TypedDict):
     """
     channel_values: dict[str, Any]
 
+"""
+Taken from LangGraph's CheckpointAt.
+"""
 class CheckpointAt(StrEnum):
-    """
-    Taken from LangGraph's CheckpointAt.
-    """
-
     END_OF_STEP = 'end_of_step'
     END_OF_RUN = 'end_of_run'
 
+"""
+Taken from LangGraph's CheckpointSerializer.
+"""
 class CheckpointSerializer(Protocol):
-    """
-    Taken from LangGraph's CheckpointSerializer.
-    """
-
     def loads(self, bytes_: bytes) -> Any:
         pass
 
     def dumps(self, data: Any) -> bytes:
         pass
 
+"""
+Mostly taken from LangGraph's CheckpointSaver.
+"""
 class Checkpointer(ABC):
-    """
-    Mostly taken from LangGraph's CheckpointSaver.
-    """
-
     at: CheckpointAt = CheckpointAt.END_OF_STEP
     serde: CheckpointSerializer
 

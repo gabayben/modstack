@@ -1,9 +1,9 @@
 from contextlib import contextmanager
-from typing import Any, Callable, Generator, Optional, Self, Sequence, Type
+from typing import Callable, Generator, Optional, Self, Sequence, Type
 
 from modflow.channels import Channel, EmptyChannelError
 
-class BinaryOperatorChannel[Value](Channel[Value, Value, Value]):
+class BinaryOperatorAggregate[Value](Channel[Value, Value, Value]):
     """
     Taken from LangGraph's BinaryOperatorAggregate.
     Stores the result of applying a binary operator to the current value and each new value.
@@ -12,11 +12,11 @@ class BinaryOperatorChannel[Value](Channel[Value, Value, Value]):
     value: Value
 
     @property
-    def ValueType(self) -> Optional[Any]:
+    def ValueType(self) -> Type[Value]:
         return self.type_
 
     @property
-    def UpdateType(self) -> Optional[Any]:
+    def UpdateType(self) -> Type[Value]:
         return self.type_
 
     def __init__(

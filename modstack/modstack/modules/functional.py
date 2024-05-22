@@ -70,7 +70,6 @@ class Functional(Module[In, Out]):
         return Effects.Sync(_invoke)
 
     @override
-    @final
     def get_name(
         self,
         name: str | None = None,
@@ -79,16 +78,13 @@ class Functional(Module[In, Out]):
         return super().get_name(name=self.name, suffix=suffix)
 
     @override
-    @final
     def get_description(self, description: str | None = None) -> str:
         return super().get_description(description=self.description)
 
     @override
-    @final
     def input_schema(self) -> Type[BaseModel]:
         return self._input_schema or super().input_schema()
 
     @override
-    @final
     def output_schema(self) -> Type[BaseModel]:
         return self._output_schema or super().output_schema()

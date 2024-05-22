@@ -17,14 +17,14 @@ class Channel[Value, Update, C](ABC):
 
     @property
     @abstractmethod
-    def ValueType(self) -> Optional[Any]:
+    def ValueType(self) -> Any:
         """
         The type of the value stored in the channel.
         """
 
     @property
     @abstractmethod
-    def UpdateType(self) -> Optional[Any]:
+    def UpdateType(self) -> Any:
         """
         The type of the update received by the channel.
         """

@@ -5,8 +5,8 @@ import requests
 
 from modstack.auth import Secret
 from modstack.contracts.websearch import SearchEngineResponse
-from modstack.modules import Modules
-from modstack.typing import LinkArtifact, TextArtifact
+from modstack.modules import Modules, SerializableModule
+from modstack.typing import Effect, LinkArtifact, TextArtifact
 from modstack.utils.string import mapping_to_str
 from modstack_serper.search import SerperError, SerperSearchQuery, SerperSearchResponse
 from modstack_serper.search.builders import build_search_response
@@ -32,20 +32,21 @@ class _SerperSearch:
         _ = self.api_key.resolve_value()
 
 class SerperSearch:
-    class Search(Modules.Sync[SerperSearchQuery, SearchEngineResponse], _SerperSearch):
-        def _invoke(self, data: SerperSearchQuery, **kwargs) -> SearchEngineResponse:
-            search = SerperSearch.NativeSearch(
-                api_key=self.api_key,
-                allowed_domains=self.allowed_domains,
-                search_params=self.search_params,
-                country=self.country,
-                language=self.language,
-                autocomplete=self.autocomplete,
-                timeout=self.timeout
+    class Search(SerializableModule[SerperSearchQuery, SearchEngineResponse], _SerperSearch):
+        def forward(self, data: SerperSearchQuery, **kwargs) -> Effect[SearchEngineResponse]:
+            return (
+                SerperSearch.NativeSearch(
+                    api_key=self.api_key,
+                    allowed_domains=self.allowed_domains,
+                    search_params=self.search_params,
+                    country=self.country,
+                    language=self.language,
+                    autocomplete=self.autocomplete,
+                    timeout=self.timeout
+                )
+                .map(SerperSearch.Map())
+                .forward(data, **kwargs)
             )
-            return SerperSearch.Map().forward(
-                search.forward(data).invoke()
-            ).invoke()
 
     class NativeSearch(Modules.Sync[SerperSearchQuery, SerperSearchResponse], _SerperSearch):
         SERPER_BASE_URL: ClassVar[str] = 'https://google.serper.dev/search'

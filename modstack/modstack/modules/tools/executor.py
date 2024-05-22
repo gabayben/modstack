@@ -1,10 +1,10 @@
 from typing import Any, Iterable, Sequence
 
-from modstack.modules import Module
+from modstack.modules import SerializableModule
 from modstack.modules.tools import Tool
 from modstack.typing import ChatMessage, Effect
 
-class ToolExecutor(Module[Iterable[ChatMessage], Any]):
+class ToolExecutor(SerializableModule[Iterable[ChatMessage], Any]):
     @property
     def tools(self) -> dict[str, Tool]:
         return self._tools

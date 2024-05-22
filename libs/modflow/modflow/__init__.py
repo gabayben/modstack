@@ -1,1 +1,1 @@
-from .typing import GraphNode, GraphEdge, GraphBranch, PipelineTaskDescription, PipelineExecutableTask, StateSnapshot
+from .typing import FlowNode, FlowEdge, FlowBranch, PregelTaskDescription, PregelExecutableTask, StateSnapshot
