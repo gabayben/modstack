@@ -14,7 +14,7 @@ def run_sync[T](
         loop = None
     if loop and loop.is_running():
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future: Future = executor.submit(context.run, asyncio.run, coroutine) # type: ignore[call-args]
+            future: Future[T] = executor.submit(context.run, asyncio.run, coroutine) # type: ignore[call-args]
             return cast(T, future.result())
     else:
         return context.run(asyncio.run, coroutine)

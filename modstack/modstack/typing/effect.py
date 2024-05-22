@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, AsyncIterator, Callable, Coroutine, Generic, Iterator, TypeVar, final
+from typing import Any, AsyncIterator, Callable, Coroutine, Generic, Iterator, Optional, TypeVar, final
 
 from unsync import unsync
 
@@ -109,14 +109,14 @@ class Effects:
 
         def invoke(self) -> Out:
             if self.add_values and issubclass(Out, Addable):
-                current: Out = next(self.iter())
+                current = next(self.iter())
                 for value in self.iter():
                     current += value
                 return current
+            if not self.return_last:
+                return next(self.iter())
             values = list(self.iter())
-            if values:
-                return values[-1] if self.return_last else values[0]
-            return None
+            return values[-1] if values else None
 
         async def ainvoke(self) -> Out:
             return self.invoke()
@@ -147,16 +147,16 @@ class Effects:
 
         async def ainvoke(self) -> Out:
             if self.add_values and issubclass(Out, Addable):
-                current: Out = await anext(self.func())
-                async for item in self.func():
+                current = await anext(self.aiter())
+                async for item in self.aiter():
                     current += item
                 return current
+            if not self.return_last:
+                return await anext(self.aiter())
             items: list[Out] = []
-            async for item in self.func():
+            async for item in self.aiter():
                 items.append(item)
-            if items:
-                return items[-1] if self.return_last else items[0]
-            return None
+            return items[-1] if items else None
 
         def iter(self) -> Iterator[Out]:
             @unsync
@@ -169,7 +169,70 @@ class Effects:
                 yield item
 
     @final
-    class Map(Generic[Out, Other], Effect[Out]):
+    class Any(Effect[Out]):
+        def __init__(
+            self,
+            invoke: Optional[Callable[[], Out]] = None,
+            ainvoke: Optional[Callable[[], Coroutine[Any, Any, Out]]] = None,
+            iter_: Optional[Callable[[], Iterator[Out]]] = None,
+            aiter_: Optional[Callable[[], AsyncIterator[Out]]] = None
+        ):
+            if not invoke and not ainvoke and not iter_ and not aiter_:
+                raise ValueError('You must provide at least 1 function to Effects.Any.')
+            self._invoke = invoke
+            self._ainvoke = ainvoke
+            self._iter = iter_
+            self._aiter = aiter_
+
+        def invoke(self) -> Out:
+            if self._invoke:
+                return self._invoke()
+            elif self._ainvoke:
+                return self._aforward().invoke()
+            elif self._iter:
+                return self._iter_forward().invoke()
+            return self._aiter_forward().invoke()
+
+        async def ainvoke(self) -> Out:
+            if self._ainvoke:
+                return await self._ainvoke()
+            elif self._invoke:
+                return self._invoke()
+            elif self._aiter:
+                return await self._aiter_forward().ainvoke()
+            return self._iter_forward().invoke()
+
+        def iter(self) -> Iterator[Out]:
+            if self._iter:
+                yield from self._iter()
+            elif self._aiter:
+                yield from self._aiter_forward().iter()
+            elif self._invoke:
+                yield self._invoke()
+            yield self._aforward().invoke()
+
+        async def aiter(self) -> AsyncIterator[Out]:
+            if self._aiter:
+                async for item in self._aiter():
+                    yield item
+            elif self._iter:
+                for item in self._iter():
+                    yield item
+            elif self._ainvoke:
+                yield await self._ainvoke()
+            yield self._invoke()
+
+        def _aforward(self) -> Effect[Out]:
+            return Effects.Async(self._ainvoke)
+
+        def _iter_forward(self) -> Effect[Out]:
+            return Effects.Iterator(self._iter)
+
+        def _aiter_forward(self) -> Effect[Out]:
+            return Effects.AsyncIterator(self._aiter)
+
+    @final
+    class Map(Generic[Other], Effect[Out]):
         def __init__(
             self,
             effect: Effect[Other],
@@ -195,7 +258,7 @@ class Effects:
                 yield self.func(item, **self.kwargs)
 
     @final
-    class FlatMap(Generic[Out, Other], Effect[Out]):
+    class FlatMap(Generic[Other], Effect[Out]):
         def __init__(
             self,
             effect: Effect[Other],
