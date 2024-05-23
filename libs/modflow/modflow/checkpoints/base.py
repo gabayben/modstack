@@ -32,7 +32,7 @@ class CheckpointMetadata(TypedDict, total=False):
     The score of the checkpoint.
     The score can be used to mark a checkpoint as "good".
     """
-    score: Optional[int]
+    score: NotRequired[Optional[int]]
 
 class Checkpoint(TypedDict):
 

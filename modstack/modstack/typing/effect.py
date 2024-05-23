@@ -232,7 +232,7 @@ class Effects:
             return Effects.AsyncIterator(self._aiter)
 
     @final
-    class Map(Generic[Other], Effect[Out]):
+    class Map(Generic[Other, Out], Effect[Out]):
         def __init__(
             self,
             effect: Effect[Other],
@@ -258,7 +258,7 @@ class Effects:
                 yield self.func(item, **self.kwargs)
 
     @final
-    class FlatMap(Generic[Other], Effect[Out]):
+    class FlatMap(Generic[Other, Out], Effect[Out]):
         def __init__(
             self,
             effect: Effect[Other],
