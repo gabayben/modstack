@@ -48,6 +48,7 @@ class HuggingFaceApiLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
 
         for chunk in chunks:
             text = chunk.choices[0].delta.content or ''
+            text = text.strip('\n') + '\n'
             metadata = {}
             finish_reason = chunk.choices[0].finish_reason
             if finish_reason:
