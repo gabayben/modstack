@@ -3,9 +3,9 @@ from typing import Any, Iterable, Sequence
 from modstack.modules import SerializableModule
 from modstack.modules.tools import Tool
 from modstack.typing import Effect, Effects
-from modstack.typing.messages import ChatMessage
+from modstack.typing.messages import MessageArtifact
 
-class ToolExecutor(SerializableModule[Iterable[ChatMessage], Any]):
+class ToolExecutor(SerializableModule[Iterable[MessageArtifact], Any]):
     @property
     def tools(self) -> dict[str, Tool]:
         return self._tools
@@ -19,7 +19,7 @@ class ToolExecutor(SerializableModule[Iterable[ChatMessage], Any]):
         for tool in tools:
             self.tools[tool.name] = tool
 
-    def forward(self, data: Iterable[ChatMessage], **kwargs) -> Effect[Any]:
+    def forward(self, data: Iterable[MessageArtifact], **kwargs) -> Effect[Any]:
         def invoke() -> Any:
             return self._invoke(data, **kwargs)
 
@@ -28,8 +28,8 @@ class ToolExecutor(SerializableModule[Iterable[ChatMessage], Any]):
 
         return Effects.Provide(invoke=invoke, ainvoke=ainvoke)
 
-    def _invoke(self, data: Iterable[ChatMessage], **kwargs) -> Any:
+    def _invoke(self, data: Iterable[MessageArtifact], **kwargs) -> Any:
         pass
 
-    async def _ainvoke(self, data: Iterable[ChatMessage], **kwargs) -> Any:
+    async def _ainvoke(self, data: Iterable[MessageArtifact], **kwargs) -> Any:
         pass
