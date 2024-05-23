@@ -6,7 +6,6 @@ from anthropic.types import ContentBlockDeltaEvent, MessageDeltaEvent, MessageSt
 from modstack.auth import Secret
 from modstack.modules import Modules
 
-from modstack.typing import StreamingCallback
 from modstack.typing.messages import ChatMessage, ChatMessageChunk, ChatRole
 from modstack_anthropic.llm import AnthropicLLMRequest
 
@@ -19,7 +18,6 @@ class AnthropicLLM(Modules.Stream[AnthropicLLMRequest, ChatMessageChunk]):
         default_headers: Mapping[str, str] | None = None,
         timeout: float | None = None,
         model: str = 'claude-3-sonnet-20240229',
-        streaming_callback: StreamingCallback | None = None,
         generation_args: dict[str, Any] | None = None,
         max_tokens: int = 512,
         system_prompt: str | None = None,
@@ -36,7 +34,6 @@ class AnthropicLLM(Modules.Stream[AnthropicLLMRequest, ChatMessageChunk]):
             timeout=timeout or NOT_GIVEN
         )
         self.model = model
-        self.streaming_callback = streaming_callback
         self.generation_args = generation_args or {}
         self.max_tokens = max_tokens
         self.system_prompt = system_prompt
@@ -89,8 +86,6 @@ class AnthropicLLM(Modules.Stream[AnthropicLLMRequest, ChatMessageChunk]):
                     'usage': dict(message_start.message.usage, **dict(delta.usage)) if message_start and delta else {}
                 })
                 yield chunk
-                if self.streaming_callback:
-                    self.streaming_callback(chunk.content, chunk.metadata)
 
 def _convert_to_anthropic_format(messages: Iterable[ChatMessage]) -> list[dict[str, Any]]:
     formatted_messages: list[dict[str, Any]] = []
