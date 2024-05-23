@@ -92,11 +92,15 @@ class CheckpointSerializer(Protocol):
 class CheckpointTuple(NamedTuple):
     checkpoint: Checkpoint
     metadata: CheckpointMetadata
-    kwargs: dict[str, Any]
+    config: dict[str, Any]
 
 class Checkpointer(ABC):
     at: CheckpointAt = CheckpointAt.END_OF_STEP
     serde: CheckpointSerializer
+
+    @property
+    def config(self) -> dict[str, Any]:
+        return {}
 
     def __init__(
         self,

@@ -12,7 +12,7 @@ All = Literal['*']
 StreamMode = Literal['values', 'updates', 'debug']
 
 class RunFlow(Serializable):
-    data: FlowInput
+    input: FlowInput
     input_keys: Optional[Union[str, Sequence[str]]] = None
     output_keys: Optional[Union[str, Sequence[str]]] = None
     interrupt_before: Optional[Union[Sequence[str], All]] = None

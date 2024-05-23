@@ -32,6 +32,7 @@ from .types import (
 )
 
 from .protocols import Addable
+from .addable_dict import AddableDict
 from .effect import Effect, Effects, ReturnType
 from .serializable import Serializable
 

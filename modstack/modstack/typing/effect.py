@@ -5,7 +5,7 @@ from unsync import unsync
 
 from modstack.typing.protocols import Addable
 from modstack.typing.vars import Other, Out
-from modstack.utils.coroutines import run_sync
+from modstack.utils.threading import run_sync
 
 class Effect(Generic[Out], ABC):
     def map(

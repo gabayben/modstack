@@ -1,3 +1,5 @@
+from .errors import FlowRecursionError
+
 from .typing import (
     FlowInput,
     FlowOutputChunk,
