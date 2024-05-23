@@ -1,4 +1,5 @@
-from typing import Any
+import json
+from typing import Any, Iterator
 
 import requests
 
@@ -6,7 +7,7 @@ from modstack.modules import Modules
 from modstack.typing.messages import ChatMessageChunk, ChatRole
 from modstack_ollama.llm import OllamaLLMRequest
 
-class OllamaLLM(Modules.Sync[OllamaLLMRequest, ChatMessageChunk]):
+class OllamaLLM(Modules.Stream[OllamaLLMRequest, ChatMessageChunk]):
     def __init__(
         self,
         url: str = 'http://localhost:11434/api/generate',
@@ -26,13 +27,12 @@ class OllamaLLM(Modules.Sync[OllamaLLMRequest, ChatMessageChunk]):
         self.raw = raw
         self.generation_args = generation_args
 
-    def _invoke(self, data: OllamaLLMRequest, **kwargs) -> ChatMessageChunk:
-        generation_args = {**self.generation_args, **(data.model_extra or {})}
+    def _iter(self, data: OllamaLLMRequest, **kwargs) -> Iterator[ChatMessageChunk]:
+        generation_args = {**self.generation_args, **(data.model_extra or {}), 'stream': True}
         system_prompt = data.system_prompt or self.system_prompt
         template = data.template or self.template
         timeout = data.timeout or self.timeout
         raw = data.raw if data.raw is not None else self.raw
-        stream = data.stream if data.stream is not None else self.stream
 
         payload = {
             'prompt': data.prompt,
@@ -40,16 +40,17 @@ class OllamaLLM(Modules.Sync[OllamaLLMRequest, ChatMessageChunk]):
             'system': system_prompt,
             'template': template,
             'raw': raw,
-            'stream': stream,
+            'stream': True,
             'options': generation_args
         }
 
-        response = requests.post(self.url, json=payload, timeout=self.timeout, stream=stream)
+        response = requests.post(self.url, json=payload, timeout=self.timeout, stream=True)
         response.raise_for_status()
 
-        data = response.json()
-        return ChatMessageChunk(
-            data['response'],
-            ChatRole.ASSISTANT,
-            metadata={key: value for key, value in data if key != 'response'}
-        )
+        for line in response.iter_lines():
+            chunk = json.load(line.decode('utf-8'))
+            yield ChatMessageChunk(
+                chunk['response'],
+                ChatRole.ASSISTANT,
+                metadata={key: value for key, value in chunk.items() if key != 'response'}
+            )

@@ -1,4 +1,4 @@
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Iterator
 
 import cohere
 
@@ -34,7 +34,7 @@ class CohereLLM(Modules.Stream[AgenticLLMRequest, ChatMessageChunk]):
             timeout=timeout
         )
 
-    def _iter(self, data: AgenticLLMRequest, **kwargs) -> ChatMessageChunk:
+    def _iter(self, data: AgenticLLMRequest, **kwargs) -> Iterator[ChatMessageChunk]:
         generation_args = {**self.generation_args, **(data.model_extra or {})}
         chat_history = [
             self._build_cohere_message(message)
