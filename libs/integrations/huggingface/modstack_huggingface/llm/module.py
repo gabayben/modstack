@@ -1,25 +1,22 @@
-from typing import Any, Iterable
+from typing import Any, Iterable, Iterator
 
-from huggingface_hub import ChatCompletionOutput, ChatCompletionStreamOutput, InferenceClient
+from huggingface_hub import ChatCompletionStreamOutput, InferenceClient
 
 from modstack.auth import Secret
 
 from modstack.contracts import LLMRequest
 from modstack.modules import Modules
-from modstack.typing import StreamingCallback
-from modstack.typing.messages import ChatMessage, ChatRole
+from modstack.typing.messages import ChatMessage, ChatMessageChunk, ChatRole
 from modstack.utils.paths import validate_url
 from modstack_huggingface import HFGenerationApiType, HFModelType
 from modstack_huggingface.utils import validate_hf_model
 
-class HuggingFaceApiLLM(Modules.Sync[LLMRequest, list[ChatMessage]]):
+class HuggingFaceApiLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
     def __init__(
         self,
         model_or_url: str,
         api_type: HFGenerationApiType,
         token: Secret | None = Secret.from_env_var('HF_API_TOKEN', strict=False),
-        streaming_callback: StreamingCallback | None = None,
-        stream: bool = False,
         stop_words: list[str] | None = None,
         max_tokens: int = 512,
         generation_args: dict[str, Any] = {}
@@ -35,48 +32,24 @@ class HuggingFaceApiLLM(Modules.Sync[LLMRequest, list[ChatMessage]]):
         self.generation_args['stop'] = self.generation_args.get('stop', [])
         self.generation_args['stop'].extend(stop_words or [])
         self.generation_args.setdefault('max_tokens', max_tokens)
-        self.generation_args.setdefault('stream', stream)
-        self.streaming_callback = streaming_callback
         self.client = InferenceClient(model_or_url, token=token.resolve_value() if token else None)
 
-    def _invoke(self, data: LLMRequest, **kwargs) -> list[ChatMessage]:
+    def _iter(self, data: LLMRequest, **kwargs) -> Iterator[ChatMessageChunk]:
         generation_args = {**self.generation_args, **(data.model_extra or {})}
         history = data.history or []
         history.append(ChatMessage(data.prompt, data.role or ChatRole.USER))
         messages = [message.to_common_format() for message in history]
 
-        if generation_args.get('stream'):
-            chunks: Iterable[ChatCompletionStreamOutput] = self.client.chat_completion(
-                messages,
-                stream=True,
-                **generation_args
-            )
+        chunks: Iterable[ChatCompletionStreamOutput] = self.client.chat_completion(
+            messages,
+            stream=True,
+            **generation_args
+        )
 
-            generated_text = ''
-            for chunk in chunks:
-                text = chunk.choices[0].delta.content
-                if text:
-                    generated_text += text
-                metadata = {}
-                finish_reason = chunk.choices[0].finish_reason
-                if finish_reason:
-                    metadata['finish_reason'] = finish_reason
-                if self.streaming_callback:
-                    self.streaming_callback(text, metadata)
-
-            message = ChatMessage.from_assistant(generated_text)
-            message.metadata.update({'model': self.client.model, 'finish_reason': finish_reason, 'index': 0})
-            return [message]
-        else:
-            output: ChatCompletionOutput = self.client.chat_completion(
-                messages,
-                stream=False,
-                **generation_args
-            )
-
-            results: list[ChatMessage] = []
-            for choice in output.choices:
-                message = ChatMessage.from_assistant(choice.message.content)
-                message.metadata.update({'model': self.client.model, 'finish_reason': choice.finish_reason, 'index': choice.index})
-                results.append(message)
-            return results
+        for chunk in chunks:
+            text = chunk.choices[0].delta.content or ''
+            metadata = {}
+            finish_reason = chunk.choices[0].finish_reason
+            if finish_reason:
+                metadata['finish_reason'] = finish_reason
+            yield ChatMessageChunk(text, ChatRole.ASSISTANT, metadata=metadata)
