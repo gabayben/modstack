@@ -1,8 +1,23 @@
 from collections import deque
-from typing import Any, Literal, NamedTuple, Optional, Union
+from typing import Any, Literal, NamedTuple, Optional, Sequence, Union
 
 from modflow.checkpoints import CheckpointMetadata
 from modstack.modules import Module
+from modstack.typing import Serializable
+
+FlowInput = Union[dict[str, Any], Any]
+FlowOutputChunk = Union[dict[str, Any], Any]
+FlowOutput = Union[FlowOutputChunk, list[FlowOutputChunk]]
+All = Literal['*']
+StreamMode = Literal['values', 'updates', 'debug']
+
+class RunFlow(Serializable):
+    data: FlowInput
+    input_keys: Optional[Union[str, Sequence[str]]] = None
+    output_keys: Optional[Union[str, Sequence[str]]] = None
+    interrupt_before: Optional[Union[Sequence[str], All]] = None
+    interrupt_after: Optional[Union[Sequence[str], All]] = None
+    stream_mode: StreamMode = 'values'
 
 class FlowNode:
     pass
@@ -26,11 +41,8 @@ class PregelExecutableTask(NamedTuple):
     kwargs: dict[str, Any]
 
 class StateSnapshot(NamedTuple):
-    values: Union[Any, dict[str, Any]]
+    values: FlowOutputChunk
     next: tuple[str, ...]
     created_at: Optional[str]
     metadata: Optional[CheckpointMetadata]
-
-FlowInput = Union[dict[str, Any], Any]
-FlowOutput = Union[dict[str, Any], Any]
-All = Literal['*']
+    kwargs: dict[str, Any]

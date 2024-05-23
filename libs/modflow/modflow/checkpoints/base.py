@@ -5,9 +5,6 @@ from typing import Any, Literal, NamedTuple, NotRequired, Optional, Protocol, Ty
 
 from modstack.typing import Effect
 
-"""
-Taken from LangGraph's CheckpointMetadata.
-"""
 class CheckpointMetadata(TypedDict, total=False):
     """
     The source of the checkpoint.
@@ -35,11 +32,8 @@ class CheckpointMetadata(TypedDict, total=False):
     The score of the checkpoint.
     The score can be used to mark a checkpoint as "good".
     """
-    score: NotRequired[Optional[int]]
+    score: Optional[int]
 
-"""
-Taken from LangGraph's Checkpoint.
-"""
 class Checkpoint(TypedDict):
 
     """
@@ -100,9 +94,6 @@ class CheckpointTuple(NamedTuple):
     metadata: CheckpointMetadata
     kwargs: dict[str, Any]
 
-"""
-Mostly taken from LangGraph's CheckpointSaver.
-"""
 class Checkpointer(ABC):
     at: CheckpointAt = CheckpointAt.END_OF_STEP
     serde: CheckpointSerializer
@@ -116,23 +107,33 @@ class Checkpointer(ABC):
         self.serde = serde or self.serde
 
     @abstractmethod
-    def list(self, limit: Optional[int] = None, **kwargs) -> Effect[CheckpointTuple]:
-        pass
-
-    @abstractmethod
     def search(
         self,
         metadata: CheckpointMetadata,
         *,
         limit: Optional[int] = None,
         **kwargs
-    ) -> Effect[CheckpointTuple]:
+    ) -> Effect[CheckpointTuple | None]:
         pass
 
     @abstractmethod
-    def get(self, **kwargs) -> Effect[Checkpoint | None]:
+    def get(self, **kwargs) -> Effect[CheckpointTuple | None]:
         pass
 
     @abstractmethod
-    def put(self, checkpoint: Checkpoint, **kwargs) -> Effect[None]:
+    def put(
+        self,
+        checkpoint: Checkpoint,
+        metadata: CheckpointMetadata,
+        **kwargs
+    ) -> dict[str, Any]:
+        pass
+
+    @abstractmethod
+    async def aput(
+        self,
+        checkpoint: Checkpoint,
+        metadata: CheckpointMetadata,
+        **kwargs
+    ) -> dict[str, Any]:
         pass
