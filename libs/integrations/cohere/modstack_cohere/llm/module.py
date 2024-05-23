@@ -60,7 +60,8 @@ class CohereLLM(Modules.Stream[AgenticLLMRequest, ChatMessageChunk]):
                     **(event.response.meta or {})
                 })
             elif event.event_type == 'stream-end':
-                self._build_metadata(chat_message.metadata, response)
+                chat_message.metadata['model'] = self.model
+                build_cohore_metadata(chat_message.metadata, response)
             yield chat_message
 
     def _build_cohere_message(self, message: ChatMessage) -> cohere.ChatMessage:
@@ -74,7 +75,3 @@ class CohereLLM(Modules.Stream[AgenticLLMRequest, ChatMessageChunk]):
 
     def _build_cohere_tool_results(self, tool_results: list[ToolResult]) -> list[cohere.ToolResult]:
         return []
-
-    def _build_metadata(self, metadata: dict[str, Any], response: cohere.StreamedChatResponse | cohere.NonStreamedChatResponse) -> None:
-        metadata['model'] = self.model
-        build_cohore_metadata(metadata, response)
