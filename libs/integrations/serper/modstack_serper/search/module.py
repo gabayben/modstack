@@ -1,5 +1,5 @@
 import json
-from typing import Any, ClassVar
+from typing import Any
 
 import requests
 
@@ -8,28 +8,18 @@ from modstack.contracts.websearch import SearchEngineResponse
 from modstack.modules import Modules, SerializableModule
 from modstack.typing import Effect, LinkArtifact, TextArtifact
 from modstack.utils.string import mapping_to_str
+from modstack_serper.constants import SERPER_SEARCH_URL
 from modstack_serper.search import SerperError, SerperSearchQuery, SerperSearchResponse
 from modstack_serper.search.builders import build_search_response
 
 class _SerperSearch:
-    def __init__(
-        self,
-        api_key: Secret = Secret.from_env_var('SERPERDEV_API_KEY'),
-        allowed_domains: list[str] | None = None,
-        search_params: dict[str, Any] | None = None,
-        country: str = 'us',
-        language: str = 'en',
-        autocomplete: bool = True,
-        timeout: int = 30
-    ):
-        self.api_key = api_key
-        self.allowed_domains = allowed_domains
-        self.search_params = search_params or {}
-        self.country = country
-        self.language = language
-        self.autocomplete = autocomplete
-        self.timeout = timeout
-        _ = self.api_key.resolve_value()
+    api_key: Secret = Secret.from_env_var('SERPERDEV_API_KEY')
+    allowed_domains: list[str] | None = None
+    search_params: dict[str, Any] | None = None
+    country: str = 'us'
+    language: str = 'en'
+    autocomplete: bool = True
+    timeout: int = 30
 
 class SerperSearch:
     class Search(SerializableModule[SerperSearchQuery, SearchEngineResponse], _SerperSearch):
@@ -49,8 +39,6 @@ class SerperSearch:
             )
 
     class NativeSearch(Modules.Sync[SerperSearchQuery, SerperSearchResponse], _SerperSearch):
-        SERPER_BASE_URL: ClassVar[str] = 'https://google.serper.dev/search'
-
         def _invoke(self, data: SerperSearchQuery, **kwargs) -> SerperSearchResponse:
             allowed_domains = data.allowed_domains
             search_params = data.search_params
@@ -77,10 +65,10 @@ class SerperSearch:
             headers = {'X-API-KEY': self.api_key.resolve_value(), 'Content-Type': 'application/json'}
 
             try:
-                response = requests.post(self.SERPER_BASE_URL, data=payload, headers=headers, timeout=self.timeout)
+                response = requests.post(SERPER_SEARCH_URL, data=payload, headers=headers, timeout=self.timeout)
                 response.raise_for_status()
             except requests.Timeout as e:
-                raise TimeoutError(f'Request to {self.SERPER_BASE_URL} with payload {payload} timed out.') from e
+                raise TimeoutError(f'Request to {SERPER_SEARCH_URL} with payload {payload} timed out.') from e
             except requests.RequestException as e:
                 raise SerperError(f'An error occurred while querying. Payload {payload}, Error: {e}.') from e
 

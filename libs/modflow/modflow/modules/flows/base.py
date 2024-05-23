@@ -14,12 +14,12 @@ from pydantic import BaseModel, Field, model_validator
 from modflow import All, FlowOutput, FlowOutputChunk, PregelExecutableTask, PregelTaskDescription, RunFlow, StateSnapshot, StreamMode
 from modflow.channels import AsyncChannelManager, Channel, ChannelManager, EmptyChannelError, InvalidUpdateError
 from modflow.checkpoints import Checkpoint, CheckpointMetadata, Checkpointer
-from modflow.constants import INTERRUPT, TAG_HIDDEN
+from modflow.constants import CONFIG_KEY_READ, INTERRUPT, TAG_HIDDEN
 from modflow.managed import AsyncManagedValuesManager, ManagedValueSpec, ManagedValuesManager, is_managed_value
 from modflow.modules import PregelNode
 from modflow.utils.checkpoints import copy_checkpoint, create_checkpoint, empty_checkpoint
 from modflow.utils.io import read_channel, read_channels
-from modflow.utils.validation import validate_flow
+from modflow.utils.validation import validate_flow, validate_keys
 from modstack.modules import Sequential, SerializableModule
 from modstack.typing import Effect, Effects
 from modstack.typing.vars import In, Out
@@ -39,6 +39,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
     stream_mode: StreamMode = 'values'
     auto_validate: bool = True
     step_timeout: Optional[int] = None
+    debug: bool = False
     
     @property
     @override
@@ -315,7 +316,26 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
 
     async def _aiter(self, data: RunFlow, **kwargs) -> AsyncIterator[FlowOutput]:
         pass
-    
+
+    def _set_defaults(self, data: RunFlow, **kwargs) -> None:
+        if data.input_keys is None:
+            data.input_keys = self.input_channels
+        if data.output_keys is None:
+            data.output_keys = self.stream_channels_asis
+        else:
+            validate_keys(data.output_keys, self.channels)
+        data.interrupt_before = data.interrupt_before or self.interrupt_before
+        data.interrupt_after = data.interrupt_after or self.interrupt_after
+        if data.config.get(CONFIG_KEY_READ, None):
+            data.stream_mode = 'values'
+        else:
+            data.stream_mode = data.stream_mode if data.stream_mode is not None else self.stream_mode
+        data.debug = data.debug if data.debug is not None else self.debug
+
+    def _validate_checkpointer(self) -> None:
+        if not self.checkpointer:
+            raise ValueError('No checkpointer set.')
+
     @override
     def input_schema(self) -> Type[BaseModel]:
         if isinstance(self.input_channels, str):
@@ -339,10 +359,6 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                 for chan in self.output_channels
             }
         )
-
-    def _validate_checkpointer(self) -> None:
-        if not self.checkpointer:
-            raise ValueError('No checkpointer set.')
 
 def _panic_or_proceed(
     done: Union[set[futures.Future[Any]], set[asyncio.Task[Any]]],

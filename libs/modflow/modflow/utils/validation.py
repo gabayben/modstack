@@ -14,3 +14,9 @@ def validate_flow(
     interrupt_after_nodes: Sequence[str]
 ) -> None:
     pass
+
+def validate_keys(
+    keys: Optional[Union[str, Sequence[str]]],
+    channels: Mapping[str, Channel]
+) -> None:
+    pass

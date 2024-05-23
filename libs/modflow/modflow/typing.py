@@ -17,7 +17,9 @@ class RunFlow(Serializable):
     output_keys: Optional[Union[str, Sequence[str]]] = None
     interrupt_before: Optional[Union[Sequence[str], All]] = None
     interrupt_after: Optional[Union[Sequence[str], All]] = None
+    config: dict[str, Any] = {}
     stream_mode: StreamMode = 'values'
+    debug: Optional[bool] = None
 
 class FlowNode:
     pass
