@@ -172,23 +172,43 @@ class Modules:
             pass
 
     class Stream(SerializableModule[In, Out], ABC):
+        def __init__(
+            self,
+            add_values: bool | None = None,
+            return_last: bool | None = None,
+            **kwargs
+        ):
+            super().__init__(**kwargs)
+            self.add_values = add_values
+            self.return_last = return_last
+
         @final
         def forward(self, data: In, **kwargs) -> Effect[Out]:
             def _iter() -> Iterator[Out]:
                 yield from self._iter(data, **kwargs)
-            return Effects.Iterator(_iter)
+            return Effects.Iterator(_iter, add_values=self.add_values, return_last=self.return_last)
 
         @abstractmethod
         def _iter(self, data: In, **kwargs) -> Iterator[Out]:
             pass
 
     class AsyncStream(SerializableModule[In, Out], ABC):
+        def __init__(
+            self,
+            add_values: bool | None = None,
+            return_last: bool | None = None,
+            **kwargs
+        ):
+            super().__init__(**kwargs)
+            self.add_values = add_values
+            self.return_last = return_last
+
         @final
         def forward(self, data: In, **kwargs) -> Effect[Out]:
             async def _aiter() -> AsyncIterator[Out]:
                 async for item in self._aiter(data, **kwargs): #type: ignore
                     yield item
-            return Effects.AsyncIterator(_aiter)
+            return Effects.AsyncIterator(_aiter, add_values=self.add_values, return_last=self.return_last)
 
         @abstractmethod
         async def _aiter(self, data: In, **kwargs) -> AsyncIterator[Out]:

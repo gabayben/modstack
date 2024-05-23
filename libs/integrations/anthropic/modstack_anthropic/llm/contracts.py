@@ -7,4 +7,3 @@ class AnthropicLLMRequest(LLMRequest):
     top_p: float | None = None
     temperature: float | None = None
     stop_sequences: list[str] | None = None
-    stream: bool = False

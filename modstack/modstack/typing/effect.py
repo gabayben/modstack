@@ -100,12 +100,12 @@ class Effects:
         def __init__(
             self,
             func: Callable[[], Iterator[Out]],
-            add_values: bool = True,
-            return_last: bool = True
+            add_values: bool | None = None,
+            return_last: bool | None = None
         ):
             self.func = func
-            self.add_values = add_values
-            self.return_last = return_last
+            self.add_values = add_values if add_values is not None else True
+            self.return_last = return_last if return_last is not None else True
 
         def invoke(self) -> Out:
             if self.add_values and issubclass(Out, Addable):
@@ -134,13 +134,13 @@ class Effects:
             self,
             func: Callable[[], AsyncIterator[Out]],
             max_workers: int | None = None,
-            add_values: bool = True,
-            return_last: bool = True
+            add_values: bool | None = None,
+            return_last: bool | None = None
         ):
             self.func = func
             self.max_workers = max_workers
-            self.add_values = add_values
-            self.return_last = return_last
+            self.add_values = add_values if add_values is not None else True
+            self.return_last = return_last if return_last is not None else True
 
         def invoke(self) -> Out:
             return run_sync(self.ainvoke(), max_workers=self.max_workers)
