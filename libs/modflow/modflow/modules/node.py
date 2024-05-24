@@ -19,6 +19,7 @@ class PregelNode(DecoratorBase):
         writers: list[Module] = [],
         mapper: Optional[Callable[[Any], Any]] = None,
         bound: Module = DEFAULT_BOUND,
+        tags: Optional[list[str]] = None,
         kwargs: dict[str, Any] = {}
     ):
         super().__init__(
@@ -27,7 +28,8 @@ class PregelNode(DecoratorBase):
             channels=channels,
             triggers=triggers,
             writers=writers,
-            mapper=mapper
+            mapper=mapper,
+            tags=tags or []
         )
 
     def __or__(self, other: Union[ModuleLike, ModuleMapping]) -> 'PregelNode':

@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field, model_validator
 from modflow import All, FlowOutput, FlowOutputChunk, FlowRecursionError, PregelExecutableTask, PregelTaskDescription, RunFlow, StateSnapshot, StreamMode
 from modflow.channels import AsyncChannelManager, Channel, ChannelManager, EmptyChannelError, InvalidUpdateError
 from modflow.checkpoints import Checkpoint, CheckpointMetadata, Checkpointer
-from modflow.constants import CONFIG_KEY_READ, INTERRUPT, TAG_HIDDEN
+from modflow.constants import CONFIG_KEY_READ, INTERRUPT, HIDDEN
 from modflow.managed import AsyncManagedValuesManager, ManagedValueSpec, ManagedValuesManager, is_managed_value
 from modflow.modules import PregelNode
 from modflow.utils.checkpoints import copy_checkpoint, create_checkpoint, empty_checkpoint
@@ -751,7 +751,7 @@ def _should_interrupt(
             node
             for node, _, _, _, _, kwargs in tasks
             if (
-                (not kwargs or TAG_HIDDEN not in kwargs.get('tags', []))
+                (not kwargs or HIDDEN not in kwargs.get('tags', []))
                 if interrupt_nodes == '*'
                 else node in interrupt_nodes
             )

@@ -14,7 +14,7 @@ class ChannelWrite(Functional):
     def __init__(
         self,
         writes: Sequence[ChannelWriteEntry],
-        tags: Sequence[str] = []
+        tags: list[str] = []
     ):
         super().__init__(self._write)
         self.writes = writes

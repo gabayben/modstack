@@ -9,8 +9,10 @@ from typing import Any, Literal, NamedTuple, Optional, Sequence, Union, cast, ge
 from modflow import All
 from modflow.channels import EphemeralValue
 from modflow.checkpoints import Checkpointer
-from modflow.constants import END, START, TAG_HIDDEN
+from modflow.constants import END, START, HIDDEN
 from modflow.modules import ChannelWrite, ChannelWriteEntry, Pregel, PregelNode
+from modflow.utils.channel_helper import ChannelHelper
+from modstack.graphs import Graph
 from modstack.modules import Functional, Module, ModuleFunction, ModuleLike, coerce_to_module
 
 logger = logging.getLogger(__name__)
@@ -25,18 +27,18 @@ class Branch(NamedTuple):
         writer: ModuleFunction[[list[str]], Optional[Module]],
         reader: Optional[ModuleFunction[[dict[str, Any]], Any]] = None
     ) -> Module:
-        async def aroute(data: Any, **kwargs) -> Module:
-            return await self._aroute(data, writer, reader, **kwargs)
-        return ChannelWrite.register_writer(Functional(aroute))
+        def route(data: Any, **kwargs) -> Module:
+            return self._route(data, writer, reader, **kwargs)
+        return ChannelWrite.register_writer(Functional(route))
 
-    async def _aroute(
+    def _route(
         self,
         data: Any,
         writer: ModuleFunction[[list[str]], Optional[Module]],
         reader: Optional[ModuleFunction[[...], Any]],
         **kwargs
     ) -> Module:
-        result = await self.path.ainvoke(reader(**kwargs) if reader else data)
+        result = self.path.invoke(reader(**kwargs) if reader else data)
         if not isinstance(result, list):
             result = [result]
         if self.path_map:
@@ -46,6 +48,10 @@ class Branch(NamedTuple):
         if any(dest is None for dest in destinations):
             raise ValueError('Branch did not return a valid destination.')
         return writer(destinations) or data
+
+    @staticmethod
+    def key(source: str, branch_name: str, end: str) -> str:
+        return f'branch:{source}:{branch_name}:{end}'
 
 class Flow:
     @property
@@ -246,28 +252,47 @@ class CompiledFlow(Pregel):
         self.nodes[name] = (
             PregelNode(channels=[], triggers=[])
             | node
-            | ChannelWrite([ChannelWriteEntry(name)], tags=[TAG_HIDDEN])
+            | ChannelWrite([ChannelWriteEntry(name)], tags=[HIDDEN])
         )
         cast(list[str], self.stream_channels).append(name)
 
     def attach_edge(self, source: str, target: str) -> None:
         if target == END:
             self.nodes[source].writers.append(
-                ChannelWrite([ChannelWriteEntry(END)], tags=[TAG_HIDDEN])
+                ChannelWrite([ChannelWriteEntry(END)], tags=[HIDDEN])
             )
         else:
             self.nodes[target].channels.append(source)
             self.nodes[target].triggers.append(source)
 
     def attach_branch(self, source: str, name: str, branch: Branch) -> None:
-        def branch_writer(ends: list[str]) -> Optional[ChannelWrite]:
+        def branch_writer(ends: list[str]) -> ChannelWrite:
             channels = [
-                f'branch:{source}:{name}:{end}'
+                Branch.key(source, name, end)
                 if end != END
                 else END
                 for end in ends
             ]
             return ChannelWrite(
                 [ChannelWriteEntry(chan) for chan in channels],
-                tags=[TAG_HIDDEN]
+                tags=[HIDDEN]
             )
+
+        # attach hidden start node
+        if source == START and START not in self.nodes:
+            self.nodes[START] = ChannelHelper.subscribe_to(START, tags=[HIDDEN])
+
+        # attach branch writer
+        self.nodes[source] |= branch.run(branch_writer)
+
+        # attach branch readers
+        ends = branch.path_map.values() if branch.path_map else [node for node in self.nodes]
+        for end in ends:
+            if end != END:
+                channel_name = Branch.key(source, name, end)
+                self.channels[channel_name] = EphemeralValue(Any)
+                self.nodes[end].channels.append(channel_name)
+                self.nodes[end].triggers.append(channel_name)
+
+    def as_graph(self, **kwargs) -> Graph:
+        pass

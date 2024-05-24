@@ -7,7 +7,7 @@ from typing import Any, Iterator, Mapping, Optional, Sequence, Union
 
 from modflow import FlowOutputChunk, PregelExecutableTask
 from modflow.channels import Channel, EmptyChannelError
-from modflow.constants import TAG_HIDDEN
+from modflow.constants import HIDDEN
 from modstack.typing import AddableDict
 
 def read_channel(
@@ -76,7 +76,7 @@ def map_output_updates(
     output_channels: Union[str, Sequence[str]],
     tasks: list[PregelExecutableTask]
 ) -> Iterator[dict[str, FlowOutputChunk]]:
-    output_tasks = [t for t in tasks if not t.kwargs or TAG_HIDDEN not in t.kwargs.get('tags', [])]
+    output_tasks = [t for t in tasks if not t.kwargs or HIDDEN not in t.kwargs.get('tags', [])]
     if isinstance(output_channels, str):
         if updated := AddableUpdatesDict({
             task.name: value

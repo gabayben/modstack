@@ -11,7 +11,7 @@ from uuid import UUID, uuid5
 
 from modflow import PregelExecutableTask
 from modflow.channels import Channel
-from modflow.constants import TAG_HIDDEN
+from modflow.constants import HIDDEN
 from modflow.utils.io import read_channels
 from modstack.typing import Serializable
 
@@ -54,7 +54,7 @@ TASK_NAMESPACE = UUID('6ba7b831-9dad-11d1-80b4-00c04fd430c8')
 def map_debug_tasks(step: int, tasks: list[PregelExecutableTask]) -> Iterator[TaskDebugOutput]:
     timestamp = datetime.now(timezone.utc).isoformat()
     for i, task in enumerate(tasks):
-        if 'tags' in task.kwargs and TAG_HIDDEN in task.kwargs['tags']:
+        if 'tags' in task.kwargs and HIDDEN in task.kwargs['tags']:
             continue
         yield TaskDebugOutput(
             step=step,
@@ -74,7 +74,7 @@ def map_debug_task_results(
 ) -> Iterator[TaskResultDebugOutput]:
     timestamp = datetime.now(timezone.utc).isoformat()
     for i, task in enumerate(tasks):
-        if 'tags' in task.kwargs and TAG_HIDDEN in task.kwargs['tags']:
+        if 'tags' in task.kwargs and HIDDEN in task.kwargs['tags']:
             continue
         yield TaskResultDebugOutput(
             step=step,
