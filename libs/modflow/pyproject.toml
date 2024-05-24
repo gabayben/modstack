@@ -8,7 +8,6 @@ packages = [{ include = "modflow" }]
 [tool.poetry.dependencies]
 python = "^3.12"
 modstack = { path = "../../modstack/" }
-networkx = "^3.3"
 
 
 [build-system]

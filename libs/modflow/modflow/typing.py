@@ -21,15 +21,6 @@ class RunFlow(Serializable):
     stream_mode: StreamMode = 'values'
     debug: Optional[bool] = None
 
-class FlowNode:
-    pass
-
-class FlowEdge:
-    pass
-
-class FlowBranch:
-    pass
-
 class PregelTaskDescription(NamedTuple):
     name: str
     data: Any

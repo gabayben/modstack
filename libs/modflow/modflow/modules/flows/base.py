@@ -6,9 +6,8 @@ import asyncio
 from collections import defaultdict, deque
 from concurrent import futures
 import logging
-from typing import Any, AsyncIterator, Iterator, Literal, Mapping, Optional, Self, Sequence, Type, Union, final, overload, override
+from typing import Any, AsyncIterator, Iterator, Literal, Optional, Self, Sequence, Type, Union, final, overload, override
 
-import networkx as nx
 from pydantic import BaseModel, Field, model_validator
 
 from modflow import All, FlowOutput, FlowOutputChunk, FlowRecursionError, PregelExecutableTask, PregelTaskDescription, RunFlow, StateSnapshot, StreamMode
@@ -30,8 +29,8 @@ from modstack.utils.threading import get_executor
 logger = logging.getLogger(__name__)
 
 class Pregel(SerializableModule[RunFlow, FlowOutput]):
-    nodes: Mapping[str, PregelNode]
-    channels: Mapping[str, Channel]
+    nodes: dict[str, PregelNode]
+    channels: dict[str, Channel]
     input_channels: Union[str, Sequence[str]]
     output_channels: Union[str, Sequence[str]]
     stream_channels: Optional[Union[str, Sequence[str]]] = None
@@ -74,9 +73,6 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
             for k, v in node.channels.items()
             if is_managed_value(v)
         }
-
-    def __init__(self):
-        self.graph = nx.MultiDiGraph()
 
     @classmethod
     @model_validator(mode='before')
@@ -764,7 +760,7 @@ def _should_interrupt(
 
 def _apply_writes(
     checkpoint: Checkpoint,
-    channels: Mapping[str, Channel],
+    channels: dict[str, Channel],
     pending_writes: Sequence[tuple[str, Any]]
 ) -> None:
     pending_writes_by_channel: dict[str, list[Any]] = defaultdict(list)
@@ -801,8 +797,8 @@ def _single[T](iterator: Iterator[T]) -> Optional[T]:
 @overload
 def _prepare_next_tasks(
     checkpoint: Checkpoint,
-    processes: Mapping[str, PregelNode],
-    channels: Mapping[str, Channel],
+    processes: dict[str, PregelNode],
+    channels: dict[str, Channel],
     managed: dict[str, ManagedValueSpec],
     step: int,
     for_execution: Literal[False],
@@ -813,8 +809,8 @@ def _prepare_next_tasks(
 @overload
 def _prepare_next_tasks(
     checkpoint: Checkpoint,
-    processes: Mapping[str, PregelNode],
-    channels: Mapping[str, Channel],
+    processes: dict[str, PregelNode],
+    channels: dict[str, Channel],
     managed: dict[str, ManagedValueSpec],
     step: int,
     for_execution: Literal[True],
@@ -824,8 +820,8 @@ def _prepare_next_tasks(
 
 def _prepare_next_tasks(
     checkpoint: Checkpoint,
-    processes: Mapping[str, PregelNode],
-    channels: Mapping[str, Channel],
+    processes: dict[str, PregelNode],
+    channels: dict[str, Channel],
     managed: dict[str, ManagedValueSpec],
     step: int,
     for_execution: bool,
