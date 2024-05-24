@@ -78,9 +78,7 @@ class AnthropicLLM(Modules.Stream[AnthropicLLMRequest, ChatMessageChunk]):
             if isinstance(stream_event, MessageDeltaEvent):
                 delta = stream_event
             if isinstance(stream_event, ContentBlockDeltaEvent):
-                text = stream_event.delta.text or ''
-                text = text.strip('\n') + '\n'
-                chunk = ChatMessageChunk(text, ChatRole.ASSISTANT)
+                chunk = ChatMessageChunk(stream_event.delta.text or '', ChatRole.ASSISTANT)
                 chunk.metadata.update({
                     'model': self.model,
                     'index': stream_event.index,

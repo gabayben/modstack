@@ -53,9 +53,7 @@ class CohereLLM(Modules.Stream[AgenticLLMRequest, ChatMessageChunk]):
         )
 
         for event in response:
-            text = event.text or ''
-            text = text.strip('\n') + '\n'
-            chat_message = ChatMessageChunk(text, ChatRole.ASSISTANT)
+            chat_message = ChatMessageChunk(event.text or '', ChatRole.ASSISTANT)
             if event.event_type == 'llm-generation':
                 chat_message.metadata.update({
                     'event_type': event.event_type,

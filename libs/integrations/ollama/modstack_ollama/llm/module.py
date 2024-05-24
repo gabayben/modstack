@@ -49,10 +49,8 @@ class OllamaLLM(Modules.Stream[OllamaLLMRequest, ChatMessageChunk]):
 
         for line in response.iter_lines():
             chunk = json.load(line.decode('utf-8'))
-            text = chunk.get('response', '')
-            text = text.strip('\n') + '\n'
             yield ChatMessageChunk(
-                text,
+                chunk.get('response'),
                 ChatRole.ASSISTANT,
                 metadata={key: value for key, value in chunk.items() if key != 'response'}
             )
