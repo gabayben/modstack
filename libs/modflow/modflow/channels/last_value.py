@@ -48,5 +48,5 @@ class LastValue[Value](Channel[Value, Value, Value]):
         if not values or len(values) == 0:
             return
         if len(values) != 1:
-            raise InvalidUpdateError('LastValueChannel can only receive one value per step.')
+            raise InvalidUpdateError('LastValue can only receive one value per step.')
         self.value = values[-1]

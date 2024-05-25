@@ -1,46 +1,88 @@
 import asyncio
-from typing import Any, NamedTuple, Optional, Sequence, Union
+from functools import partial
+from typing import Any, Callable, NamedTuple, Optional, Sequence, Union
 
-from modflow.constants import IS_CHANNEL_WRITER
-from modstack.modules import Functional, Module
+from modflow.constants import IS_CHANNEL_WRITER, WRITE_KEY
+from modstack.modules import Module, Passthrough, SerializableModule
+from modstack.typing import Effects
 from modstack.utils.func import tzip
+
+SKIP_WRITE = object()
+WRITE_TYPE = Callable[[Sequence[tuple[str, Any]]], None]
 
 class ChannelWriteEntry(NamedTuple):
     channel: str
     value: Optional[Union[Module, Any]] = None
     skip_none: bool = False
+    mapper: Optional[Module] = None
 
-class ChannelWrite(Functional):
+class ChannelWrite(SerializableModule):
     def __init__(
         self,
         writes: Sequence[ChannelWriteEntry],
-        tags: list[str] = []
+        tags: list[str] = [],
+        **kwargs
     ):
-        super().__init__(self._write)
+        super().__init__(**kwargs)
         self.writes = writes
         self.tags = set(tags)
 
-    async def _write(self, data: Any, **kwargs) -> Any:
+    def forward(self, data: Any, **kwargs) -> Any:
+        return Effects.Provide(
+            invoke=partial(self._write, data, **kwargs),
+            ainvoke=partial(self._awrite, data, **kwargs)
+        )
+
+    def _write(
+        self,
+        data: Any,
+        **kwargs
+    ) -> Any:
+        values = [
+            data if write.value is Passthrough else write.value
+            for write in self.writes
+        ]
+        values = [
+            write.mapper.invoke(value, **kwargs)
+            if write.mapper
+            else value
+            for value, write in tzip(values, self.writes)
+        ]
+        values = [
+            (write.channel, value)
+            for value, write in tzip(values, self.writes)
+            if not write.skip_none or value is not None
+        ]
+        self.do_write(data, kwargs)
+        return data
+
+    async def _awrite(
+        self,
+        data: Any,
+        **kwargs
+    ) -> Any:
+        values = [
+            data if write.value is Passthrough else write.value
+            for write in self.writes
+        ]
         values = await asyncio.gather(
             *(
-                write.value.ainvoke(data, **kwargs)
-                if isinstance(write.value, Module)
-                else _make_future(write.value)
-                if write.value is not None
-                else _make_future(data)
-                for write in self.writes
+                write.mapper.ainvoke(value, **kwargs)
+                if write.mapper
+                else _make_future(value)
+                for value, write in tzip(values, self.writes)
             )
         )
         values = [
-            (channel, value)
-            for value, (channel, _, skip_none) in tzip(values, self.writes)
-            if not skip_none or value is not None
+            (write.channel, value)
+            for value, write in tzip(values, self.writes)
+            if not write.skip_none or value is not None
         ]
-        # TODO: Write logic
+        self.do_write(data, kwargs)
         return data
 
     @staticmethod
-    def register_writer[M: Module](mod: Module) -> M:
+    def register_writer[M: Module](mod: M) -> M:
         object.__setattr__(mod, IS_CHANNEL_WRITER, True)
         return mod
 
@@ -50,6 +92,11 @@ class ChannelWrite(Functional):
             isinstance(mod, ChannelWrite)
             or getattr(mod, IS_CHANNEL_WRITER, False) is True
         )
+
+    @staticmethod
+    def do_write(values: dict[str, Any], config: dict[str, Any]) -> None:
+        write = config.get(WRITE_KEY)
+        write([(chan, value) for chan, value in values.items() if value is not SKIP_WRITE])
 
 def _make_future(value: Any) -> asyncio.Future:
     future = asyncio.Future()

@@ -70,6 +70,7 @@ class Flow:
         self.nodes: dict[str, Module] = {}
         self.edges: set[tuple[str, str]] = set()
         self.branches: dict[str, dict[str, Branch]] = defaultdict(dict)
+        self._supports_multiple_edges: bool = False
         self._compiled: bool = False
 
     def add_node(

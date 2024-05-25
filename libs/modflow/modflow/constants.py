@@ -1,5 +1,5 @@
-CONFIG_KEY_SEND = "__pregel_send"
-CONFIG_KEY_READ = "__pregel_read"
+WRITE_KEY = "__pregel_write"
+READ_KEY = "__pregel_read"
 INTERRUPT = "__interrupt__"
 HIDDEN = "modflow:hidden"
 IS_CHANNEL_WRITER = '_is_channel_writer'

@@ -5,6 +5,7 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 import asyncio
 from collections import defaultdict, deque
 from concurrent import futures
+from functools import partial
 import logging
 from typing import Any, AsyncIterator, Iterator, Literal, Optional, Self, Sequence, Type, Union, final, overload, override
 
@@ -13,7 +14,7 @@ from pydantic import BaseModel, Field, model_validator
 from modflow import All, FlowOutput, FlowOutputChunk, FlowRecursionError, PregelExecutableTask, PregelTaskDescription, RunFlow, StateSnapshot, StreamMode
 from modflow.channels import AsyncChannelManager, Channel, ChannelManager, EmptyChannelError, InvalidUpdateError
 from modflow.checkpoints import Checkpoint, CheckpointMetadata, Checkpointer
-from modflow.constants import CONFIG_KEY_READ, INTERRUPT, HIDDEN
+from modflow.constants import READ_KEY, INTERRUPT, HIDDEN
 from modflow.managed import AsyncManagedValuesManager, ManagedValueSpec, ManagedValuesManager, is_managed_value
 from modflow.modules import PregelNode
 from modflow.utils.checkpoints import copy_checkpoint, create_checkpoint, empty_checkpoint
@@ -273,24 +274,11 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
 
     @final
     def forward(self, data: RunFlow, **kwargs) -> Effect[FlowOutput]:
-        def invoke() -> FlowOutput:
-            return self._invoke(data, **kwargs)
-
-        async def ainvoke() -> FlowOutput:
-            return await self._ainvoke(data, **kwargs)
-
-        def iter_() -> Iterator[FlowOutput]:
-            yield from self._iter(data, **kwargs)
-
-        async def aiter_() -> AsyncIterator[FlowOutput]:
-            async for item in self._aiter(data, **kwargs): #type: ignore
-                yield item
-
         return Effects.Provide(
-            invoke=invoke,
-            ainvoke=ainvoke,
-            iter_=iter_,
-            aiter_=aiter_
+            invoke=partial(self._invoke, data, **kwargs),
+            ainvoke=partial(self._ainvoke, data, **kwargs),
+            iter_=partial(self._iter, data, **kwargs),
+            aiter_=partial(self._aiter, data, **kwargs)
         )
 
     def _invoke(self, data: RunFlow, **kwargs) -> FlowOutput:
@@ -681,7 +669,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
         data.interrupt_after = data.interrupt_after or self.interrupt_after
         data.config = {**data.config, **kwargs}
         data.config.setdefault('recursion_limit', 3)
-        if data.config.get(CONFIG_KEY_READ, None):
+        if data.config.get(READ_KEY, None):
             data.stream_mode = 'values'
         else:
             data.stream_mode = data.stream_mode if data.stream_mode is not None else self.stream_mode

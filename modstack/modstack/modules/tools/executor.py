@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Any, Iterable, Sequence
 
 from modstack.modules import SerializableModule
@@ -20,13 +21,10 @@ class ToolExecutor(SerializableModule[Iterable[MessageArtifact], Any]):
             self.tools[tool.name] = tool
 
     def forward(self, data: Iterable[MessageArtifact], **kwargs) -> Effect[Any]:
-        def invoke() -> Any:
-            return self._invoke(data, **kwargs)
-
-        async def ainvoke() -> Any:
-            return await self._ainvoke(data, **kwargs)
-
-        return Effects.Provide(invoke=invoke, ainvoke=ainvoke)
+        return Effects.Provide(
+            invoke=partial(self._invoke, data, **kwargs),
+            ainvoke=partial(self._ainvoke, data, **kwargs)
+        )
 
     def _invoke(self, data: Iterable[MessageArtifact], **kwargs) -> Any:
         pass

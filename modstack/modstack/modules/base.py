@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from functools import partial
 from typing import Any, AsyncIterator, Callable, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, Type, Union, final, get_args
 
 from pydantic import BaseModel
@@ -152,9 +153,7 @@ class Modules:
     class Sync(SerializableModule[In, Out], ABC):
         @final
         def forward(self, data: In, **kwargs) -> Effect[Out]:
-            def _invoke() -> Out:
-                return self._invoke(data, **kwargs)
-            return Effects.Sync(_invoke)
+            return Effects.Sync(partial(self._invoke, data, **kwargs))
 
         @abstractmethod
         def _invoke(self, data: In, **kwargs) -> Out:
@@ -163,9 +162,7 @@ class Modules:
     class Async(SerializableModule[In, Out], ABC):
         @final
         def forward(self, data: In, **kwargs) -> Effect[Out]:
-            async def _ainvoke() -> Out:
-                return await self._ainvoke(data, **kwargs)
-            return Effects.Async(_ainvoke)
+            return Effects.Async(partial(self._ainvoke, data, **kwargs))
 
         @abstractmethod
         async def _ainvoke(self, data: In, **kwargs) -> Out:
@@ -184,9 +181,11 @@ class Modules:
 
         @final
         def forward(self, data: In, **kwargs) -> Effect[Out]:
-            def _iter() -> Iterator[Out]:
-                yield from self._iter(data, **kwargs)
-            return Effects.Iterator(_iter, add_values=self.add_values, return_last=self.return_last)
+            return Effects.Iterator(
+                partial(self._iter, data, **kwargs),
+                add_values=self.add_values,
+                return_last=self.return_last
+            )
 
         @abstractmethod
         def _iter(self, data: In, **kwargs) -> Iterator[Out]:
@@ -205,10 +204,11 @@ class Modules:
 
         @final
         def forward(self, data: In, **kwargs) -> Effect[Out]:
-            async def _aiter() -> AsyncIterator[Out]:
-                async for item in self._aiter(data, **kwargs): #type: ignore
-                    yield item
-            return Effects.AsyncIterator(_aiter, add_values=self.add_values, return_last=self.return_last)
+            return Effects.AsyncIterator(
+                partial(self._aiter, data, **kwargs),
+                add_values=self.add_values,
+                return_last=self.return_last
+            )
 
         @abstractmethod
         async def _aiter(self, data: In, **kwargs) -> AsyncIterator[Out]:
