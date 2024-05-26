@@ -243,6 +243,7 @@ class Flow:
             for name, branch in branches.items():
                 compiled_flow.attach_branch(source, name, branch)
 
+        compiled_flow.validate_flow()
         return compiled_flow
 
 class CompiledFlow(Pregel):

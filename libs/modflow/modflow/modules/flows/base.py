@@ -7,7 +7,7 @@ from collections import defaultdict, deque
 from concurrent import futures
 from functools import partial
 import logging
-from typing import Any, AsyncIterator, Iterator, Literal, Optional, Self, Sequence, Type, Union, final, overload, override
+from typing import Any, AsyncIterator, Iterator, Literal, Optional, Sequence, Type, Union, final, overload, override
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -48,14 +48,14 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
     def InputType(self) -> Type[In]:
         if isinstance(self.input_channels, str):
             return self.channels[self.input_channels].UpdateType
-        return super().InputType()
+        return super().InputType
     
     @property
     @override
     def OutputType(self) -> Type[Out]:
         if isinstance(self.output_channels, str):
             return self.channels[self.output_channels].ValueType
-        return super().OutputType()
+        return super().OutputType
 
     @property
     def stream_channels_asis(self) -> Union[str, Sequence[str]]:
@@ -81,29 +81,26 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
         validate_flow(
             nodes=data['nodes'],
             channels=data['channels'],
-            default_channel_type=data['default_channel_type'],
             input_channels=data['input_channels'],
             output_channels=data['output_channels'],
             stream_channels=data['stream_channels'],
-            interrupt_before_nodes=data['interrupt_before_nodes'],
-            interrupt_after_nodes=data['interrupt_after_nodes']
+            interrupt_before=data['interrupt_before_nodes'],
+            interrupt_after=data['interrupt_after_nodes']
         )
         if (data['interrupt_before_nodes'] or data['interrupt_after_nodes']) and not data['checkpointer']:
             raise ValueError('Interrupts require a checkpointer.')
         return data
 
-    def validate(self, data: Any) -> Self:
+    def validate_flow(self) -> None:
         validate_flow(
-            nodes=data['nodes'],
-            channels=data['channels'],
-            default_channel_type=data['default_channel_type'],
-            input_channels=data['input_channels'],
-            output_channels=data['output_channels'],
-            stream_channels=data['stream_channels'],
-            interrupt_before_nodes=data['interrupt_before_nodes'],
-            interrupt_after_nodes=data['interrupt_after_nodes']
+            nodes=self.nodes,
+            channels=self.channels,
+            input_channels=self.input_channels,
+            output_channels=self.output_channels,
+            stream_channels=self.stream_channels,
+            interrupt_before=self.interrupt_before,
+            interrupt_after=self.interrupt_after
         )
-        return self
 
     def get_state(self, **kwargs) -> StateSnapshot:
         self._validate_checkpointer()
