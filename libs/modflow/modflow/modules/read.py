@@ -1,16 +1,28 @@
-from typing import Any, Optional, Union
+from typing import Any, Callable, Optional, Union
 
-from modstack.modules import Functional
+from modflow.constants import READ_KEY
+from modstack.modules import Modules
 
-class ChannelRead(Functional):
+READ_TYPE = Callable[[Union[str, list[str]], bool], Union[Any, dict[str, Any]]]
+
+class ChannelRead(Modules.Sync):
     def __init__(
         self,
         channels: Union[str, list[str]],
-        fresh: bool = False
+        fresh: bool = False,
+        mapper: Optional[Callable[[Any], Any]] = None
     ):
-        super().__init__(self._read)
         self.channels = channels
         self.fresh = fresh
+        self.mapper = mapper
+
+    def _invoke(self, _: Any, **kwargs) -> Any:
+        return self.do_read(
+            self.channels,
+            fresh=self.fresh,
+            mapper=self.mapper,
+            **kwargs
+        )
 
     def get_name(
         self,
@@ -22,6 +34,20 @@ class ChannelRead(Functional):
         name = f'ChannelRead<{self.channels if isinstance(self.channels, str) else ', '.join(self.channels)}>'
         return super().get_name(name=name, suffix=suffix)
 
-    async def _read(self, _: Any) -> Any:
-        #TODO: Read logic
-        pass
+    @staticmethod
+    def do_read(
+        channels: Union[str, list[str]],
+        fresh: bool = True,
+        mapper: Optional[Callable[[Any], Any]] = None,
+        **kwargs
+    ) -> Any:
+        try:
+            read: READ_TYPE = kwargs.get(READ_KEY)
+        except KeyError:
+            raise RuntimeError(
+                'Not configured with a read function. '
+                'Make sure to call in the context of a Pregel process.'
+            )
+        if mapper:
+            return mapper(read(channels, fresh))
+        return read(channels, fresh)

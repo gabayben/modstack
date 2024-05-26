@@ -1,3 +1,4 @@
+ROOT_KEY = '__root__'
 WRITE_KEY = "__pregel_write"
 READ_KEY = "__pregel_read"
 INTERRUPT = "__interrupt__"

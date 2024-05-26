@@ -1,7 +1,7 @@
 """
 Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/graphs/state.py
 """
-
+from functools import partial
 import inspect
 import logging
 from typing import Any, Optional, Sequence, Type, Union, get_origin, get_type_hints, override
@@ -9,11 +9,11 @@ from typing import Any, Optional, Sequence, Type, Union, get_origin, get_type_hi
 from pydantic import BaseModel
 
 from modflow import All
-from modflow.channels import BinaryOperatorAggregate, Channel, EphemeralValue, LastValue
+from modflow.channels import BinaryOperatorAggregate, Channel, DynamicBarrierValue, EphemeralValue, LastValue, NamedBarrierValue, WaitForNames
 from modflow.checkpoints import Checkpointer
-from modflow.constants import END, START
+from modflow.constants import END, HIDDEN, ROOT_KEY, START
 from modflow.managed import ManagedValue, is_managed_value
-from modflow.modules import Branch, ChannelWriteEntry, CompiledFlow, Flow
+from modflow.modules import Branch, ChannelRead, ChannelWrite, ChannelWriteEntry, CompiledFlow, Flow, PregelNode
 from modflow.modules.write import SKIP_WRITE
 from modstack.modules import Functional, Module
 from modstack.utils.serialization import create_schema
@@ -85,7 +85,7 @@ class StateFlow(Flow):
         self._compiled = True
 
         state_keys = list(self.channels)
-        output_channels = state_keys[0] if state_keys == ['__root__'] else state_keys
+        output_channels = state_keys[0] if state_keys == [ROOT_KEY] else state_keys
         compiled_flow = CompiledStateFlow(
             builder=self,
             nodes={},
@@ -146,8 +146,8 @@ class CompiledStateFlow(CompiledFlow):
 
         # state updaters
         state_write_entries = (
-            [ChannelWriteEntry('__root__', skip_none=True)]
-            if state_keys == ['__root__']
+            [ChannelWriteEntry(ROOT_KEY, skip_none=True)]
+            if state_keys == [ROOT_KEY]
             else [
                 ChannelWriteEntry(
                     key,
@@ -157,13 +157,67 @@ class CompiledStateFlow(CompiledFlow):
             ]
         )
 
+        # add node and output channel
+        if name == START:
+            self.nodes[START] = PregelNode(
+                channels=[START],
+                triggers=[START],
+                writers=[ChannelWrite(state_write_entries, [HIDDEN])],
+                tags=[HIDDEN]
+            )
+        else:
+            self.nodes[name] = PregelNode(
+                channels=(
+                    state_keys
+                    if state_keys == [ROOT_KEY]
+                    else {chan: chan for chan in state_keys} | self.builder.managed_values
+                ),
+                triggers=[],
+                writers=[
+                    ChannelWrite(
+                        [ChannelWriteEntry(name, name)] + state_write_entries
+                    )
+                ],
+                mapper=(
+                    partial(_coerce_state, self.builder.schema)
+                    if state_keys != [ROOT_KEY]
+                    else None
+                )
+            ) | node
+            self.channels[name] = EphemeralValue(Any)
+
     @override
     def attach_edge(
         self,
-        source: Union[str, tuple[str, ...]],
+        sources: Union[str, Sequence[str]],
         target: str
     ) -> None:
-        pass
+        if isinstance(sources, str):
+            if sources == START:
+                channel_name = f'start:{target}'
+                # register channel
+                self.channels[channel_name] = EphemeralValue(Any)
+                # subscribe to channel
+                self.nodes[target].triggers.append(channel_name)
+                # publish to channel
+                self.nodes[START] |= ChannelWrite(
+                    [ChannelWriteEntry(channel_name, START)],
+                    tags=[HIDDEN]
+                )
+            elif target != END:
+                self.nodes[target].triggers.append(sources)
+        elif target != END:
+            channel_name = f'join:{'+'.join(sources)}:{target}'
+            # register channel
+            self.channels[channel_name] = NamedBarrierValue(str, set(sources))
+            # subscribe to channel
+            self.nodes[target].triggers.append(channel_name)
+            # publish to channel
+            for source in sources:
+                self.nodes[source] |= ChannelWrite(
+                    [ChannelWriteEntry(channel_name, source)],
+                    tags=[HIDDEN]
+                )
 
     @override
     def attach_branch(
@@ -172,11 +226,52 @@ class CompiledStateFlow(CompiledFlow):
         name: str,
         branch: Branch
     ) -> None:
-        pass
+        def branch_writer(targets: list[str]) -> Optional[ChannelWrite]:
+            if filtered_targets := [target for target in targets if target != END]:
+                writes = [
+                    ChannelWriteEntry(Branch.key(source, name, target), source)
+                    for target in filtered_targets
+                ]
+                if branch.then and branch.then != END:
+                    writes.append(
+                        ChannelWriteEntry(
+                            Branch.key(source, name, 'then'),
+                            WaitForNames(set(filtered_targets))
+                        )
+                    )
+                return ChannelWrite(writes, tags=[HIDDEN])
+            return None
+
+        # attach branch writer
+        self.nodes[source] |= branch.run(branch_writer, _get_state_reader(self.builder)) #type: ignore
+
+        # attach branch subscribers
+        targets = (
+            branch.path_map.values()
+            if branch.path_map
+            else [node for node in self.builder.nodes if node != branch.then]
+        )
+        for target in targets:
+            if target != END:
+                channel_name = Branch.key(source, name, target)
+                self.channels[channel_name] = EphemeralValue(Any)
+                self.nodes[target].triggers.append(channel_name)
+
+        # attach then subscriber
+        if branch.then and branch.then != END:
+            channel_name = Branch.key(source, name, 'then')
+            self.channels[channel_name] = DynamicBarrierValue(str)
+            self.nodes[branch.then].triggers.append(channel_name)
+            for target in targets:
+                if target != END:
+                    self.nodes[target] |= ChannelWrite(
+                        [ChannelWriteEntry(channel_name, target)],
+                        tags=[HIDDEN]
+                    )
 
 def _get_channels(schema: Type) -> tuple[dict[str, Channel], dict[str, Type[ManagedValue]]]:
     if not hasattr(schema, '__annotations__'):
-        return {'__root__': _get_channel(schema, allow_managed=False)}, {}
+        return {ROOT_KEY: _get_channel(schema, allow_managed=False)}, {}
 
     all_values = {
         name: _get_channel(type_)
@@ -226,3 +321,15 @@ def _is_field_managed_value(type_: Type) -> Optional[Type[ManagedValue]]:
             if is_managed_value(decoration):
                 return decoration #type: ignore
     return None
+
+def _coerce_state(schema: Type, input_: dict[str, Any]) -> dict[str, Any]:
+    return schema(**input_)
+
+def _get_state_reader(builder: StateFlow) -> ChannelRead:
+    state_keys = list(builder.channels)
+    return partial(
+        ChannelRead.do_read,
+        channels=state_keys[0] if state_keys == [ROOT_KEY] else state_keys,
+        fresh=True,
+        mapper=partial(_coerce_state, builder.schema) if state_keys != [ROOT_KEY] else None
+    )

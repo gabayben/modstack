@@ -1,18 +1,19 @@
 import asyncio
 from functools import partial
-from typing import Any, Callable, NamedTuple, Optional, Sequence, Union
+from typing import Any, Callable, NamedTuple, Optional, Sequence
 
 from modflow.constants import IS_CHANNEL_WRITER, WRITE_KEY
 from modstack.modules import Module, Passthrough, SerializableModule
-from modstack.typing import Effects
+from modstack.typing import Effect, Effects
 from modstack.utils.func import tzip
 
 SKIP_WRITE = object()
 WRITE_TYPE = Callable[[Sequence[tuple[str, Any]]], None]
+PASSTHROUGH = Passthrough()
 
 class ChannelWriteEntry(NamedTuple):
     channel: str
-    value: Optional[Union[Module, Any]] = None
+    value: Any = PASSTHROUGH
     skip_none: bool = False
     mapper: Optional[Module] = None
 
@@ -27,7 +28,7 @@ class ChannelWrite(SerializableModule):
         self.writes = writes
         self.tags = set(tags)
 
-    def forward(self, data: Any, **kwargs) -> Any:
+    def forward(self, data: Any, **kwargs) -> Effect[Any]:
         return Effects.Provide(
             invoke=partial(self._write, data, **kwargs),
             ainvoke=partial(self._awrite, data, **kwargs)
