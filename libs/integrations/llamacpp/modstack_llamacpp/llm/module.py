@@ -33,4 +33,11 @@ class LlamaCppLLM(Modules.Sync[LlamaCppLLMRequest, ChatMessageChunk]):
         )
 
 def _convert_to_llamacpp_messages(messages: list[ChatMessageChunk]) -> list[ChatCompletionRequestMessage]:
-    pass
+    formatted_messages: list[ChatCompletionRequestMessage] = []
+    for message in messages:
+        formatted_messages.append({
+            'content': message.content,
+            'role': message.role,
+            'name': message.name
+        })
+    return formatted_messages
