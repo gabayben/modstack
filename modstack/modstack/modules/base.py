@@ -1,21 +1,14 @@
 from abc import ABC, abstractmethod
 from functools import partial
-from typing import Any, AsyncIterator, Callable, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, Type, Union, final, get_args
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, Mapping, Sequence, Type, Union, final, get_args
 
 from pydantic import BaseModel
 
-from modstack.modules import ModuleLike
 from modstack.typing import AfterRetryFailure, Effect, Effects, RetryStrategy, ReturnType, Serializable, StopStrategy, WaitStrategy
 from modstack.typing.vars import In, Out, Other
 from modstack.utils.serialization import create_schema, from_dict
 
-if TYPE_CHECKING:
-    from modstack.graphs.base import Graph, AsGraph
-else:
-    Graph = Any
-    AsGraph = Any
-
-class Module(Generic[In, Out], AsGraph, ABC):
+class Module(Generic[In, Out], ABC):
     name: str | None = None
     description: str | None = None
 
@@ -49,7 +42,7 @@ class Module(Generic[In, Out], AsGraph, ABC):
         from modstack.modules.sequential import Sequential
         return Sequential(coerce_to_module(other), self)
 
-    def map(self, mapper: ModuleLike[Out, Other]) -> 'Module[In, Other]':
+    def map(self, mapper: 'ModuleLike[Out, Other]') -> 'Module[In, Other]':
         return self | mapper
 
     def bind(self, **kwargs) -> 'Module[In, Out]':
@@ -139,9 +132,6 @@ class Module(Generic[In, Out], AsGraph, ABC):
 
     def output_schema(self) -> Type[BaseModel]:
         return create_schema(self.get_name(suffix='Output'), self.OutputType)
-
-    def as_graph(self, **kwargs) -> Graph:
-        pass
 
     def construct_input(self, data: dict[str, Any]) -> In:
         return from_dict(data, self.input_schema())
