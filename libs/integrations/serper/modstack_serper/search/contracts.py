@@ -1,4 +1,4 @@
-from modstack.contracts.websearch import SearchEngineQuery
+from modstack.modules.fetchers import SearchEngineQuery
 from modstack.typing import Serializable
 from modstack_serper.search import SerperKnowledgeGraph, SerperOrganicResult, SerperPeopleAlsoAsk
 

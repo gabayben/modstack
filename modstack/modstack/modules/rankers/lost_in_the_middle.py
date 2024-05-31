@@ -1,4 +1,4 @@
-from modstack.contracts import RankLostInTheMiddle
+from modstack.modules.rankers import RankLostInTheMiddle
 from modstack.modules import Modules
 from modstack.typing import Artifact
 

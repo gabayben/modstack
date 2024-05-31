@@ -1,7 +1,7 @@
 import logging
 
-from modstack.contracts import ToText
 from modstack.modules import Modules
+from modstack.modules.converters import ToText
 from modstack.typing import TextArtifact, Utf8Artifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip

@@ -3,7 +3,7 @@ from typing import Any, Literal, Mapping
 from markdown_it.utils import PresetType
 from pydantic import Field
 
-from modstack.contracts import ToText
+from modstack.modules.converters import ToText
 
 RendererType = Literal['Plain', 'Html']
 

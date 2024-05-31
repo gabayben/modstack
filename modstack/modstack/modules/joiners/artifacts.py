@@ -4,8 +4,8 @@ import logging
 from math import inf
 from typing import Iterable
 
-from modstack.contracts import JoinArtifacts
 from modstack.modules import Modules
+from modstack.modules.joiners import JoinArtifacts
 from modstack.typing import Artifact
 from modstack.utils.func import chain_iterables, tzip
 

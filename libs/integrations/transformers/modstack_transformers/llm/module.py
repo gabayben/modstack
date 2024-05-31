@@ -1,8 +1,8 @@
 from typing import Iterator
 
 from modstack.auth import Secret
-from modstack.contracts import LLMRequest
 from modstack.modules import Modules
+from modstack.modules.models import LLMRequest
 from modstack.typing.messages import ChatMessageChunk
 from modstack_huggingface import HFTextGenerationTask
 

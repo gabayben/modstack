@@ -4,7 +4,7 @@ from typing import Any
 import requests
 
 from modstack.auth import Secret
-from modstack.contracts.websearch import SearchEngineResponse
+from modstack.modules.fetchers import SearchEngineResponse
 from modstack.modules import Modules, SerializableModule
 from modstack.typing import Effect, LinkArtifact, TextArtifact
 from modstack.utils.string import mapping_to_str

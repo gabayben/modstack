@@ -2,8 +2,8 @@ from typing import Any, Type, override
 
 from pydantic import BaseModel
 
-from modstack.contracts import ToolSpec
 from modstack.modules import Module, ModuleLike, SerializableModule, coerce_to_module
+from modstack.modules.tools import ToolSpec
 from modstack.typing import Effect
 
 class Tool(SerializableModule[dict[str, Any], Any]):

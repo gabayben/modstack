@@ -3,8 +3,8 @@ from typing import Any, Type, override
 from jinja2 import Template, meta
 from pydantic import BaseModel
 
-from modstack.contracts import DynamicPromptData
 from modstack.modules import Modules
+from modstack.modules.builders import DynamicPromptData
 from modstack.utils.serialization import create_model, from_parameters
 
 class DynamicPromptBuilder(Modules.Sync[DynamicPromptData, str]):

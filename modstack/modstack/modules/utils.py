@@ -1,8 +1,13 @@
-from modstack.contracts.utils import ToTextArtifacts
+from typing import Any, NamedTuple
+
 from modstack.modules import module
 from modstack.typing import TextArtifact
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
+
+class ToTextArtifacts(NamedTuple):
+    content: list[str]
+    metadata: list[dict[str, Any]] | dict[str, Any] | None = None
 
 @module
 def to_text_artifacts(data: ToTextArtifacts) -> list[TextArtifact]:

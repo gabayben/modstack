@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from modstack.contracts import ToolSpec, ToolResult
+from modstack.modules.tools import ToolResult, ToolSpec
 from modstack.typing import Serializable
 from modstack.typing.messages import ChatMessage, ChatRole
 

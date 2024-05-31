@@ -1,4 +1,4 @@
-from modstack.contracts import LLMRequest
+from modstack.modules.models import LLMRequest
 
 class OllamaLLMRequest(LLMRequest):
     images: list[str] | None = None

@@ -4,9 +4,9 @@ import cohere
 import numpy as np
 
 from modstack.auth import Secret
-from modstack.contracts import TextEmbeddingResponse
 
 from modstack.modules import Modules
+from modstack.modules.models import TextEmbeddingResponse
 from modstack.utils.func import tzip
 from modstack_cohere.embedders import CohereTextEmbeddingRequest
 from modstack_cohere.typing import OMIT

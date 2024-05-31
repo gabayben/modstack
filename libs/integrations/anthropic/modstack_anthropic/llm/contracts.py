@@ -1,4 +1,4 @@
-from modstack.contracts import LLMRequest
+from modstack.modules.models import LLMRequest
 
 class AnthropicLLMRequest(LLMRequest):
     max_tokens: int | None = None

@@ -3,8 +3,8 @@ from typing import Any, Type, override
 from jinja2 import Template, meta
 from pydantic import BaseModel
 
-from modstack.contracts import PromptData
 from modstack.modules import Modules
+from modstack.modules.builders import PromptData
 from modstack.utils.serialization import create_model
 
 class PromptBuilder(Modules.Sync[PromptData, str]):
