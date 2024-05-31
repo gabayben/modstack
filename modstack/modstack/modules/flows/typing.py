@@ -1,16 +1,33 @@
-from typing import Any, TypedDict
+from typing import Any, NotRequired, TypedDict, Union
+
+from pydantic import Field
 
 from modstack.modules import Module
 from modstack.typing import Serializable
 
+FlowInput = dict[str, Union[Any, dict[str, Any]]]
+FlowData = dict[str, dict[str, Any]]
+
+class RunFlow(Serializable):
+    data: FlowInput = Field(default_factory=dict)
+    include_outputs_from: set[str] | None = None
+
 class NodeSocket(Serializable):
     name: str
-    description: str | None
-    default: Any | None
+    description: str | None = None
+    default: Any | None = None
     annotation: Any
-    connected_to: list[str]
+    connections: list[str] = Field(default_factory=list)
     required: bool
     is_variadic: bool
+
+class NodeSocketDescription(TypedDict):
+    annotation: Any
+    default: NotRequired[Any]
+    required: NotRequired[bool]
+
+FlowSockets = dict[str, list[NodeSocket]]
+FlowSocketDescriptions = dict[str, dict[str, NodeSocketDescription]]
 
 class FlowNode(TypedDict):
     name: str

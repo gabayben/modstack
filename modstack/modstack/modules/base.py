@@ -209,6 +209,7 @@ ModuleFunction = ModuleFunction
 type ModuleLike[In, Out] = Union[Module[In, Out], ModuleFunction[In, Out]]
 ModuleLike = ModuleLike
 type ModuleMapping[In] = Mapping[str, ModuleLike[In, Any]]
+ModuleMapping = ModuleMapping
 
 def coerce_to_module(thing: ModuleLike[In, Out]) -> Module[In, Out]:
     from modstack.modules.functional import Functional
