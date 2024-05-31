@@ -20,8 +20,9 @@ modstack-langdetect = { path = "libs/integrations/langdetect/", develop = true }
 #modstack-openai = { path = "libs/integrations/openai/", develop = true }
 #modstack-cohere = { path = "libs/integrations/cohere/", develop = true }
 #modstack-anthropic = { path = "libs/integrations/anthropic/", develop = true }
+modstack-fireworks = { path = "libs/integrations/fireworks/", develop = true }
 modstack-ollama = { path = "libs/integrations/ollama/", develop = true }
-modstack-llamacpp = { path = "libs/integrations/llamacpp/", develop = true }
+#modstack-llamacpp = { path = "libs/integrations/llamacpp/", develop = true }
 #modstack-transformers = { path = "libs/integrations/transformers", develop = true }
 jupyter = "^1.0.0"
 
