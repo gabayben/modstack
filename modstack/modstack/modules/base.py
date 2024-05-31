@@ -204,9 +204,11 @@ class Modules:
         async def _aiter(self, data: In, **kwargs) -> AsyncIterator[Out]:
             pass
 
-ModuleFunction = Union[Callable[[In], ReturnType[Out]], Callable[..., ReturnType[Out]]]
-ModuleLike = Union[Module[In, Out], ModuleFunction[In, Out]]
-ModuleMapping = Mapping[str, ModuleLike[In, Any]]
+type ModuleFunction[In, Out] = Union[Callable[[In], ReturnType[Out]], Callable[..., ReturnType[Out]]]
+ModuleFunction = ModuleFunction
+type ModuleLike[In, Out] = Union[Module[In, Out], ModuleFunction[In, Out]]
+ModuleLike = ModuleLike
+type ModuleMapping[In] = Mapping[str, ModuleLike[In, Any]]
 
 def coerce_to_module(thing: ModuleLike[In, Out]) -> Module[In, Out]:
     from modstack.modules.functional import Functional
