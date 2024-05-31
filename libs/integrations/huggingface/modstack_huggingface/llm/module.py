@@ -11,7 +11,7 @@ from modstack.utils.paths import validate_url
 from modstack_huggingface import HFGenerationApiType, HFModelType
 from modstack_huggingface.utils import validate_hf_model
 
-class HuggingFaceApiLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
+class HuggingFaceApiLLM(Modules.Stream[LLMRequest, list[ChatMessageChunk]]):
     def __init__(
         self,
         model_or_url: str,
@@ -34,7 +34,7 @@ class HuggingFaceApiLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
         self.generation_args.setdefault('max_tokens', max_tokens)
         self.client = InferenceClient(model_or_url, token=token.resolve_value() if token else None)
 
-    def _iter(self, data: LLMRequest, **kwargs) -> Iterator[ChatMessageChunk]:
+    def _iter(self, data: LLMRequest, **kwargs) -> Iterator[list[ChatMessageChunk]]:
         generation_args = {**self.generation_args, **(data.model_extra or {})}
         history = data.history or []
         history.append(ChatMessage(data.prompt, data.role or ChatRole.USER))
@@ -52,4 +52,4 @@ class HuggingFaceApiLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
             finish_reason = chunk.choices[0].finish_reason
             if finish_reason:
                 metadata['finish_reason'] = finish_reason
-            yield ChatMessageChunk(text, ChatRole.ASSISTANT, metadata=metadata)
+            yield [ChatMessageChunk(text, ChatRole.ASSISTANT, metadata=metadata)]

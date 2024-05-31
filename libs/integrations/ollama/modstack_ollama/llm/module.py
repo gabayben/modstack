@@ -7,7 +7,7 @@ from modstack.modules import Modules
 from modstack.typing.messages import ChatMessageChunk, ChatRole
 from modstack_ollama.llm import OllamaLLMRequest
 
-class OllamaLLM(Modules.Stream[OllamaLLMRequest, ChatMessageChunk]):
+class OllamaLLM(Modules.Stream[OllamaLLMRequest, list[ChatMessageChunk]]):
     def __init__(
         self,
         url: str = 'http://localhost:11434/api/generate',
@@ -27,7 +27,7 @@ class OllamaLLM(Modules.Stream[OllamaLLMRequest, ChatMessageChunk]):
         self.raw = raw
         self.generation_args = generation_args
 
-    def _iter(self, data: OllamaLLMRequest, **kwargs) -> Iterator[ChatMessageChunk]:
+    def _iter(self, data: OllamaLLMRequest, **kwargs) -> Iterator[list[ChatMessageChunk]]:
         generation_args = {**self.generation_args, **(data.model_extra or {}), 'stream': True}
         system_prompt = data.system_prompt or self.system_prompt
         template = data.template or self.template
@@ -49,8 +49,10 @@ class OllamaLLM(Modules.Stream[OllamaLLMRequest, ChatMessageChunk]):
 
         for line in response.iter_lines():
             chunk = json.load(line.decode('utf-8'))
-            yield ChatMessageChunk(
-                chunk.get('response'),
-                ChatRole.ASSISTANT,
-                metadata={key: value for key, value in chunk.items() if key != 'response'}
-            )
+            yield [
+                ChatMessageChunk(
+                    chunk.get('response'),
+                    ChatRole.ASSISTANT,
+                    metadata={key: value for key, value in chunk.items() if key != 'response'}
+                )
+            ]

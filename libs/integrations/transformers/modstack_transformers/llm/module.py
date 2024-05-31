@@ -6,7 +6,7 @@ from modstack.modules import Modules
 from modstack.typing.messages import ChatMessageChunk
 from modstack_huggingface import HFTextGenerationTask
 
-class HuggingFaceLocalLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
+class HuggingFaceLocalLLM(Modules.Stream[LLMRequest, list[ChatMessageChunk]]):
     def __init__(
         self,
         model: str,
@@ -15,5 +15,5 @@ class HuggingFaceLocalLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
     ):
         pass
 
-    def _iter(self, data: LLMRequest, **kwargs) -> Iterator[ChatMessageChunk]:
+    def _iter(self, data: LLMRequest, **kwargs) -> Iterator[list[ChatMessageChunk]]:
         pass

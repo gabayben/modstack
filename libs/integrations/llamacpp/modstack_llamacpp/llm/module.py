@@ -6,7 +6,7 @@ from modstack.modules import Modules
 from modstack.typing.messages import ChatMessageChunk, ChatRole
 from modstack_llamacpp.llm import LlamaCppLLMRequest
 
-class LlamaCppLLM(Modules.Sync[LlamaCppLLMRequest, ChatMessageChunk]):
+class LlamaCppLLM(Modules.Sync[LlamaCppLLMRequest, list[ChatMessageChunk]]):
     def __init__(
         self,
         model: str,
@@ -17,7 +17,7 @@ class LlamaCppLLM(Modules.Sync[LlamaCppLLMRequest, ChatMessageChunk]):
             chat_format=chat_format
         )
 
-    def _invoke(self, data: LlamaCppLLMRequest, **kwargs) -> ChatMessageChunk:
+    def _invoke(self, data: LlamaCppLLMRequest, **kwargs) -> list[ChatMessageChunk]:
         history = data.history or []
         history.append(ChatMessageChunk(
             data.prompt,
