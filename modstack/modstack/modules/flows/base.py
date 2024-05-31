@@ -27,6 +27,11 @@ class FlowBase(SerializableModule[RunFlow, FlowData], ABC):
     def __init__(self):
         self.graph = nx.MultiDiGraph()
 
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, type(self)):
+            return False
+        return dict(self) == dict(other)
+
     def inputs(self, include_connected: bool = False) -> FlowSocketDescriptions:
         inputs: FlowSocketDescriptions = {}
         for node, sockets in find_flow_inputs(self.graph, include_connected=include_connected).items():
@@ -268,7 +273,26 @@ class FlowBase(SerializableModule[RunFlow, FlowData], ABC):
         return data
 
     def _validate_inputs(self, data: FlowData) -> None:
-        pass
+        for node, inputs in data.items():
+            if not self.graph.has_node(node):
+                raise ValueError(f"Node named '{node}' not found in the flow.")
+            input_sockets = self.get_node(node)['input_sockets']
+            for socket_name, socket in input_sockets.items():
+                if socket.connections == [] and socket.required and socket_name not in inputs:
+                    raise ValueError(f'Missing input for node {node}: {socket_name}.')
+            for input_name in inputs.keys():
+                if input_name not in input_sockets:
+                    raise ValueError(f'Input {input_name} not found in node {node}.')
+        for node in self.graph.nodes:
+            input_sockets = self.get_node(node)['input_sockets']
+            for socket_name, socket in input_sockets.items():
+                inputs = data.get(node, {})
+                if socket.connections == [] and socket.required and socket_name not in inputs:
+                    raise ValueError(f'Missing input for node {node}: {socket_name}.')
+                if socket.connections and socket_name in inputs and not socket.is_variadic:
+                    raise ValueError(
+                        f'Input {socket_name} for node {node} is already by {socket.connections}.'
+                    )
 
     def _init_inputs_state(self, data: FlowData) -> FlowData:
         for node, inputs in data.items():
