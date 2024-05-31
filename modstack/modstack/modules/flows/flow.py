@@ -8,7 +8,6 @@ from functools import partial
 import logging
 
 import networkx as nx
-from pydantic.fields import FieldInfo
 
 from modstack.constants import DEBUG
 from modstack.contracts.flows import FlowOutput, RunFlow
