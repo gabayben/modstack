@@ -15,7 +15,7 @@ SPLIT_BY_MAPPING: dict[SplitBy, str] = {
     'page': '\f'
 }
 
-class TextSplitter(Modules.Sync[list[Utf8Artifact], list[Utf8Artifact]]):
+class TextChunker(Modules.Sync[list[Utf8Artifact], list[Utf8Artifact]]):
     def __init__(
         self,
         split_by: SplitBy = 'word',
