@@ -3,6 +3,7 @@ Much of this code was taken from Haystack - https://github.com/deepset-ai/haysta
 SPDX-FileCopyrightText: 2022-present deepset GmbH <info@deepset.ai>
 SPDX-License-Identifier: Apache-2.0
 """
+
 from copy import deepcopy
 from functools import partial
 import logging
@@ -170,3 +171,39 @@ class Flow(FlowBase):
                                 last_inputs[target_node][edge_data['target_socket'].name].append(value)
                             else:
                                 last_inputs[target_node][edge_data['target_socket'].name] = value
+
+                            target_node_data = self.get_node(target_node)
+                            pair = (target_node, target_node_data['instance'])
+                            if target_node_data['is_greedy'] and edge_data['target_socket'].is_variadic:
+                                # If the target is greedy, we can run it right away.
+                                # First we remove it from the lists it's in if it's there or we risk running it multiple times.
+                                if pair in waiting_for_input:
+                                    waiting_for_input.remove(pair)
+                                if pair in to_run:
+                                    to_run.remove(pair)
+                                to_run.append(pair)
+                            if pair not in waiting_for_input and pair not in to_run:
+                                to_run.append(pair)
+
+                            result = {k: v for k, v in result.items() if k not in to_remove_from_result}
+
+                            if len(result) > 0:
+                                final_outputs[node] = result
+                    else:
+                        # This node doesn't have enough inputs so we can't run it yet
+                        if (node, instance) not in waiting_for_input:
+                            waiting_for_input.append((node, instance))
+
+                    if len(to_run) == 0 and len(waiting_for_input) > 0:
+                        # Check if we're stuck in a loop.
+                        # It's important to check whether previous waitings are None as it could be that no
+                        # node has actually been run yet.
+                        if (
+                            before_last_waiting_for_input is not None
+                            and last_waiting_for_input is not None
+                            and before_last_waiting_for_input == last_waiting_for_input
+                        ):
+                            # Are we actually stuck or there's a lazy variadic or a node that has only default inputs waiting for input?
+                            # This is our last resort, if there's no lazy variadic or node with only default inputs waiting for input
+                            # then we're stuck for real and we can't make any progress.
+                            pass
