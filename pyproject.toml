@@ -16,6 +16,7 @@ modstack-pypdf = { path = "libs/integrations/pypdf/", develop = true }
 modstack-tika = { path = "libs/integrations/tika/", develop = true }
 modstack-serper = { path = "libs/integrations/serper/", develop = true }
 modstack-langdetect = { path = "libs/integrations/langdetect/", develop = true }
+modstack-web = { path = "libs/integrations/web/", develop = true }
 modstack-papers = { path = "libs/integrations/papers/", develop = true }
 #modstack-fastembed = { path = "libs/integrations/fastembed/", develop = true }
 #modstack-openai = { path = "libs/integrations/openai/", develop = true }
