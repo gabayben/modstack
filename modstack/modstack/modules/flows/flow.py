@@ -206,4 +206,80 @@ class Flow(FlowBase):
                             # Are we actually stuck or there's a lazy variadic or a node that has only default inputs waiting for input?
                             # This is our last resort, if there's no lazy variadic or node with only default inputs waiting for input
                             # then we're stuck for real and we can't make any progress.
-                            pass
+                            before_last_waiting_for_input = (
+                                last_waiting_for_input.copy()
+                                if last_waiting_for_input is not None
+                                else None
+                            )
+                            last_waiting_for_input = {item[0] for item in waiting_for_input}
+
+                            # Remove from waiting only if there is actually enough input to run
+                            for node, instance in waiting_for_input:
+                                node_data = self.get_node(node)
+
+                                if node not in last_inputs:
+                                    last_inputs[node] = {}
+
+                                # Lazy variadics must be removed only if there's nothing else to run at this stage
+                                is_variadic = any(socket.is_variadic for socket in node_data['input_sockets'].values())
+                                if is_variadic and not node_data['is_greedy']:
+                                    there_are_only_lazy_variadics = True
+                                    for other_node, other_instance in waiting_for_input:
+                                        if other_node == node:
+                                            continue
+                                        other_node_data = self.get_node(other_node)
+                                        there_are_only_lazy_variadics &= (
+                                            any(socket.is_variadic for socket in other_node_data['input_sockets'].values())
+                                            and not other_node_data['is_greedy']
+                                        )
+                                    if not there_are_only_lazy_variadics:
+                                        continue
+
+                                # Nodes that have defaults for all their inputs must be treated the same identical way as we treat
+                                # lazy variadic nodes. If there are only nodes with defaults we can run them.
+                                # If we don't do this the order of execution of the Flow's nodes will be affected cause we
+                                # enqueue the nodes in `to_run` at the start using the order they are added in the Flow.
+                                # If a node A with defaults is added before a node B that has no defaults, but in the Flow
+                                # logic A must be executed after B it could instead run before if we don't do this check.
+                                has_only_defaults = all(not socket.required for socket in node_data['input_sockets'].values())
+                                if has_only_defaults:
+                                    there_are_only_defaults = True
+                                    for other_node, other_instance in waiting_for_input:
+                                        if other_node == node:
+                                            continue
+                                        other_node_data = self.get_node(other_node)
+                                        there_are_only_defaults &= all(not socket.required for socket in other_node_data['input_sockets'].values())
+                                    if not there_are_only_defaults:
+                                        continue
+
+                                # Find the first node that has all the inputs it needs to run
+                                has_enough_inputs = True
+                                for input_socket in node_data['input_sockets'].values():
+                                    if input_socket.required and input_socket.name not in last_inputs[node]:
+                                        has_enough_inputs = False
+                                        break
+                                    if input_socket.required:
+                                        continue
+                                    if input_socket.name not in last_inputs[node]:
+                                        last_inputs[node][input_socket.name] = input_socket.default
+                                if has_enough_inputs:
+                                    break
+
+                            waiting_for_input.remove((node, instance))
+                            to_run.append((node, instance))
+
+            if len(include_outputs_from) > 0:
+                for node, output in extra_outputs.items():
+                    inner = final_outputs.get(node, None)
+                    if inner is None:
+                        final_outputs[node] = output
+                    else:
+                        # Let's not override any keys that are already
+                        # in the final_outputs as they might be different
+                        # from what we cached in extra_outputs, e.g. when loops
+                        # are involved.
+                        for k, v in output.items():
+                            if k not in inner:
+                                inner[k] = v
+
+            return final_outputs
