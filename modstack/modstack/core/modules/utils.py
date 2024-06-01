@@ -1,7 +1,7 @@
 from typing import Any, NamedTuple
 
+from modstack.core.artifacts import TextArtifact
 from modstack.core.modules import module
-from modstack.core.typing import TextArtifact
 from modstack.core.utils.dicts import normalize_metadata
 from modstack.core.utils.func import tzip
 

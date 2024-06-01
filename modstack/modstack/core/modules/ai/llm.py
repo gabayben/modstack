@@ -2,7 +2,7 @@ from typing import Iterable
 
 from modstack.core.modules.tools import ToolResult, ToolSpec
 from modstack.core.typing import Serializable
-from modstack.core.typing.messages import ChatMessage, ChatRole
+from modstack.core.artifacts.messages import ChatMessage, ChatRole
 
 class LLMRequest(Serializable):
     prompt: str

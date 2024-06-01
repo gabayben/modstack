@@ -1,6 +1,7 @@
 from typing import Any
 
-from modstack.core.typing import ArtifactSource, Serializable
+from modstack.core.artifacts import ArtifactSource
+from modstack.core.typing import Serializable
 
 class ToText(Serializable):
     sources: list[ArtifactSource]

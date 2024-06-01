@@ -1,4 +1,5 @@
-from modstack import Serializable, Utf8Artifact
+from modstack.core.artifacts import Utf8Artifact
+from modstack.core.typing import Serializable
 
 class CohereRankRequest(Serializable):
     query: str

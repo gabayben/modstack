@@ -4,8 +4,8 @@ from typing import Any, Literal
 
 from more_itertools import windowed
 
+from modstack.core.artifacts import TextArtifact, Utf8Artifact
 from modstack.core.modules import Modules
-from modstack.core.typing import TextArtifact, Utf8Artifact
 
 SplitBy = Literal['word', 'sentence', 'passage', 'page']
 SPLIT_BY_MAPPING: dict[SplitBy, str] = {

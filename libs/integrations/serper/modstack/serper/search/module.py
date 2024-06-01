@@ -3,10 +3,11 @@ from typing import Any
 
 import requests
 
+from modstack.core.artifacts import LinkArtifact, TextArtifact
 from modstack.core.auth import Secret
 from modstack.core.modules import Modules, SerializableModule
 from modstack.core.modules.fetchers import SearchEngineResponse
-from modstack.core.typing import Effect, LinkArtifact, TextArtifact
+from modstack.core.typing import Effect
 from modstack.core.utils.string import mapping_to_str
 from modstack.serper.constants import SERPER_SEARCH_URL
 from modstack.serper.search import SerperError, SerperSearchQuery, SerperSearchResponse

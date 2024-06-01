@@ -1,4 +1,5 @@
-from modstack.core.typing import Artifact, Serializable, Variadic
+from modstack.core.artifacts import Artifact
+from modstack.core.typing import Serializable, Variadic
 
 class JoinArtifacts(Serializable):
     artifacts: Variadic[list[Artifact]]

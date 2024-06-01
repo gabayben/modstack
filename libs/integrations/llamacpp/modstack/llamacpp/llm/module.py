@@ -3,7 +3,7 @@ from typing import Optional
 from llama_cpp import ChatCompletionRequestMessage, Llama
 
 from modstack.core.modules import Modules
-from modstack.core.typing.messages import ChatMessageChunk, ChatRole
+from modstack.core.artifacts.messages import ChatMessageChunk, ChatRole
 from modstack.llamacpp.llm import LlamaCppLLMRequest
 
 class LlamaCppLLM(Modules.Sync[LlamaCppLLMRequest, list[ChatMessageChunk]]):

@@ -1,7 +1,7 @@
 from typing import Any, Optional, Union
 
-from modstack.core.typing import Utf8Artifact
-from modstack.core.typing.messages.utils import merge_content
+from modstack.core.artifacts import Utf8Artifact
+from modstack.core.artifacts.messages.utils import merge_content
 
 class MessageArtifact(Utf8Artifact):
     content: str

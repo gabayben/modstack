@@ -4,8 +4,8 @@ from jinja2 import TemplateError
 from jinja2.nativetypes import NativeEnvironment
 from pydantic import BaseModel
 
+from modstack.core.artifacts import Artifact
 from modstack.core.modules import Modules
-from modstack.core.typing import Artifact
 from modstack.core.utils.serialization import create_model
 
 class ArtifactRouter(Modules.Sync[list[Artifact], dict[str, list[Artifact]]]):

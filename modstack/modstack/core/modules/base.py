@@ -5,7 +5,7 @@ from typing import Any, AsyncIterator, Callable, Generic, Iterator, Mapping, Seq
 from pydantic import BaseModel
 
 from modstack.core.typing import AfterRetryFailure, Effect, Effects, RetryStrategy, ReturnType, Serializable, StopStrategy, WaitStrategy
-from modstack.core.typing.vars import In, Out
+from modstack.core.typing.vars import In, Other, Out
 from modstack.core.utils.serialization import create_schema, from_dict, to_dict
 
 class Module(Generic[In, Out], ABC):

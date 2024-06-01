@@ -5,8 +5,8 @@ from docarray.typing import Mesh3DUrl
 from docarray.utils._internal.misc import ProtocolType
 from pydantic import Field
 
+from modstack.core.artifacts import Artifact
 from modstack.core.typing import (
-    Artifact,
     AudioBytes,
     AudioTensor,
     AudioUrl,

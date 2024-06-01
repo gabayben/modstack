@@ -4,8 +4,8 @@ import logging
 import re
 from typing import Generator
 
+from modstack.core.artifacts import TextArtifact, Utf8Artifact
 from modstack.core.modules import Modules
-from modstack.core.typing import TextArtifact, Utf8Artifact
 from modstack.core.utils.func import tintersection, tmap, tpartial, treduce
 
 logger = logging.getLogger(__name__)

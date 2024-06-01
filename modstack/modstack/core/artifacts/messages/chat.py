@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import Any, Literal, Self
 
-from modstack.core.typing.messages import MessageArtifact, MessageChunk
+from modstack.core.artifacts.messages import MessageArtifact, MessageChunk
 
 class ChatRole(StrEnum):
     USER = 'user'

@@ -1,6 +1,6 @@
+from modstack.core.artifacts import Artifact
 from modstack.core.modules.rankers import RankLostInTheMiddle
 from modstack.core.modules import Modules
-from modstack.core.typing import Artifact
 
 class LostInTheMiddleRanker(Modules.Sync[RankLostInTheMiddle, list[Artifact]]):
     def _invoke(self, data: RankLostInTheMiddle, **kwargs) -> list[Artifact]:

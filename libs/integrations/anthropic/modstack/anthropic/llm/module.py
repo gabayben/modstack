@@ -7,7 +7,7 @@ from modstack.anthropic.llm import AnthropicLLMRequest
 from modstack.core.auth import Secret
 from modstack.core.modules import Modules
 
-from modstack.core.typing.messages import ChatMessage, ChatMessageChunk, ChatRole
+from modstack.core.artifacts.messages import ChatMessage, ChatMessageChunk, ChatRole
 
 class AnthropicLLM(Modules.Stream[AnthropicLLMRequest, list[ChatMessageChunk]]):
     def __init__(

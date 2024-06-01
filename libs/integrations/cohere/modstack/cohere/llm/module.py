@@ -2,12 +2,12 @@ from typing import Any, ClassVar, Iterator
 
 import cohere
 
-from modstack import Secret
-from modstack import Modules
-from modstack import AgenticLLMRequest
-from modstack import ToolResult, ToolSpec
-from modstack import ChatMessage, ChatMessageChunk, ChatRole
 from modstack.cohere.utils import build_cohore_metadata
+from modstack.core.artifacts.messages import ChatMessage, ChatMessageChunk, ChatRole
+from modstack.core.auth import Secret
+from modstack.core.modules import Modules
+from modstack.core.modules.ai import AgenticLLMRequest
+from modstack.core.modules.tools import ToolResult, ToolSpec
 
 class CohereLLM(Modules.Stream[AgenticLLMRequest, list[ChatMessageChunk]]):
     ROLES_MAP: ClassVar[dict[ChatRole, str]] = {

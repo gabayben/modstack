@@ -5,7 +5,7 @@ from huggingface_hub import ChatCompletionStreamOutput, InferenceClient
 from modstack.core.auth import Secret
 from modstack.core.modules import Modules
 from modstack.core.modules.ai import LLMRequest
-from modstack.core.typing.messages import ChatMessage, ChatMessageChunk, ChatRole
+from modstack.core.artifacts.messages import ChatMessage, ChatMessageChunk, ChatRole
 from modstack.core.utils.paths import validate_url
 from modstack.huggingface import HFGenerationApiType, HFModelType
 from modstack.huggingface.utils import validate_hf_model

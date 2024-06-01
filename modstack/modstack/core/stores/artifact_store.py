@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import StrEnum
 
-from modstack.core.typing import Artifact
+from modstack.core.artifacts import Artifact
 
 class DuplicatePolicy(StrEnum):
     NONE = 'none'

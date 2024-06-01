@@ -4,9 +4,9 @@ import logging
 from math import inf
 from typing import Iterable
 
+from modstack.core.artifacts import Artifact
 from modstack.core.modules import Modules
 from modstack.core.modules.joiners import JoinArtifacts
-from modstack.core.typing import Artifact
 from modstack.core.utils.func import chain_iterables, tzip
 
 logger = logging.getLogger(__name__)

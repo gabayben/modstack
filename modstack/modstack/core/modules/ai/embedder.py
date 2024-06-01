@@ -2,7 +2,8 @@ from typing import Any
 
 from pydantic import Field
 
-from modstack.core.typing import Serializable, Utf8Artifact
+from modstack.core.artifacts import Utf8Artifact
+from modstack.core.typing import Serializable
 
 class TextEmbeddingRequest(Serializable):
     artifacts: list[Utf8Artifact]

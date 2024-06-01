@@ -1,6 +1,6 @@
 from typing import Self
 
-from modstack.core.typing import Utf8Artifact
+from modstack.core.artifacts import Utf8Artifact
 
 class TextArtifact(Utf8Artifact):
     content: str

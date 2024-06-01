@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "modstack-papers"
+version = "0.1.0"
+description = ""
+authors = ["bengabay <ben@netop.cloud>"]
+packages = [{ include = "modstack/" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+modstack = { path = "../../../modstack/" }
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

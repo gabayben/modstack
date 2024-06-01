@@ -5,8 +5,8 @@ from typing import Type
 
 from pydantic import BaseModel
 
+from modstack.core.artifacts import Artifact, ArtifactSource, StrictArtifactSource
 from modstack.core.modules import Modules
-from modstack.core.typing import Artifact, ArtifactSource, StrictArtifactSource
 from modstack.core.utils.serialization import create_model
 
 class MimeTypeRouter(Modules.Sync[list[ArtifactSource], dict[str, list[StrictArtifactSource]]]):

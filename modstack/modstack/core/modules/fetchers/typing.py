@@ -2,7 +2,8 @@ from typing import Any, TypeVar
 
 from pydantic import Field
 
-from modstack.core.typing import LinkArtifact, Serializable, Utf8Artifact
+from modstack.core.artifacts import LinkArtifact, Utf8Artifact
+from modstack.core.typing import Serializable
 
 _T = TypeVar('_T')
 

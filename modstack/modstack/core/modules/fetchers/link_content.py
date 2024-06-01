@@ -5,8 +5,8 @@ from typing import Callable
 import requests
 from tenacity import RetryCallState, retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
+from modstack.core.artifacts import ByteStream
 from modstack.core.modules import Modules
-from modstack.core.typing import ByteStream
 from modstack.core.version import __version__
 
 logger = logging.getLogger(__name__)

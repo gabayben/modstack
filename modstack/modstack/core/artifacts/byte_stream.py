@@ -1,6 +1,6 @@
 from typing import Self, override
 
-from modstack.core.typing import Artifact
+from modstack.core.artifacts import Artifact
 
 class ByteStream(Artifact):
     bytes_: bytes

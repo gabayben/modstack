@@ -1,4 +1,5 @@
-from modstack.core.typing import Artifact, Serializable
+from modstack.core.artifacts import Artifact
+from modstack.core.typing import Serializable
 
 class RankArtifacts(Serializable):
     artifacts: list[Artifact]

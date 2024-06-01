@@ -1,6 +1,6 @@
 from typing import Literal
 
-from modstack.core.typing.messages import ChatMessage, ChatMessageChunk, ChatRole
+from modstack.core.artifacts.messages import ChatMessage, ChatMessageChunk, ChatRole
 
 class AssistantMessage(ChatMessage):
     role: Literal[ChatRole.ASSISTANT]
