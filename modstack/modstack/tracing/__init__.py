@@ -4,5 +4,5 @@ from .base import (
     NullSpan,
     NullTracer,
     ProxyTracer,
-    tracer
+    global_tracer
 )

@@ -6,14 +6,21 @@ SPDX-License-Identifier: Apache-2.0
 
 from functools import partial
 
+from modstack.modules import Module
 from modstack.modules.flows import FlowBase, FlowData, RunFlow
+from modstack.tracing import Tracer, global_tracer
 from modstack.typing import Effect, Effects
 
 class Flow(FlowBase):
     def forward(self, contract: RunFlow, **kwargs) -> Effect[FlowData]:
         return Effects.Sync(partial(self._invoke, contract, **kwargs))
 
-    def _invoke(self, contract: RunFlow, **kwargs) -> FlowData:
+    def _invoke(
+        self,
+        contract: RunFlow,
+        tracer: Tracer = global_tracer,
+        **kwargs
+    ) -> FlowData:
         # reset the visits count for each node
         self._init_graph()
 
@@ -39,5 +46,42 @@ class Flow(FlowBase):
         before_last_waiting_for_input: set[str] | None = None
         last_waiting_for_input: set[str] | None = None
 
+        # The waiting_for_input list is used to keep track of nodes that are waiting for input
+        waiting_for_input: list[tuple[str, Module]] = []
+
+        include_outputs_from = contract.include_outputs_from if contract.include_outputs_from is not None else set[str]()
+
         # this is what we'll return at the end
         final_outputs: FlowData = {}
+
+        with tracer.trace(
+            'modstack.flow.invoke',
+            {
+                'modstack.flow.input_data': data,
+                'modstack.flow.output_data': final_outputs,
+                'modstack.flow.debug': contract.debug,
+                'modstack.flow.metadata': self.metadata,
+                'modstack.flow.max_loops_allowed': self.max_loops_allowed
+            }
+        ):
+            extra_outputs: FlowData = {}
+
+            while len(to_run) > 0:
+                node, instance = to_run.pop(0)
+                node_data = self.get_node(node)
+
+                if (
+                    any(socket.is_variadic for socket in node_data['input_sockets'].values())
+                    and not node_data['is_greedy']
+                ):
+                    there_are_non_variadics = False
+                    for other_node, other_instance in to_run:
+                        other_node_data = self.get_node(other_node)
+                        if any(not socket.is_variadic for socket in other_node_data['input_sockets'].values()):
+                            there_are_non_variadics = True
+                            break
+
+                    if there_are_non_variadics:
+                        if (node, instance) not in waiting_for_input:
+                            waiting_for_input.append((node, instance))
+                        continue

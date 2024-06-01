@@ -137,4 +137,4 @@ class ProxyTracer(Tracer):
     def current_span(self) -> Span | None:
         return self.provided_tracer.current_span()
 
-tracer = ProxyTracer(NullTracer())
+global_tracer = ProxyTracer(NullTracer())

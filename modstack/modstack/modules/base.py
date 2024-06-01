@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from modstack.typing import AfterRetryFailure, Effect, Effects, RetryStrategy, ReturnType, Serializable, StopStrategy, WaitStrategy
 from modstack.typing.vars import In, Out, Other
-from modstack.utils.serialization import create_schema, from_dict
+from modstack.utils.serialization import create_schema, from_dict, to_dict
 
 class Module(Generic[In, Out], ABC):
     name: str | None = None
@@ -135,6 +135,9 @@ class Module(Generic[In, Out], ABC):
 
     def construct_input(self, data: dict[str, Any]) -> In:
         return from_dict(data, self.input_schema())
+
+    def construct_output(self, data: Any) -> dict[str, Any]:
+        return to_dict(data)
 
 class SerializableModule(Serializable, Module[In, Out], ABC):
     pass

@@ -7,7 +7,9 @@ SPDX-License-Identifier: Apache-2.0
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy, deepcopy
+from datetime import datetime
 import logging
+from pathlib import Path
 from typing import Any, Iterator
 
 import networkx as nx
@@ -24,7 +26,18 @@ from modstack.utils.func import tproduct
 logger = logging.getLogger(__name__)
 
 class FlowBase(SerializableModule[RunFlow, FlowData], ABC):
-    def __init__(self):
+    def __init__(
+        self,
+        metadata: dict[str, Any] | None = None,
+        max_loops_allowed: int = 100,
+        debug_path: Path | str = Path('.modstack_debug/')
+    ):
+        self._telemetry_runs: int = 0
+        self._last_telemetry_sent: datetime | None = None
+        self.metadata: dict[str, Any] = metadata or {}
+        self.max_loops_allowed = max_loops_allowed
+        self._debug_path = Path(debug_path)
+        self._debug: dict[int, dict[str, Any]] = {}
         self.graph = nx.MultiDiGraph()
 
     def __eq__(self, other) -> bool:
@@ -60,7 +73,12 @@ class FlowBase(SerializableModule[RunFlow, FlowData], ABC):
         except KeyError as e:
             raise ValueError(f"Node named '{name}' not found in the flow.") from e
 
-    def add_node(self, name: str, node: ModuleLike) -> None:
+    def add_node(
+        self,
+        name: str,
+        node: ModuleLike,
+        is_greedy: bool = False
+    ) -> None:
         if self.graph.has_node(name):
             raise ValueError(f"A node named '{name}' already exists in this flow: choose another name.")
         if name == DEBUG:
@@ -84,6 +102,7 @@ class FlowBase(SerializableModule[RunFlow, FlowData], ABC):
             instance=node,
             input_sockets=input_sockets,
             output_sockets=output_sockets,
+            is_greedy=is_greedy,
             visits=0
         )
 

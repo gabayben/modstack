@@ -11,6 +11,21 @@ FlowData = dict[str, dict[str, Any]]
 class RunFlow(Serializable):
     data: FlowInput = Field(default_factory=dict)
     include_outputs_from: set[str] | None = None
+    debug: bool = False
+
+    def __init__(
+        self,
+        data: FlowInput = {},
+        include_outputs_from: set[str] | None = None,
+        debug: bool = False,
+        **kwargs
+    ):
+        super().__init__(
+            data=data,
+            include_outputs_from=include_outputs_from,
+            debug=debug,
+            **kwargs
+        )
 
 class NodeSocket(Serializable):
     name: str
@@ -34,6 +49,7 @@ class FlowNode(TypedDict):
     instance: Module
     input_sockets: dict[str, NodeSocket]
     output_sockets: dict[str, NodeSocket]
+    is_greedy: bool
     visits: int
 
 class FlowEdge(TypedDict):
