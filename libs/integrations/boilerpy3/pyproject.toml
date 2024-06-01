@@ -3,7 +3,7 @@ name = "modstack-boilerpy3"
 version = "0.1.0"
 description = ""
 authors = ["bengabay <ben@netop.cloud>"]
-packages = [{ include = "modstack_boilerpy3" }]
+packages = [{ include = "modstack/" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
