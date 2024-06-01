@@ -18,7 +18,7 @@ from modstack.constants import DEBUG
 from modstack.exceptions import FlowConnectError
 from modstack.modules import Module, ModuleLike, SerializableModule, coerce_to_module
 from modstack.modules.flows import FlowData, FlowInput, FlowSocketDescriptions, NodeSocket, NodeSocketDescription, RunFlow
-from modstack.modules.flows.typing import FlowNode
+from modstack.modules.flows.typing import FlowEdge, FlowNode
 from modstack.modules.flows.utils import create_node_socket, find_flow_inputs, find_flow_outputs, parse_connect_string, types_are_compatible
 from modstack.typing import Effect
 from modstack.utils.func import tproduct
@@ -73,6 +73,9 @@ class FlowBase(SerializableModule[RunFlow, FlowData], ABC):
         except KeyError as e:
             raise ValueError(f"Node named '{name}' not found in the flow.") from e
 
+    def get_edges(self) -> list[tuple[str, str, FlowEdge]]:
+        return self.graph.edges(data=True)
+
     def add_node(
         self,
         name: str,
@@ -99,6 +102,7 @@ class FlowBase(SerializableModule[RunFlow, FlowData], ABC):
 
         self.graph.add_node(
             name,
+            name=name,
             instance=node,
             input_sockets=input_sockets,
             output_sockets=output_sockets,
