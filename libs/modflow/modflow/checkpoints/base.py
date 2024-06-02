@@ -5,7 +5,7 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import StrEnum
-from typing import Any, Literal, NamedTuple, NotRequired, Optional, Protocol, TypedDict
+from typing import Any, AsyncIterator, Iterator, Literal, NamedTuple, NotRequired, Optional, Protocol, TypedDict
 
 from modstack.core.typing import Effect
 
@@ -121,11 +121,33 @@ class Checkpointer(ABC):
         *,
         limit: Optional[int] = None,
         **kwargs
-    ) -> Effect[CheckpointTuple | None]:
+    ) -> Iterator[CheckpointTuple]:
         pass
 
     @abstractmethod
-    def get(self, **kwargs) -> Effect[CheckpointTuple | None]:
+    async def asearch(
+        self,
+        metadata: CheckpointMetadata,
+        *,
+        limit: Optional[int] = None,
+        **kwargs
+    ) -> AsyncIterator[CheckpointTuple]:
+        pass
+
+    @abstractmethod
+    def get_list(self, limit: Optional[int] = None, **kwargs) -> Iterator[CheckpointTuple]:
+        pass
+
+    @abstractmethod
+    async def aget_list(self, limit: Optional[int] = None, **kwargs) -> AsyncIterator[CheckpointTuple]:
+        pass
+
+    @abstractmethod
+    def get(self, **kwargs) -> Optional[CheckpointTuple]:
+        pass
+
+    @abstractmethod
+    async def aget(self, **kwargs) -> Optional[CheckpointTuple]:
         pass
 
     @abstractmethod

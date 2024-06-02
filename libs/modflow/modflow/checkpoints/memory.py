@@ -3,11 +3,10 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 """
 
 from collections import defaultdict
-from typing import Any, Optional
+from typing import Any, AsyncIterator, Iterator, Optional
 
 from modflow.checkpoints import Checkpoint, CheckpointMetadata, CheckpointTuple, Checkpointer
 from modflow.serde import SerializerProtocol
-from modstack.core.typing import Effect
 
 class MemoryCheckpointer(Checkpointer):
     """
@@ -39,10 +38,28 @@ class MemoryCheckpointer(Checkpointer):
         *,
         limit: Optional[int] = None,
         **kwargs
-    ) -> Effect[CheckpointTuple | None]:
+    ) -> Iterator[CheckpointTuple]:
         pass
 
-    def get(self, **kwargs) -> Effect[CheckpointTuple | None]:
+    async def asearch(
+        self,
+        metadata: CheckpointMetadata,
+        *,
+        limit: Optional[int] = None,
+        **kwargs
+    ) -> AsyncIterator[CheckpointTuple]:
+        pass
+
+    def get_list(self, limit: Optional[int] = None, **kwargs) -> Iterator[CheckpointTuple]:
+        pass
+
+    async def aget_list(self, limit: Optional[int] = None, **kwargs) -> AsyncIterator[CheckpointTuple]:
+        pass
+
+    def get(self, **kwargs) -> Optional[CheckpointTuple]:
+        pass
+
+    async def aget(self, **kwargs) -> Optional[CheckpointTuple]:
         pass
 
     def put(

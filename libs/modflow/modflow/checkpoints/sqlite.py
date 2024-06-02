@@ -4,15 +4,31 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 
 from contextlib import AbstractContextManager, contextmanager
 import sqlite3
+import threading
 from types import TracebackType
-from typing import Any, Iterator, Optional, Self, Type
+from typing import Any, AsyncIterator, Iterator, Optional, Self, Type
 
 from modflow.checkpoints import Checkpoint, CheckpointMetadata, CheckpointTuple, Checkpointer
-from modstack.core.typing import Effect
+from modflow.serde import SerializerProtocol
 
 class SqliteCheckpointer(Checkpointer, AbstractContextManager):
     conn: sqlite3.Connection
     is_setup: bool
+
+    def __init__(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        serde: Optional[SerializerProtocol] = None
+    ):
+        super().__init__(serde=serde)
+        self.conn = conn
+        self.is_setup = False
+        self.lock = threading.Lock()
+
+    @classmethod
+    def from_conn_string(cls, conn_string: str) -> Self:
+        return cls(sqlite3.Connection(conn_string, check_same_thread=False))
 
     def __enter__(self) -> Self:
         return self
@@ -22,7 +38,7 @@ class SqliteCheckpointer(Checkpointer, AbstractContextManager):
         __exc_type: Type[BaseException] | None,
         __exc_value: BaseException | None,
         __traceback: TracebackType | None
-    ):
+    ) -> None:
         self.conn.close()
 
     @contextmanager
@@ -73,15 +89,58 @@ class SqliteCheckpointer(Checkpointer, AbstractContextManager):
         )
         self.is_setup = True
 
-    def search(self, metadata: CheckpointMetadata, *, limit: Optional[int] = None, **kwargs) -> Effect[
-        CheckpointTuple | None]:
+    def search(
+        self,
+        metadata: CheckpointMetadata,
+        *,
+        limit: Optional[int] = None,
+        **kwargs
+    ) -> Iterator[CheckpointTuple]:
         pass
 
-    def get(self, **kwargs) -> Effect[CheckpointTuple | None]:
+    async def asearch(
+        self,
+        metadata: CheckpointMetadata,
+        *,
+        limit: Optional[int] = None,
+        **kwargs
+    ) -> AsyncIterator[CheckpointTuple]:
         pass
 
-    def put(self, checkpoint: Checkpoint, metadata: CheckpointMetadata, **kwargs) -> dict[str, Any]:
+    def get_list(self, limit: Optional[int] = None, **kwargs) -> Iterator[CheckpointTuple]:
         pass
 
-    async def aput(self, checkpoint: Checkpoint, metadata: CheckpointMetadata, **kwargs) -> dict[str, Any]:
+    async def aget_list(self, limit: Optional[int] = None, **kwargs) -> AsyncIterator[CheckpointTuple]:
         pass
+
+    def get(self, **kwargs) -> Optional[CheckpointTuple]:
+        pass
+
+    async def aget(self, **kwargs) -> Optional[CheckpointTuple]:
+        pass
+
+    def put(
+        self,
+        checkpoint: Checkpoint,
+        metadata: CheckpointMetadata,
+        **kwargs
+    ) -> dict[str, Any]:
+        pass
+
+    async def aput(
+        self,
+        checkpoint: Checkpoint,
+        metadata: CheckpointMetadata,
+        **kwargs
+    ) -> dict[str, Any]:
+        pass
+
+def _metadata_predicate(metadata: CheckpointMetadata) -> tuple[str, tuple[Any, ...]]:
+    """
+    Return WHERE clause predicates for (a)search() given metadata filter.
+
+    This method returns a tuple of a string and a tuple of values. The string
+    is the parametered WHERE clause predicate (excluding the WHERE keyword):
+    "column1 = ? AND column2 IS ?". The tuple of values contains the values
+    for each of the corresponding parameters.
+    """

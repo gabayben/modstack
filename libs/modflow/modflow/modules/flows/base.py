@@ -104,7 +104,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
 
     def get_state(self, **kwargs) -> StateSnapshot:
         self._validate_checkpointer()
-        saved = self.checkpointer.get(**kwargs).invoke()
+        saved = self.checkpointer.get(**kwargs)
         checkpoint = saved.checkpoint if saved else empty_checkpoint()
         kwargs = saved.config if saved else kwargs
         return self._get_state(checkpoint, saved.metadata if saved else None, **kwargs)
@@ -133,7 +133,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
 
     async def aget_state(self, **kwargs) -> StateSnapshot:
         self._validate_checkpointer()
-        saved = await self.checkpointer.get(**kwargs).ainvoke()
+        saved = await self.checkpointer.aget(**kwargs)
         checkpoint = saved.checkpoint if saved else empty_checkpoint()
         kwargs = saved.config if saved else kwargs
         return await self._aget_state(checkpoint, saved.metadata if saved else None, **kwargs)
@@ -162,7 +162,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
 
     def get_state_history(self, limit: Optional[int] = None, **kwargs) -> Iterator[StateSnapshot]:
         self._validate_checkpointer()
-        for checkpoint, metadata, other_kwargs in self.checkpointer.get(**kwargs).iter():
+        for checkpoint, metadata, other_kwargs in self.checkpointer.get_list(**kwargs):
             yield self._get_state(checkpoint, metadata, **other_kwargs)
 
     async def aget_state_history(self, limit: Optional[int] = None, **kwargs) -> AsyncIterator[StateSnapshot]:
@@ -177,7 +177,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
         **kwargs
     ) -> dict[str, Any]:
         self._validate_checkpointer()
-        saved = self.checkpointer.get(**kwargs).invoke()
+        saved = self.checkpointer.get(**kwargs)
         checkpoint = saved.checkpoint if saved else empty_checkpoint()
         # find last node that updated the state, if not provided
         as_node = as_node if as_node is not None else self._get_node_to_update(checkpoint)
@@ -214,7 +214,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
         **kwargs
     ) -> dict[str, Any]:
         self._validate_checkpointer()
-        saved = await self.checkpointer.get(**kwargs).ainvoke()
+        saved = await self.checkpointer.aget(**kwargs)
         checkpoint = saved.checkpoint if saved else empty_checkpoint()
         # find last node that updated the state, if not provided
         as_node = as_node if as_node is not None else self._get_node_to_update(checkpoint)
@@ -309,7 +309,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
             background_tasks: list[futures.Future] = []
             # copy nodes to ignore mutations during execution
             processes: dict[str, PregelNode] = {**self.nodes}
-            saved = self.checkpointer.get(**data.config).invoke() if self.checkpointer else None
+            saved = self.checkpointer.get(**data.config) if self.checkpointer else None
             checkpoint = saved.checkpoint if saved else empty_checkpoint()
             checkpoint_config = saved.config if saved else data.config
             start = saved.metadata.get('step', -2) + 1 if saved else -1
@@ -484,7 +484,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
             background_tasks: list[asyncio.Task] = []
             # copy nodes to ignore mutations during execution
             processes: dict[str, PregelNode] = {**self.nodes}
-            saved = await self.checkpointer.get(**data.config).ainvoke() if self.checkpointer else None
+            saved = await self.checkpointer.aget(**data.config) if self.checkpointer else None
             checkpoint = saved.checkpoint if saved else empty_checkpoint()
             checkpoint_config = saved.config if saved else data.config
             start = saved.metadata.get('step', -2) + 1 if saved else -1
