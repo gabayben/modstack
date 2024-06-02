@@ -6,3 +6,5 @@ from .base import (
     CheckpointTuple,
     Checkpointer
 )
+from .memory import MemoryCheckpointer
+from .sqlite import SqliteCheckpointer

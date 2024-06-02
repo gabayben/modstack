@@ -43,7 +43,10 @@ class EphemeralValue[Value](Channel[Value, Value, Value]):
             return EmptyChannelError()
 
     def checkpoint(self) -> Optional[Value]:
-        return self.get()
+        try:
+            return self.value
+        except AttributeError:
+            raise EmptyChannelError()
 
     def update(self, values: Optional[Sequence[Value]]) -> None:
         if not values or len(values) == 0:
@@ -53,6 +56,6 @@ class EphemeralValue[Value](Channel[Value, Value, Value]):
                 pass
             finally:
                 return
-        if len(values) == 1 and self.guard:
+        if len(values) != 1 and self.guard:
             raise InvalidUpdateError('EphemeralValue can only receive one value per step.')
         self.value = values[-1]

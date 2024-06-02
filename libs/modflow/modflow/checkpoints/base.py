@@ -1,3 +1,7 @@
+"""
+Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/checkpoints/base.py
+"""
+
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import StrEnum
