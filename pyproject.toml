@@ -18,6 +18,7 @@ modstack-serper = { path = "libs/integrations/serper/", develop = true }
 modstack-langdetect = { path = "libs/integrations/langdetect/", develop = true }
 modstack-web = { path = "libs/integrations/web/", develop = true }
 modstack-papers = { path = "libs/integrations/papers/", develop = true }
+modstack-chroma = { path = "libs/integrations/chroma/", develop = true }
 #modstack-fastembed = { path = "libs/integrations/fastembed/", develop = true }
 #modstack-openai = { path = "libs/integrations/openai/", develop = true }
 #modstack-cohere = { path = "libs/integrations/cohere/", develop = true }
