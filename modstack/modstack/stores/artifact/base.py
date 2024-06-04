@@ -97,13 +97,11 @@ class ArtifactStore(ABC):
     async def aget_all(self, **kwargs) -> dict[str, Artifact]:
         pass
 
-    @abstractmethod
     def exists(self, artifact_id: str) -> bool:
-        pass
+        return self.get(artifact_id, raise_error=False) is not None
 
-    @abstractmethod
     async def aexists(self, artifact_id: str) -> bool:
-        pass
+        return (await self.aget(artifact_id, raise_error=False)) is not None
 
     @abstractmethod
     def insert(
@@ -197,13 +195,11 @@ class ArtifactStore(ABC):
     async def aget_ref(self, ref_artifact_id: str, **kwargs) -> Optional[RefArtifactInfo]:
         pass
 
-    @abstractmethod
-    def get_all_refs(self, **kwargs) -> Optional[dict[str, RefArtifactInfo]]:
-        pass
+    def ref_exists(self, ref_artifact_id: str) -> bool:
+        return self.get_ref(ref_artifact_id) is not None
 
-    @abstractmethod
-    async def aget_all_refs(self, **kwargs) -> Optional[dict[str, RefArtifactInfo]]:
-        pass
+    async def aref_exists(self, ref_artifact_id: str) -> bool:
+        return (await self.aget_ref(ref_artifact_id)) is not None
 
     @abstractmethod
     def delete_ref(

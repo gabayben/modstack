@@ -76,12 +76,6 @@ class KVArtifactStore(ArtifactStore):
     async def aget_all(self, **kwargs) -> dict[str, Artifact]:
         pass
 
-    def exists(self, artifact_id: str) -> bool:
-        pass
-
-    async def aexists(self, artifact_id: str) -> bool:
-        pass
-
     def insert(
         self,
         artifacts: Sequence[Artifact],
@@ -152,12 +146,6 @@ class KVArtifactStore(ArtifactStore):
         pass
 
     async def aget_ref(self, ref_artifact_id: str, **kwargs) -> Optional[RefArtifactInfo]:
-        pass
-
-    def get_all_refs(self, **kwargs) -> Optional[dict[str, RefArtifactInfo]]:
-        pass
-
-    async def aget_all_refs(self, **kwargs) -> Optional[dict[str, RefArtifactInfo]]:
         pass
 
     def delete_ref(
