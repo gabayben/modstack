@@ -135,7 +135,7 @@ class SqliteCheckpointer(Checkpointer, AbstractContextManager):
     ) -> dict[str, Any]:
         pass
 
-def _metadata_predicate(metadata: CheckpointMetadata) -> tuple[str, tuple[Any, ...]]:
+def _metadata_predicate(metadata: CheckpointMetadata) -> tuple[str, tuple[Optional[Any], ...]]:
     """
     Return WHERE clause predicates for (a)search() given metadata filter.
 
@@ -144,3 +144,6 @@ def _metadata_predicate(metadata: CheckpointMetadata) -> tuple[str, tuple[Any, .
     "column1 = ? AND column2 IS ?". The tuple of values contains the values
     for each of the corresponding parameters.
     """
+    def where_value(query_value: Optional[Any]) -> tuple[str, Optional[Any]]:
+        if query_value is None:
+            return 'IS ?', None

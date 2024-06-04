@@ -103,4 +103,4 @@ async def AsyncChannelManager(
         yield {k: await v.__aenter__() for k, v in empty.items()}
     finally:
         for v in empty.values():
-            v.__aexit__(None, None, None)
+            await v.__aexit__(None, None, None)
