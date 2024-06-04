@@ -21,11 +21,11 @@ from modflow.utils.checkpoints import copy_checkpoint, create_checkpoint, empty_
 from modflow.utils.debug import map_debug_checkpoint, map_debug_task_results, map_debug_tasks, print_step_checkpoint, print_step_tasks, print_step_writes
 from modflow.utils.io import map_input, map_output_updates, map_output_values, read_channel, read_channels
 from modflow.utils.validation import validate_flow, validate_keys
-from modstack.core.modules import Sequential, SerializableModule
-from modstack.core.typing import Effect, Effects
-from modstack.core.typing.vars import In, Out
-from modstack.core.utils.serialization import create_model
-from modstack.core.utils.threading import get_executor
+from modstack.modules import Sequential, SerializableModule
+from modstack.typing import Effect, Effects
+from modstack.typing.vars import In, Out
+from modstack.utils import create_model
+from modstack.utils import get_executor
 
 logger = logging.getLogger(__name__)
 

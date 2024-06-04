@@ -8,7 +8,7 @@ from typing import Any, Iterator, Mapping, Optional, Sequence, Union
 from modflow import FlowOutputChunk, PregelExecutableTask
 from modflow.channels import Channel, EmptyChannelError
 from modflow.constants import HIDDEN
-from modstack.core.typing import AddableDict
+from modstack.typing import AddableDict
 
 def read_channel(
     channels: Mapping[str, Channel],

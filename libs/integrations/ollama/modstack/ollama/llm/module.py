@@ -3,8 +3,8 @@ from typing import Any, Iterator
 
 import requests
 
-from modstack.core.modules import Modules
-from modstack.core.artifacts.messages import ChatMessageChunk, ChatRole
+from modstack.modules import Modules
+from modstack.artifacts import ChatMessageChunk, ChatRole
 from modstack.ollama.llm import OllamaLLMRequest
 
 class OllamaLLM(Modules.Stream[OllamaLLMRequest, list[ChatMessageChunk]]):

@@ -7,8 +7,6 @@ from collections import defaultdict
 from enum import StrEnum
 from typing import Any, AsyncIterator, Iterator, Literal, NamedTuple, NotRequired, Optional, Protocol, TypedDict
 
-from modstack.core.typing import Effect
-
 class CheckpointMetadata(TypedDict, total=False):
     """
     The source of the checkpoint.

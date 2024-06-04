@@ -5,10 +5,10 @@ import numpy as np
 
 from modstack.cohere.embedders import CohereTextEmbeddingRequest
 from modstack.cohere.typing import OMIT
-from modstack.core.auth import Secret
-from modstack.core.modules import Modules
-from modstack.core.modules.ai import TextEmbeddingResponse
-from modstack.core.utils.func import tzip
+from modstack.auth import Secret
+from modstack.modules import Modules
+from modstack.modules.ai import TextEmbeddingResponse
+from modstack.utils import tzip
 
 _EMBED_RESPONSE = cohere.EmbedResponse_EmbeddingsFloats | cohere.EmbedResponse_EmbeddingsByType
 

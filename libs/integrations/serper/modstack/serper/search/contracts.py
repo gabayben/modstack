@@ -1,5 +1,5 @@
-from modstack.core.modules.fetchers import SearchEngineQuery
-from modstack.core.typing import Serializable
+from modstack.modules.fetchers import SearchEngineQuery
+from modstack.typing import Serializable
 from modstack.serper.search import SerperKnowledgeGraph, SerperOrganicResult, SerperPeopleAlsoAsk
 
 class SerperSearchResponse(Serializable):

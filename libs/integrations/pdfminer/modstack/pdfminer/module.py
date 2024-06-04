@@ -5,10 +5,10 @@ from typing import Any, Iterator
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LAParams, LTPage, LTTextContainer
 
-from modstack.core.artifacts import ByteStream, TextArtifact, Utf8Artifact
-from modstack.core.modules import Modules
-from modstack.core.utils.dicts import normalize_metadata
-from modstack.core.utils.func import tzip
+from modstack.artifacts import ByteStream, TextArtifact, Utf8Artifact
+from modstack.modules import Modules
+from modstack.utils import normalize_metadata
+from modstack.utils import tzip
 from modstack.pdfminer import PDFMinerToText
 
 logger = logging.getLogger(__name__)

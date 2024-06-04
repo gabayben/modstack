@@ -1,7 +1,7 @@
 from huggingface_hub import HfApi
 from huggingface_hub.utils import RepositoryNotFoundError
 
-from modstack.core.auth import Secret
+from modstack.auth import Secret
 from modstack.huggingface import HFModelType
 
 def validate_hf_model(

@@ -13,7 +13,7 @@ from modflow import PregelExecutableTask
 from modflow.channels import Channel
 from modflow.constants import HIDDEN
 from modflow.utils.io import read_channels
-from modstack.core.typing import Serializable
+from modstack.typing import Serializable
 
 class TaskPayload(TypedDict):
     id: str

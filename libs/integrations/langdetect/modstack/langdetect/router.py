@@ -5,9 +5,9 @@ from typing import Type, override
 import langdetect
 from pydantic import BaseModel
 
-from modstack.core.artifacts import Utf8Artifact
-from modstack.core.modules import Modules
-from modstack.core.utils.serialization import create_model
+from modstack.artifacts import Utf8Artifact
+from modstack.modules import Modules
+from modstack.utils import create_model
 
 logger = logging.getLogger(__name__)
 

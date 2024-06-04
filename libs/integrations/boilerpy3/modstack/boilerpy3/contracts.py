@@ -1,6 +1,6 @@
 from typing import Literal
 
-from modstack.core.modules.converters import ToText
+from modstack.modules import ToText
 
 ExtractorType = Literal[
     'DefaultExtractor',

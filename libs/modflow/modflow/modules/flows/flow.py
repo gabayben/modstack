@@ -12,7 +12,7 @@ from modflow.checkpoints import Checkpointer
 from modflow.constants import END, START, HIDDEN
 from modflow.modules import ChannelWrite, ChannelWriteEntry, Pregel, PregelNode
 from modflow.utils.channel_helper import ChannelHelper
-from modstack.core.modules import Functional, Module, ModuleFunction, ModuleLike, coerce_to_module
+from modstack.modules import Functional, Module, ModuleFunction, ModuleLike, coerce_to_module
 
 logger = logging.getLogger(__name__)
 

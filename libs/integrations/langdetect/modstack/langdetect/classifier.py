@@ -2,8 +2,8 @@ import logging
 
 import langdetect
 
-from modstack.core.artifacts import Utf8Artifact
-from modstack.core.modules import Modules
+from modstack.artifacts import Utf8Artifact
+from modstack.modules import Modules
 
 logger = logging.getLogger(__name__)
 

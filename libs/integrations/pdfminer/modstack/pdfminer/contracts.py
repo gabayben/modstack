@@ -1,6 +1,6 @@
 from pdfminer.layout import LAParams
 
-from modstack.core.modules.converters import ToText
+from modstack.modules import ToText
 
 class PDFMinerToText(ToText):
     layout_params: LAParams | None = None

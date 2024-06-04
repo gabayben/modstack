@@ -4,10 +4,10 @@ from anthropic import Anthropic, NOT_GIVEN
 from anthropic.types import ContentBlockDeltaEvent, MessageDeltaEvent, MessageStartEvent
 
 from modstack.anthropic.llm import AnthropicLLMRequest
-from modstack.core.auth import Secret
-from modstack.core.modules import Modules
+from modstack.auth import Secret
+from modstack.modules import Modules
 
-from modstack.core.artifacts.messages import ChatMessage, ChatMessageChunk, ChatRole
+from modstack.artifacts import ChatMessage, ChatMessageChunk, ChatRole
 
 class AnthropicLLM(Modules.Stream[AnthropicLLMRequest, list[ChatMessageChunk]]):
     def __init__(

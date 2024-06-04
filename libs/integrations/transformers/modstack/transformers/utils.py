@@ -4,7 +4,7 @@
 import torch
 from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast, StoppingCriteria, TextStreamer
 
-from modstack.core.typing import StreamingCallback
+from modstack.typing import StreamingCallback
 
 class StopWordsCriteria(StoppingCriteria):
     def __init__(

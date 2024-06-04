@@ -2,8 +2,8 @@ from collections import deque
 from typing import Any, Literal, NamedTuple, Optional, Sequence, Union
 
 from modflow.checkpoints import CheckpointMetadata
-from modstack.core.modules import Module
-from modstack.core.typing import Serializable
+from modstack.modules import Module
+from modstack.typing import Serializable
 
 FlowInput = Union[dict[str, Any], Any]
 FlowOutputChunk = Union[dict[str, Any], Any]

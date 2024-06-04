@@ -4,10 +4,10 @@ from typing import ClassVar
 import cohere
 
 from modstack.cohere.rankers import CohereRankRequest
-from modstack.core.artifacts import Utf8Artifact
-from modstack.core.auth import Secret
-from modstack.core.modules import Modules
-from modstack.core.utils.func import tzip
+from modstack.artifacts import Utf8Artifact
+from modstack.auth import Secret
+from modstack.modules import Modules
+from modstack.utils import tzip
 
 logger = logging.getLogger(__name__)
 

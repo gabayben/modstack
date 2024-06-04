@@ -1,8 +1,8 @@
 from typing import Any, Callable, Optional, Sequence, Union
 
 from modflow.modules import ChannelWrite
-from modstack.core.modules import DecoratorBase, Module, ModuleLike, Passthrough, Sequential, coerce_to_module
-from modstack.core.modules.base import ModuleMapping
+from modstack.modules import DecoratorBase, Module, ModuleLike, Passthrough, Sequential, coerce_to_module
+from modstack.modules.base import ModuleMapping
 
 DEFAULT_BOUND = Passthrough()
 

@@ -1,7 +1,7 @@
 from typing import Any, Callable, Optional, Union
 
 from modflow.constants import READ_KEY
-from modstack.core.modules import Modules
+from modstack.modules import Modules
 
 READ_TYPE = Callable[[Union[str, list[str]], bool], Union[Any, dict[str, Any]]]
 

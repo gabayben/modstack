@@ -3,11 +3,11 @@ import logging
 
 from tika import parser
 
-from modstack.core.artifacts import ByteStream, TextArtifact, Utf8Artifact
-from modstack.core.modules import Modules
-from modstack.core.modules.converters import ToText
-from modstack.core.utils.dicts import normalize_metadata
-from modstack.core.utils.func import tzip
+from modstack.artifacts import ByteStream, TextArtifact, Utf8Artifact
+from modstack.modules import Modules
+from modstack.modules import ToText
+from modstack.utils import normalize_metadata
+from modstack.utils import tzip
 
 logger = logging.getLogger(__name__)
 

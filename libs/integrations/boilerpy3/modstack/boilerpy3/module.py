@@ -5,10 +5,10 @@ from boilerpy3 import extractors
 from boilerpy3.extractors import Extractor
 
 from modstack.boilerpy3 import BoilerToText
-from modstack.core.artifacts import TextArtifact
-from modstack.core.modules import Modules
-from modstack.core.utils.dicts import normalize_metadata
-from modstack.core.utils.func import tzip
+from modstack.artifacts import TextArtifact
+from modstack.modules import Modules
+from modstack.utils import normalize_metadata
+from modstack.utils import tzip
 
 logger = logging.getLogger(__name__)
 

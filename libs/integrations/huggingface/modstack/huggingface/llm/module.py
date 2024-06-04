@@ -2,11 +2,11 @@ from typing import Any, Iterable, Iterator
 
 from huggingface_hub import ChatCompletionStreamOutput, InferenceClient
 
-from modstack.core.auth import Secret
-from modstack.core.modules import Modules
-from modstack.core.modules.ai import LLMRequest
-from modstack.core.artifacts.messages import ChatMessage, ChatMessageChunk, ChatRole
-from modstack.core.utils.paths import validate_url
+from modstack.auth import Secret
+from modstack.modules import Modules
+from modstack.modules.ai import LLMRequest
+from modstack.artifacts import ChatMessage, ChatMessageChunk, ChatRole
+from modstack.utils import validate_url
 from modstack.huggingface import HFGenerationApiType, HFModelType
 from modstack.huggingface.utils import validate_hf_model
 

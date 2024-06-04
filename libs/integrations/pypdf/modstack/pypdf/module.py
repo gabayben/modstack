@@ -3,10 +3,10 @@ import logging
 
 from pypdf import PdfReader
 
-from modstack.core.artifacts import ByteStream, Utf8Artifact
-from modstack.core.modules import Modules
-from modstack.core.utils.dicts import normalize_metadata
-from modstack.core.utils.func import tzip
+from modstack.artifacts import ByteStream, Utf8Artifact
+from modstack.modules import Modules
+from modstack.utils import normalize_metadata
+from modstack.utils import tzip
 from modstack.pypdf import PyPDFToText
 from modstack.pypdf.converter import _DefaultConverter
 
