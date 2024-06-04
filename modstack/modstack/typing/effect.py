@@ -153,10 +153,10 @@ class Effects:
                 return current
             if not self.return_last:
                 return await anext(self.aiter())
-            items: list[Out] = []
+            last_value: Out = None
             async for item in self.aiter():
-                items.append(item)
-            return items[-1] if items else None
+                last_value = item
+            return last_value
 
         def iter(self) -> Iterator[Out]:
             @unsync
