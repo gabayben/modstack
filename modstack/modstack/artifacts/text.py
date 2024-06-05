@@ -18,7 +18,7 @@ class TextArtifact(Utf8Artifact):
         data: bytes,
         **kwargs
     ) -> Self:
-        return cls(data.decode('utf-8'))
+        return cls(data.decode('utf8'))
 
     def to_base64(self, **kwargs) -> str:
         return str(self)

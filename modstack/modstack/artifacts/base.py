@@ -138,10 +138,6 @@ class Artifact(BaseDoc, ABC):
         else:
             valid_path = path
         return cls.from_bytes(BaseUrl(valid_path).load_bytes())
-    
-    @abstractmethod
-    def get_hash(self) -> str:
-        pass
 
     def model_dump(
         self,
@@ -178,7 +174,11 @@ class Artifact(BaseDoc, ABC):
             hash=self.hash,
             metadata=self.metadata
         )
-    
+
+    @abstractmethod
+    def get_hash(self) -> str:
+        pass
+
     def is_empty(self) -> bool:
         return bytes(self) == b''
 
@@ -223,10 +223,10 @@ class Utf8Artifact(Artifact, ABC):
     
     def get_hash(self) -> str:
         identity = self.to_utf8() + str(self.metadata)
-        return str(sha256(identity.encode('utf-8', 'surrogatepass')).hexdigest())
+        return sha256(identity.encode('utf8', 'surrogatepass')).hexdigest()
 
     def to_bytes(self, **kwargs) -> bytes:
-        return str(self).encode(encoding='utf-8')
+        return str(self).encode(encoding='utf8')
 
     def _get_string_for_regex_filter(self) -> str:
         return str(self)

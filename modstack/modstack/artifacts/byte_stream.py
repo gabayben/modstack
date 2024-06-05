@@ -1,3 +1,4 @@
+from hashlib import sha256
 from typing import Self, override
 
 from modstack.artifacts import Artifact, ArtifactType
@@ -27,3 +28,6 @@ class ByteStream(Artifact):
     @override
     def to_bytes(self, **kwargs) -> bytes:
         return self.bytes_
+
+    def get_hash(self) -> str:
+        return sha256(bytes(self)).hexdigest()
