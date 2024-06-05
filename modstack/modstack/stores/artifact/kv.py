@@ -104,6 +104,9 @@ class KVArtifactStore(ArtifactStore):
     ) -> tuple[_Pairs, _Pairs, _Pairs]:
         pass
 
+    def _merge_ref_info_pairs(self, pairs_dict: dict[str, _Pairs]) -> _Pairs:
+        pass
+
     def delete(
         self,
         artifact_id: str,
