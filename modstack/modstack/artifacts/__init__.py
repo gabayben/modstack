@@ -7,7 +7,8 @@ from .base import (
     Artifact,
     ArtifactSource,
     StrictArtifactSource,
-    Utf8Artifact
+    Utf8Artifact,
+    artifact_registry
 )
 from .blob import (
     AudioArtifact,

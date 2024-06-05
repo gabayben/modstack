@@ -2,12 +2,15 @@ from abc import ABC, abstractmethod
 from enum import StrEnum, auto
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Optional, Self, Union
+from typing import Any, Literal, Optional, Self, Union
 
+from docarray.base_doc.doc import IncEx
 from pydantic import Field
 
-from modstack.typing import BaseDoc, BaseUrl, Embedding, Serializable
+from modstack.typing import BaseDoc, BaseUrl, Embedding, PydanticRegistry, Serializable
+from modstack.utils.constants import SCHEMA_TYPE
 from modstack.utils.paths import get_mime_type
+from modstack.utils.string import type_name
 
 class ArtifactType(StrEnum):
     TEXT = 'text'
@@ -139,7 +142,35 @@ class Artifact(BaseDoc, ABC):
     @abstractmethod
     def get_hash(self) -> str:
         pass
-    
+
+    def model_dump(
+        self,
+        *,
+        mode: Union[Literal['json', 'python'], str] = 'python',
+        include: IncEx = None,
+        exclude: IncEx = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        round_trip: bool = False,
+        warnings: bool = True,
+    ) -> dict[str, Any]:
+        return {
+            **super().model_dump(
+                mode=mode,
+                include=include,
+                exclude=exclude,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                round_trip=round_trip,
+                warnings=warnings
+            ),
+            SCHEMA_TYPE: type_name(self.__class__)
+        }
+
     def as_info(self) -> ArtifactInfo:
         return ArtifactInfo(
             id=self.id,
@@ -199,3 +230,8 @@ class Utf8Artifact(Artifact, ABC):
 
     def _get_string_for_regex_filter(self) -> str:
         return str(self)
+
+class _ArtifactRegistry(PydanticRegistry[Artifact]):
+    pass
+
+artifact_registry = _ArtifactRegistry()

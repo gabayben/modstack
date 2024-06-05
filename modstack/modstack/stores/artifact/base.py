@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Literal, Optional, Sequence, overload
+from typing import Optional, Sequence
 
 from modstack.artifacts import Artifact
 from modstack.stores.artifact import RefArtifactInfo
@@ -9,24 +9,6 @@ class ArtifactStore(ABC):
 
     #### Artifacts
 
-    @overload
-    def get(
-        self,
-        artifact_id: str,
-        raise_error: Literal[True] = True,
-        **kwargs
-    ) -> Artifact:
-        ...
-
-    @overload
-    def get(
-        self,
-        artifact_id: str,
-        raise_error: Literal[False] = False,
-        **kwargs
-    ) -> Optional[Artifact]:
-        ...
-
     @abstractmethod
     def get(
         self,
@@ -35,24 +17,6 @@ class ArtifactStore(ABC):
         **kwargs
     ) -> Optional[Artifact]:
         pass
-
-    @overload
-    async def aget(
-        self,
-        artifact_id: str,
-        raise_error: Literal[True] = True,
-        **kwargs
-    ) -> Artifact:
-        ...
-
-    @overload
-    async def aget(
-        self,
-        artifact_id: str,
-        raise_error: Literal[False] = False,
-        **kwargs
-    ) -> Optional[Artifact]:
-        ...
 
     @abstractmethod
     async def aget(
@@ -63,31 +27,39 @@ class ArtifactStore(ABC):
     ) -> Optional[Artifact]:
         pass
 
-    @abstractmethod
     def get_many(
         self,
         artifact_ids: Sequence[str],
         raise_error: bool = True,
         **kwargs
     ) -> list[Artifact]:
-        pass
+        return [
+            self.get(artifact_id, raise_error=raise_error, **kwargs)
+            for artifact_id in artifact_ids
+        ]
 
-    @abstractmethod
     async def aget_many(
         self,
         artifact_ids: Sequence[str],
         raise_error: bool = True,
         **kwargs
     ) -> list[Artifact]:
-        pass
+        return [
+            await self.aget(artifact_id, raise_error=raise_error, **kwargs)
+            for artifact_id in artifact_ids
+        ]
 
-    @abstractmethod
-    def get_index_dict(self, ids_by_index: dict[int, str], **kwargs) -> dict[int, Artifact]:
-        pass
+    def get_index_dict(self, index_to_ids: dict[int, str], **kwargs) -> dict[int, Artifact]:
+        return {
+            idx: self.get(artifact_id, **kwargs)
+            for idx, artifact_id in index_to_ids.items()
+        }
 
-    @abstractmethod
-    async def aget_index_dict(self, ids_by_index: dict[int, str], **kwargs) -> dict[int, Artifact]:
-        pass
+    async def aget_index_dict(self, index_to_ids: dict[int, str], **kwargs) -> dict[int, Artifact]:
+        return {
+            idx: await self.aget(artifact_id, **kwargs)
+            for idx, artifact_id in index_to_ids.items()
+        }
 
     @abstractmethod
     def get_all(self, **kwargs) -> dict[str, Artifact]:

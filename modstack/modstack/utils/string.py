@@ -1,4 +1,4 @@
-from typing import Any, Mapping
+from typing import Any, Mapping, Type
 import uuid
 
 def mapping_to_str(
@@ -17,3 +17,6 @@ def is_uuid(value: str) -> bool:
         return True
     except ValueError:
         return False
+
+def type_name(type_: Type) -> str:
+    return f'{type_.__module__}.{type_.__name__}'
