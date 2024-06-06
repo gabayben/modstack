@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "modstack-redis"
+version = "0.1.0"
+description = ""
+authors = ["bengabay <ben@netop.cloud>"]
+packages = [{ include = "modstack/" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+modstack = { path = "../../../modstack/" }
+redis = "^5.0.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -9,25 +9,28 @@ python = ">=3.12,<3.13"
 
 [tool.poetry.group.dev.dependencies]
 modstack = { path = "modstack/", develop = true }
+jupyter = "^1.0.0"
+
 modstack-markdown = { path = "libs/integrations/markdown/", develop = true }
 modstack-boilerpy3 = { path = "libs/integrations/boilerpy3/", develop = true }
 modstack-pypdf = { path = "libs/integrations/pypdf/", develop = true }
-#modstack-pdfminer = { path = "libs/integrations/pdfminer/", develop = true }
 modstack-tika = { path = "libs/integrations/tika/", develop = true }
+
 modstack-serper = { path = "libs/integrations/serper/", develop = true }
-modstack-langdetect = { path = "libs/integrations/langdetect/", develop = true }
 modstack-web = { path = "libs/integrations/web/", develop = true }
 modstack-papers = { path = "libs/integrations/papers/", develop = true }
+
+modstack-redis = { path = "libs/integrations/redis/", develop = true }
 modstack-chroma = { path = "libs/integrations/chroma/", develop = true }
-#modstack-fastembed = { path = "libs/integrations/fastembed/", develop = true }
-#modstack-openai = { path = "libs/integrations/openai/", develop = true }
-#modstack-cohere = { path = "libs/integrations/cohere/", develop = true }
-#modstack-anthropic = { path = "libs/integrations/anthropic/", develop = true }
-#modstack-fireworks = { path = "libs/integrations/fireworks/", develop = true }
+
+modstack-langdetect = { path = "libs/integrations/langdetect/", develop = true }
+
 modstack-ollama = { path = "libs/integrations/ollama/", develop = true }
 #modstack-llamacpp = { path = "libs/integrations/llamacpp/", develop = true }
-#modstack-transformers = { path = "libs/integrations/transformers", develop = true }
-jupyter = "^1.0.0"
+#modstack-transformers = { path = "libs/integrations/transformers/", develop = true }
+#modstack-cohere = { path = "libs/integrations/llamacpp/", develop = true }
+#modstack-anthropic = { path = "libs/integrations/anthropic/", develop = true }
+#modstack-fireworks = { path = "libs/integrations/fireworks/", develop = true }
 
 [tool.poetry.group.test]
 optional = true
