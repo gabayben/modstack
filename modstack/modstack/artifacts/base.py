@@ -24,7 +24,7 @@ class ArtifactType(StrEnum):
     BYTE_STREAM = 'byte_stream'
 
 class ArtifactRelationship(StrEnum):
-    ROOT = auto()
+    REF = auto()
     PREVIOUS = auto()
     NEXT = auto()
     PARENT = auto()
@@ -40,12 +40,12 @@ RelatedArtifact = Union[ArtifactInfo, list[ArtifactInfo]]
 
 class ArtifactHierarchy(dict[ArtifactRelationship, RelatedArtifact]):
     @property
-    def root(self) -> Optional[ArtifactInfo]:
-        if ArtifactRelationship.ROOT not in self:
+    def ref(self) -> Optional[ArtifactInfo]:
+        if ArtifactRelationship.REF not in self:
             return None
-        related = self[ArtifactRelationship.ROOT]
+        related = self[ArtifactRelationship.REF]
         if not isinstance(related, ArtifactInfo):
-            raise ValueError('Root object must be a single ArtifactInfo object.')
+            raise ValueError('Ref object must be a single ArtifactInfo object.')
         return related
 
     @property
@@ -93,8 +93,8 @@ class Artifact(BaseDoc, ABC):
     relationships: ArtifactHierarchy = Field(default_factory=ArtifactHierarchy)
 
     @property
-    def root(self) -> Optional[ArtifactInfo]:
-        return self.relationships.root
+    def ref(self) -> Optional[ArtifactInfo]:
+        return self.relationships.ref
 
     @property
     def previous(self) -> Optional[ArtifactInfo]:

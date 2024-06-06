@@ -149,13 +149,13 @@ class ArtifactStore(ABC):
     ) -> None:
         pass
 
+    @abstractmethod
     def set_hashes(self, artifact_hashes: dict[str, str], **kwargs) -> None:
-        for artifact_id, artifact_hash in artifact_hashes.items():
-            self.set_hash(artifact_id, artifact_hash, **kwargs)
+        pass
 
+    @abstractmethod
     async def aset_hashes(self, artifact_hashes: dict[str, str], **kwargs) -> None:
-        for artifact_id, artifact_hash in artifact_hashes.items():
-            await self.aset_hash(artifact_id, artifact_hash, **kwargs)
+        pass
 
     #### Ref Artifacts
 
