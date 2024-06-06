@@ -167,6 +167,14 @@ class ArtifactStore(ABC):
     async def aget_ref(self, ref_artifact_id: str, **kwargs) -> Optional[RefArtifactInfo]:
         pass
 
+    @abstractmethod
+    def get_all_refs(self, **kwargs) -> dict[str, RefArtifactInfo]:
+        pass
+
+    @abstractmethod
+    async def aget_all_refs(self, **kwargs) -> dict[str, RefArtifactInfo]:
+        pass
+
     def ref_exists(self, ref_artifact_id: str) -> bool:
         return self.get_ref(ref_artifact_id) is not None
 

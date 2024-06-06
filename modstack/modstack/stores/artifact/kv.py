@@ -7,8 +7,8 @@ from modstack.stores.keyvalue import KVStore
 from modstack.utils.constants import DEFAULT_STORAGE_BATCH_SIZE
 
 DEFAULT_NAMESPACE = 'artifact_store'
-DEFAULT_DATA_COLLECTION = 'data'
-DEFAULT_REF_INFO_COLLECTION = 'ref_info'
+DEFAULT_DATA_COLLECTION = 'artifacts'
+DEFAULT_REF_INFO_COLLECTION = 'refs'
 DEFAULT_METADATA_COLLECTION = 'metadata'
 
 _Pair = tuple[str, dict]
@@ -19,19 +19,19 @@ class KVArtifactStore(ArtifactStore):
         self,
         kvstore: KVStore,
         namespace: Optional[str] = None,
-        data_collection: Optional[str] = None,
-        ref_info_collection: Optional[str] = None,
+        artifact_collection: Optional[str] = None,
         metadata_collection: Optional[str] = None,
+        ref_collection: Optional[str] = None,
         batch_size: int = DEFAULT_STORAGE_BATCH_SIZE
     ):
         self._kvstore = kvstore
         namespace = namespace or DEFAULT_NAMESPACE
-        data_collection = data_collection or DEFAULT_DATA_COLLECTION
-        ref_info_collection = ref_info_collection or DEFAULT_REF_INFO_COLLECTION
+        artifact_collection = artifact_collection or DEFAULT_DATA_COLLECTION
         metadata_collection = metadata_collection or DEFAULT_METADATA_COLLECTION
-        self._data_collection = f'{namespace}/{data_collection}'
-        self._ref_info_collection = f'{namespace}/{ref_info_collection}'
+        ref_collection = ref_collection or DEFAULT_REF_INFO_COLLECTION
+        self._artifact_collection = f'{namespace}/{artifact_collection}'
         self._metadata_collection = f'{namespace}/{metadata_collection}'
+        self._ref_collection = f'{namespace}/{ref_collection}'
         self._batch_size = batch_size
 
     #### Artifacts
@@ -42,7 +42,7 @@ class KVArtifactStore(ArtifactStore):
         raise_error: bool = True,
         **kwargs
     ) -> Optional[Artifact]:
-        data = self._kvstore.get(artifact_id, collection=self._data_collection, **kwargs)
+        data = self._kvstore.get(artifact_id, collection=self._artifact_collection, **kwargs)
         if data is None:
             if raise_error:
                 raise ValueError(f"Artifact with id '{artifact_id}' not found.")
@@ -55,7 +55,7 @@ class KVArtifactStore(ArtifactStore):
         raise_error: bool = True,
         **kwargs
     ) -> Optional[Artifact]:
-        data = await self._kvstore.aget(artifact_id, collection=self._data_collection, **kwargs)
+        data = await self._kvstore.aget(artifact_id, collection=self._artifact_collection, **kwargs)
         if data is None:
             if raise_error:
                 raise ValueError(f"Artifact with id '{artifact_id}' not found.")
@@ -63,12 +63,12 @@ class KVArtifactStore(ArtifactStore):
         return artifact_registry.deserialize(data)
 
     def get_all(self, **kwargs) -> dict[str, Artifact]:
-        data_dict = self._kvstore.get_all(collection=self._data_collection, **kwargs)
-        return {name: artifact_registry.deserialize(data) for name, data in data_dict.items()}
+        all_data = self._kvstore.get_all(collection=self._artifact_collection, **kwargs)
+        return {name: artifact_registry.deserialize(data) for name, data in all_data.items()}
 
     async def aget_all(self, **kwargs) -> dict[str, Artifact]:
-        data_dict = await self._kvstore.aget_all(collection=self._data_collection, **kwargs)
-        return {name: artifact_registry.deserialize(data) for name, data in data_dict.items()}
+        all_data = await self._kvstore.aget_all(collection=self._artifact_collection, **kwargs)
+        return {name: artifact_registry.deserialize(data) for name, data in all_data.items()}
 
     def insert(
         self,
@@ -79,9 +79,9 @@ class KVArtifactStore(ArtifactStore):
     ) -> None:
         batch_size = batch_size or self._batch_size
         artifact_pairs, metadata_pairs, ref_info_pairs = self._prepare_kv_pairs(artifacts, allow_update, store_content)
-        self._kvstore.put_all(artifact_pairs, collection=self._data_collection, batch_size=batch_size)
+        self._kvstore.put_all(artifact_pairs, collection=self._artifact_collection, batch_size=batch_size)
         self._kvstore.put_all(metadata_pairs, collection=self._metadata_collection, batch_size=batch_size)
-        self._kvstore.put_all(ref_info_pairs, collection=self._ref_info_collection, batch_size=batch_size)
+        self._kvstore.put_all(ref_info_pairs, collection=self._ref_collection, batch_size=batch_size)
 
     def _prepare_kv_pairs(
         self,
@@ -130,9 +130,9 @@ class KVArtifactStore(ArtifactStore):
         batch_size = batch_size or self._batch_size
         artifact_pairs, metadata_pairs, ref_info_pairs = await self._aprepare_kv_pairs(artifacts, allow_update, store_content)
         await asyncio.gather(
-            self._kvstore.aput_all(artifact_pairs, collection=self._data_collection, batch_size=batch_size),
+            self._kvstore.aput_all(artifact_pairs, collection=self._artifact_collection, batch_size=batch_size),
             self._kvstore.aput_all(metadata_pairs, collection=self._metadata_collection, batch_size=batch_size),
-            self._kvstore.aput_all(ref_info_pairs, collection=self._ref_info_collection, batch_size=batch_size)
+            self._kvstore.aput_all(ref_info_pairs, collection=self._ref_collection, batch_size=batch_size)
         )
 
     async def _aprepare_kv_pairs(
@@ -221,7 +221,7 @@ class KVArtifactStore(ArtifactStore):
         **kwargs
     ) -> None:
         self._remove_from_ref_artifact(artifact_id)
-        success = self._kvstore.delete(artifact_id, collection=self._data_collection, **kwargs)
+        success = self._kvstore.delete(artifact_id, collection=self._artifact_collection, **kwargs)
         self._kvstore.delete(artifact_id, collection=self._metadata_collection, **kwargs)
         if not success and raise_error:
             raise ValueError(f"Artifact with id '{artifact_id}' not found.")
@@ -236,11 +236,11 @@ class KVArtifactStore(ArtifactStore):
         if artifact_id in ref_info.artifact_ids:
             ref_info.artifact_ids.remove(artifact_id)
         if len(ref_info.artifact_ids) > 0:
-            self._kvstore.put(ref_id, ref_info.to_dict(), collection=self._ref_info_collection)
+            self._kvstore.put(ref_id, ref_info.to_dict(), collection=self._ref_collection)
         else:
-            self._kvstore.delete(ref_id, collection=self._data_collection)
+            self._kvstore.delete(ref_id, collection=self._artifact_collection)
             self._kvstore.delete(ref_id, collection=self._metadata_collection)
-            self._kvstore.delete(ref_id, collection=self._ref_info_collection)
+            self._kvstore.delete(ref_id, collection=self._ref_collection)
 
     async def adelete(
         self,
@@ -250,7 +250,7 @@ class KVArtifactStore(ArtifactStore):
     ) -> None:
         _, success, _ = await asyncio.gather(
             self._aremove_from_ref_artifact(artifact_id),
-            self._kvstore.adelete(artifact_id, collection=self._data_collection, **kwargs),
+            self._kvstore.adelete(artifact_id, collection=self._artifact_collection, **kwargs),
             self._kvstore.adelete(artifact_id, collection=self._metadata_collection, **kwargs)
         )
         if not success and raise_error:
@@ -266,27 +266,43 @@ class KVArtifactStore(ArtifactStore):
         if artifact_id in ref_info.artifact_ids:
             ref_info.artifact_ids.remove(artifact_id)
         if len(ref_info.artifact_ids) > 0:
-            await self._kvstore.aput(ref_id, ref_info.to_dict(), collection=self._ref_info_collection)
+            await self._kvstore.aput(ref_id, ref_info.to_dict(), collection=self._ref_collection)
         else:
             await asyncio.gather(
-                self._kvstore.adelete(ref_id, collection=self._data_collection),
+                self._kvstore.adelete(ref_id, collection=self._artifact_collection),
                 self._kvstore.adelete(ref_id, collection=self._metadata_collection),
-                self._kvstore.adelete(ref_id, collection=self._ref_info_collection)
+                self._kvstore.adelete(ref_id, collection=self._ref_collection)
             )
 
     #### Artifact Hashes
 
     def get_hash(self, artifact_id: str, **kwargs) -> Optional[str]:
-        pass
+        metadata = self._kvstore.get(artifact_id, collection=self._metadata_collection, **kwargs)
+        if metadata is None:
+            return None
+        return metadata.get('hash', None)
 
     async def aget_hash(self, artifact_id: str, **kwargs) -> Optional[str]:
-        pass
+        metadata = await self._kvstore.aget(artifact_id, collection=self._metadata_collection, **kwargs)
+        if metadata is None:
+            return None
+        return metadata.get('hash', None)
 
     def get_all_hashes(self, **kwargs) -> dict[str, str]:
-        pass
+        all_metadata = self._kvstore.get_all(collection=self._metadata_collection, **kwargs)
+        return {
+            metadata['hash']: artifact_id
+            for artifact_id, metadata in all_metadata.items()
+            if 'hash' in metadata
+        }
 
     async def aget_all_hashes(self, **kwargs) -> dict[str, str]:
-        pass
+        all_metadata = await self._kvstore.aget_all(collection=self._metadata_collection, **kwargs)
+        return {
+            metadata['hash']: artifact_id
+            for artifact_id, metadata in all_metadata.items()
+            if 'hash' in metadata
+        }
 
     def set_hash(
         self,
@@ -294,7 +310,12 @@ class KVArtifactStore(ArtifactStore):
         artifact_hash: str,
         **kwargs
     ) -> None:
-        pass
+        self._kvstore.put(
+            artifact_id,
+            {'hash': artifact_hash},
+            collection=self._metadata_collection,
+            **kwargs
+        )
 
     async def aset_hash(
         self,
@@ -302,21 +323,53 @@ class KVArtifactStore(ArtifactStore):
         artifact_hash: str,
         **kwargs
     ) -> None:
-        pass
+        await self._kvstore.aput(
+            artifact_id,
+            {'hash': artifact_hash},
+            collection=self._metadata_collection,
+            **kwargs
+        )
 
     def set_hashes(self, artifact_hashes: dict[str, str], **kwargs) -> None:
-        pass
+        self._kvstore.put_all(
+            [
+                (artifact_id, {'hash': artifact_hash})
+                for artifact_id, artifact_hash in artifact_hashes.items()
+            ],
+            collection=self._metadata_collection,
+            **kwargs
+        )
 
     async def aset_hashes(self, artifact_hashes: dict[str, str], **kwargs) -> None:
-        pass
+        await self._kvstore.aput_all(
+            [
+                (artifact_id, {'hash': artifact_hash})
+                for artifact_id, artifact_hash in artifact_hashes.items()
+            ],
+            collection=self._metadata_collection,
+            **kwargs
+        )
 
     #### Ref Artifacts
 
     def get_ref(self, ref_artifact_id: str, **kwargs) -> Optional[RefArtifactInfo]:
-        pass
+        data = self._kvstore.get(ref_artifact_id, collection=self._ref_collection, **kwargs)
+        return self._create_ref(data) if data is not None else None
 
     async def aget_ref(self, ref_artifact_id: str, **kwargs) -> Optional[RefArtifactInfo]:
-        pass
+        data = await self._kvstore.aget(ref_artifact_id, collection=self._ref_collection, **kwargs)
+        return self._create_ref(data) if data is not None else None
+
+    def get_all_refs(self, **kwargs) -> dict[str, RefArtifactInfo]:
+        all_data = self._kvstore.get_all(collection=self._ref_collection, **kwargs)
+        return {ref_id: self._create_ref(data) for ref_id, data in all_data.items()}
+
+    async def aget_all_refs(self, **kwargs) -> dict[str, RefArtifactInfo]:
+        all_data = await self._kvstore.aget_all(collection=self._ref_collection, **kwargs)
+        return {ref_id: self._create_ref(data) for ref_id, data in all_data.items()}
+
+    def _create_ref(self, data: dict) -> RefArtifactInfo:
+        return RefArtifactInfo(artifact_ids=data['artifact_ids'], metadata=data.get('metadata', {}))
 
     def _get_ref_id(self, artifact_id: str) -> Optional[str]:
         metadata = self._kvstore.get(artifact_id, collection=self._metadata_collection)
@@ -343,11 +396,11 @@ class KVArtifactStore(ArtifactStore):
 
         artifact_ids = ref_artifact.artifact_ids.copy()
         for artifact_id in artifact_ids:
-            self._kvstore.delete(artifact_id, collection=self._data_collection, **kwargs)
+            self.delete(artifact_id, raise_error=False, **kwargs)
 
-        self._kvstore.delete(ref_artifact_id, collection=self._data_collection, **kwargs)
+        self._kvstore.delete(ref_artifact_id, collection=self._artifact_collection, **kwargs)
         self._kvstore.delete(ref_artifact_id, collection=self._metadata_collection, **kwargs)
-        self._kvstore.delete(ref_artifact_id, collection=self._ref_info_collection, **kwargs)
+        self._kvstore.delete(ref_artifact_id, collection=self._ref_collection, **kwargs)
 
     async def adelete_ref(
         self, ref_artifact_id: str,
@@ -360,12 +413,11 @@ class KVArtifactStore(ArtifactStore):
                 raise ValueError(f"Ref artifact with id '{ref_artifact_id}' not found.")
 
         artifact_ids = ref_artifact.artifact_ids.copy()
+        for artifact_id in artifact_ids:
+            await self.adelete(artifact_id, raise_error=False, **kwargs)
+
         await asyncio.gather(
-            *[
-                self._kvstore.adelete(artifact_id, collection=self._data_collection, **kwargs)
-                for artifact_id in artifact_ids
-            ],
-            self._kvstore.adelete(ref_artifact_id, collection=self._data_collection, **kwargs),
+            self._kvstore.adelete(ref_artifact_id, collection=self._artifact_collection, **kwargs),
             self._kvstore.adelete(ref_artifact_id, collection=self._metadata_collection, **kwargs),
-            self._kvstore.adelete(ref_artifact_id, collection=self._ref_info_collection, **kwargs)
+            self._kvstore.adelete(ref_artifact_id, collection=self._ref_collection, **kwargs)
         )
