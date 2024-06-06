@@ -7,7 +7,7 @@ from modstack.cohere.rankers import CohereRankRequest
 from modstack.artifacts import Utf8Artifact
 from modstack.auth import Secret
 from modstack.modules import Modules
-from modstack.utils import tzip
+from modstack.utils.func import tzip
 
 logger = logging.getLogger(__name__)
 
