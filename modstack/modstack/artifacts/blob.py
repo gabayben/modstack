@@ -7,7 +7,7 @@ from docarray.typing import Mesh3DUrl
 from docarray.utils._internal.misc import ProtocolType
 from pydantic import Field
 
-from modstack.artifacts import Artifact, ArtifactType
+from modstack.artifacts import Artifact, Modality
 from modstack.typing import (
     AudioBytes,
     AudioTensor,
@@ -80,8 +80,8 @@ class ImageArtifact(MediaArtifact[ImageUrl, ImageBytes]):
     tensor: ImageTenser | None = Field(default=None, kw_only=True)
 
     @classmethod
-    def artifact_type(cls) -> str:
-        return ArtifactType.IMAGE
+    def modality(cls) -> str:
+        return Modality.IMAGE
 
 class AudioArtifact(MediaArtifact[AudioUrl, AudioBytes]):
     tensor: AudioTensor | None = Field(default=None, kw_only=True)
@@ -98,8 +98,8 @@ class AudioArtifact(MediaArtifact[AudioUrl, AudioBytes]):
         super().__init__(metadata=metadata, frame_rate=frame_rate, **kwargs)
 
     @classmethod
-    def artifact_type(cls) -> str:
-        return ArtifactType.AUDIO
+    def modality(cls) -> str:
+        return Modality.AUDIO
 
 class VideoArtifact(MediaArtifact[VideoUrl, VideoBytes]):
     tensor: VideoTensor | None = Field(default=None, kw_only=True)
@@ -107,19 +107,19 @@ class VideoArtifact(MediaArtifact[VideoUrl, VideoBytes]):
     audio: AudioArtifact | None = Field(default=None, kw_only=True)
 
     @classmethod
-    def artifact_type(cls) -> str:
-        return ArtifactType.VIDEO
+    def modality(cls) -> str:
+        return Modality.VIDEO
 
 class Mesh3D(MediaArtifact[Mesh3DUrl, bytes]):
     tensor: VerticesAndFaces | None = Field(default=None, kw_only=True)
 
     @classmethod
-    def artifact_type(cls) -> str:
-        return ArtifactType.MESH_3D
+    def modality(cls) -> str:
+        return Modality.MESH_3D
 
 class PointCloud3D(MediaArtifact[PointCloud3DUrl, bytes]):
     tensor: PointsAndColors | None = Field(default=None, kw_only=True)
 
     @classmethod
-    def artifact_type(cls) -> str:
-        return ArtifactType.POINT_CLOUD_3D
+    def modality(cls) -> str:
+        return Modality.POINT_CLOUD_3D

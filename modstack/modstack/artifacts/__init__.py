@@ -1,5 +1,5 @@
 from .base import (
-    ArtifactType,
+    Modality,
     ArtifactRelationship,
     ArtifactInfo,
     RelatedArtifact,
@@ -11,10 +11,10 @@ from .base import (
     artifact_registry
 )
 from .blob import (
-    AudioArtifact,
     BlobArtifact,
-    ImageArtifact,
     MediaArtifact,
+    ImageArtifact,
+    AudioArtifact,
     VideoArtifact,
     Mesh3D,
     PointCloud3D

@@ -1,6 +1,6 @@
 from typing import Any, Optional, Union
 
-from modstack.artifacts import ArtifactType, Utf8Artifact
+from modstack.artifacts import Utf8Artifact
 from modstack.artifacts.messages.utils import merge_content
 
 class MessageArtifact(Utf8Artifact):
@@ -23,10 +23,6 @@ class MessageArtifact(Utf8Artifact):
             metadata=metadata,
             **kwargs
         )
-
-    @classmethod
-    def artifact_type(cls) -> str:
-        return ArtifactType.MESSAGE
     
     def to_utf8(self) -> str:
         return self.content

@@ -12,15 +12,14 @@ from modstack.utils.constants import SCHEMA_TYPE
 from modstack.utils.paths import get_mime_type
 from modstack.utils.string import type_name
 
-class ArtifactType(StrEnum):
+class Modality(StrEnum):
     TEXT = 'text'
-    LINK = 'link'
-    MESSAGE = 'message'
     IMAGE = 'image'
     AUDIO = 'audio'
     VIDEO = 'video'
     MESH_3D = 'mesh_3d'
     POINT_CLOUD_3D = 'point_cloud_3d'
+    MULTI_MODAL = 'multi_modal'
     BYTE_STREAM = 'byte_stream'
 
 class ArtifactRelationship(StrEnum):
@@ -114,7 +113,7 @@ class Artifact(BaseDoc, ABC):
 
     @classmethod
     @abstractmethod
-    def artifact_type(cls) -> str:
+    def modality(cls) -> str:
         pass
 
     @classmethod
@@ -171,7 +170,7 @@ class Artifact(BaseDoc, ABC):
     def as_info(self) -> ArtifactInfo:
         return ArtifactInfo(
             id=self.id,
-            type=self.artifact_type(),
+            type=self.modality(),
             hash=self.hash,
             metadata=self.metadata
         )
@@ -206,6 +205,10 @@ StrictArtifactSource = Path | Artifact
 ArtifactSource = str | StrictArtifactSource
 
 class Utf8Artifact(Artifact, ABC):
+    @classmethod
+    def modality(cls) -> str:
+        return Modality.TEXT
+
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, str):
             return str(self) == other

@@ -1,6 +1,6 @@
 from typing import Any
 
-from modstack.artifacts import ArtifactType, TextArtifact, Utf8Artifact
+from modstack.artifacts import TextArtifact, Utf8Artifact
 from modstack.typing import TextUrl
 from modstack.utils.string import mapping_to_str
 
@@ -27,10 +27,6 @@ class LinkArtifact(Utf8Artifact):
             metadata=metadata,
             **kwargs
         )
-
-    @classmethod
-    def artifact_type(cls) -> str:
-        return ArtifactType.LINK
 
     def to_bytes(self, **kwargs) -> bytes:
         return self.link.load_bytes()
