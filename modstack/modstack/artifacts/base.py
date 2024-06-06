@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from enum import StrEnum, auto
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Literal, Optional, Self, Union
+from typing import Any, Literal, Optional, Self, Union, override
 
 from docarray.base_doc.doc import IncEx
 from pydantic import Field
@@ -139,6 +139,7 @@ class Artifact(BaseDoc, ABC):
             valid_path = path
         return cls.from_bytes(BaseUrl(valid_path).load_bytes())
 
+    @override
     def model_dump(
         self,
         *,
