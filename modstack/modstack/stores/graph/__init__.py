@@ -7,4 +7,5 @@ from .types import (
     GraphTriplet,
     Graph
 )
+from .filtering import GraphNodeQuery, GraphTripletQuery
 from .base import GraphStore
