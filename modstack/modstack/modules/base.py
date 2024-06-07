@@ -4,6 +4,7 @@ from typing import Any, AsyncIterator, Callable, Generic, Iterator, Mapping, Seq
 
 from pydantic import BaseModel
 
+from modstack.artifacts import Artifact
 from modstack.typing import AfterRetryFailure, Effect, Effects, RetryStrategy, ReturnType, Serializable, StopStrategy, WaitStrategy
 from modstack.typing.vars import In, Out
 from modstack.utils.serialization import create_schema, from_dict, to_dict
@@ -213,6 +214,7 @@ type ModuleLike[In, Out] = Union[Module[In, Out], ModuleFunction[In, Out]]
 ModuleLike = ModuleLike
 type ModuleMapping[In] = Mapping[str, ModuleLike[In, Any]]
 ModuleMapping = ModuleMapping
+ArtifactTransform = ModuleLike[list[Artifact], list[Artifact]]
 
 def coerce_to_module(thing: ModuleLike[In, Out]) -> Module[In, Out]:
     from modstack.modules.functional import Functional
