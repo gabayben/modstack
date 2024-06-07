@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from enum import StrEnum, auto
 from hashlib import sha256
 from pathlib import Path
@@ -232,6 +233,11 @@ class Utf8Artifact(Artifact, ABC):
 
     def _get_string_for_regex_filter(self) -> str:
         return str(self)
+
+@dataclass
+class ArtifactQuery:
+    value: Artifact
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 class _ArtifactRegistry(PydanticRegistry[Artifact]):
     pass

@@ -1,26 +1,17 @@
-from typing import Any, Optional, override
+from typing import Any, Optional
 
 from modstack.stores.graph import GraphNode, GraphNodeQuery, GraphRelation, GraphStore, GraphTriplet, GraphTripletQuery
 from modstack.stores.vector import VectorStoreQuery
 from modstack.typing import Embedding
 
-class Neo4jGraphStore(GraphStore):
-    @property
-    @override
-    def supports_structured_query(self) -> bool:
-        return True
-
-    @property
-    @override
-    def supports_vector_query(self) -> bool:
-        return True
-
+class SimpleGraphStore(GraphStore):
     def structured_query(
-        self, query: str,
+        self,
+        query: str,
         param_map: Optional[dict[str, Any]] = None,
         **kwargs
     ) -> Any:
-        pass
+        raise NotImplementedError()
 
     async def astructured_query(
         self,
@@ -28,13 +19,13 @@ class Neo4jGraphStore(GraphStore):
         param_map: Optional[dict[str, Any]] = None,
         **kwargs
     ) -> Any:
-        pass
+        raise NotImplementedError()
 
     def vector_query(self, query: VectorStoreQuery, **kwargs) -> tuple[list[GraphNode], Embedding]:
-        pass
+        raise NotImplementedError()
 
     async def avector_query(self, query: VectorStoreQuery, **kwargs) -> tuple[list[GraphNode], Embedding]:
-        pass
+        raise NotImplementedError()
 
     def get(self, query: Optional[GraphNodeQuery] = None) -> list[GraphNode]:
         pass
@@ -68,10 +59,10 @@ class Neo4jGraphStore(GraphStore):
     ) -> list[GraphTriplet]:
         pass
 
-    def upsert_nodes(self, nodes: list[GraphNode], **kwargs) -> None:
+    async def aupsert_nodes(self, nodes: list[GraphNode], **kwargs) -> None:
         pass
 
-    async def aupsert_nodes(self, nodes: list[GraphNode], **kwargs) -> None:
+    def upsert_nodes(self, nodes: list[GraphNode], **kwargs) -> None:
         pass
 
     def upsert_relations(self, relations: list[GraphRelation], **kwargs) -> None:

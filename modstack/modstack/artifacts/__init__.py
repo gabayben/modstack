@@ -8,6 +8,7 @@ from .base import (
     ArtifactSource,
     StrictArtifactSource,
     Utf8Artifact,
+    ArtifactQuery,
     artifact_registry
 )
 from .blob import (

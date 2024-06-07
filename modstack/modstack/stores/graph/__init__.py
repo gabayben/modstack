@@ -9,3 +9,4 @@ from .types import (
 )
 from .filtering import GraphNodeQuery, GraphTripletQuery
 from .base import GraphStore
+from .simple import SimpleGraphStore

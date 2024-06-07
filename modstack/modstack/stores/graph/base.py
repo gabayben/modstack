@@ -8,6 +8,14 @@ from modstack.typing import Embedding
 from modstack.utils.constants import GRAPH_TRIPLET_SOURCE_KEY
 
 class GraphStore(ABC):
+    @property
+    def supports_structured_query(self) -> bool:
+        return False
+
+    @property
+    def supports_vector_query(self) -> bool:
+        return False
+
     @abstractmethod
     def structured_query(
         self,

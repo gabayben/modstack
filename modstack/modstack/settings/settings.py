@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from typing import Optional
 
 from modstack.stores.artifact import ArtifactStore, KVArtifactStore
-from modstack.stores.graph import GraphStore
+from modstack.stores.graph import GraphStore, SimpleGraphStore
 from modstack.stores.index import IndexStore, KVIndexStore
 from modstack.stores.keyvalue import KVStore, SimpleKVStore
-from modstack.stores.vector import VectorStore
+from modstack.stores.vector import SimpleVectorStore, VectorStore
 
 @dataclass
 class _Settings:
@@ -22,6 +22,10 @@ class _Settings:
     @kvstore.setter
     def kvstore(self, kvstore: KVStore) -> None:
         self._kvstore = kvstore
+        if isinstance(self.artifact_store, KVArtifactStore):
+            self.artifact_store = KVArtifactStore(self._kvstore)
+        if isinstance(self.index_store, KVIndexStore):
+            self.index_store = KVIndexStore(self._kvstore)
 
     @property
     def artifact_store(self) -> ArtifactStore:
@@ -59,5 +63,7 @@ _kvstore = SimpleKVStore()
 Settings = _Settings(
     _kvstore=_kvstore,
     _artifact_store=KVArtifactStore(_kvstore),
-    _index_store=KVIndexStore(_kvstore)
+    _index_store=KVIndexStore(_kvstore),
+    _graph_store=SimpleGraphStore(),
+    _vector_store=SimpleVectorStore()
 )
