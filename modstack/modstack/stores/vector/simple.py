@@ -1,10 +1,22 @@
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Any, Optional
+
+from dataclasses_json import DataClassJsonMixin
 
 from modstack.artifacts import Artifact
 from modstack.stores.vector import VectorStore, VectorStoreQuery, VectorStoreQueryResult
-from modstack.typing import MetadataFilters
+from modstack.typing import Embedding, MetadataFilters
+
+@dataclass
+class SimpleVectorStoreData(DataClassJsonMixin):
+    embeddings: dict[str, Embedding] = field(default_factory=dict)
+    ref_id_mapping: dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 class SimpleVectorStore(VectorStore):
+    def __init__(self, data: Optional[SimpleVectorStoreData] = None):
+        self._data: SimpleVectorStoreData = data or SimpleVectorStoreData()
+
     def retrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
         pass
 
