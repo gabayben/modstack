@@ -6,3 +6,4 @@ from .typing import (
     VectorStoreQueryResult
 )
 from .base import VectorStore
+from .simple import SimpleVectorStore
