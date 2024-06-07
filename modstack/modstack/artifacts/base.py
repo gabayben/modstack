@@ -85,7 +85,6 @@ class ArtifactHierarchy(dict[ArtifactRelationship, RelatedArtifact]):
 
 class Artifact(BaseDoc, ABC):
     name: Optional[str] = None
-    mime_type: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
     embedding: Optional[Embedding] = Field(default=None, exclude=True, kw_only=True)
     score: Optional[float] = Field(default=None, kw_only=True)
@@ -119,14 +118,13 @@ class Artifact(BaseDoc, ABC):
     @classmethod
     def from_source(cls, source: 'ArtifactSource', metadata: dict[str, Any] = {}) -> Self:
         if isinstance(source, Artifact):
-            metadata['mime_type'] = metadata.get('mime_type', None) or source.mime_type
+            metadata['mime_type'] = metadata.get('mime_type', None)
             return cls.from_artifact(source, metadata)
         return cls.from_path(source, metadata)
 
     @classmethod
     def from_artifact(cls, other: 'Artifact', metadata: dict[str, Any] = {}) -> Self:
         artifact = cls.from_bytes(bytes(other))
-        artifact.mime_type = other.mime_type or other.metadata.get('mime_type', None) or metadata.get('mime_type', None)
         artifact.metadata.update({**other.metadata, **metadata})
         return artifact
 
@@ -192,7 +190,7 @@ class Artifact(BaseDoc, ABC):
         elif isinstance(source, BaseUrl):
             mime_type = source.mime_type
         elif isinstance(source, Artifact):
-            mime_type = source.mime_type
+            mime_type = source.metadata.get('mime_type', None)
         else:
             raise ValueError(f'Unsupported data source type: {type(source).__name__}.')
         return mime_type

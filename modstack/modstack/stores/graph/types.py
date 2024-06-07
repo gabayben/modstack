@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Union, override
+from typing import Any, Optional, Self, Union, override
 
 from pydantic import Field
 
@@ -24,7 +24,7 @@ class GraphElement(Serializable, ABC):
             str(self),
             id=self.id,
             name=self.label,
-            metadata=self.properties
+            **self.properties
         )
 
 class GraphNode(GraphElement, ABC):
@@ -37,7 +37,7 @@ class GraphNode(GraphElement, ABC):
             id=self.id,
             name=self.label,
             embedding=self.embedding,
-            metadata=self.properties
+            **self.properties
         )
 
 class EntityNode(GraphNode):
@@ -57,7 +57,7 @@ class EntityNode(GraphNode):
             id=self.id,
             name=self.name,
             embedding=self.embedding,
-            metadata=self.properties
+            **self.properties
         )
 
 class ChunkNode(GraphNode):
@@ -67,6 +67,18 @@ class ChunkNode(GraphNode):
     @property
     def id(self) -> str:
         return self.id_ or str(hash(self.text))
+
+    @classmethod
+    def from_artifact(cls, artifact: Artifact) -> Self:
+        return cls(
+            text=str(artifact),
+            id_=artifact.id,
+            label=artifact.name,
+            embedding=artifact.embedding,
+            properties={
+                **artifact.model_dump(exclude={'id', 'name', 'embedding'})
+            }
+        )
 
     def __str__(self) -> str:
         return self.text
