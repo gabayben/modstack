@@ -4,28 +4,16 @@ from typing import Optional
 from modstack.stores.artifact import ArtifactStore, KVArtifactStore
 from modstack.stores.graph import GraphStore, SimpleGraphStore
 from modstack.stores.index import IndexStore, KVIndexStore
-from modstack.stores.keyvalue import KVStore, SimpleKVStore
+from modstack.stores.keyvalue import SimpleKVStore
 from modstack.stores.vector import SimpleVectorStore, VectorStore
 
 @dataclass
 class _Settings:
-    _kvstore: Optional[KVStore] = None
     _artifact_store: Optional[ArtifactStore] = None
     _index_store: Optional[IndexStore] = None
     _graph_store: Optional[GraphStore] = None
     _vector_store: Optional[VectorStore] = None
-
-    @property
-    def kvstore(self) -> KVStore:
-        return self._kvstore
-
-    @kvstore.setter
-    def kvstore(self, kvstore: KVStore) -> None:
-        self._kvstore = kvstore
-        if isinstance(self.artifact_store, KVArtifactStore):
-            self.artifact_store = KVArtifactStore(self._kvstore)
-        if isinstance(self.index_store, KVIndexStore):
-            self.index_store = KVIndexStore(self._kvstore)
+    _ingestion_cache: Optional[ArtifactStore] = None
 
     @property
     def artifact_store(self) -> ArtifactStore:
@@ -59,11 +47,19 @@ class _Settings:
     def vector_store(self, vector_store: VectorStore) -> None:
         self._vector_store = vector_store
 
+    @property
+    def ingestion_cache(self) -> ArtifactStore:
+        return self._ingestion_cache
+
+    @ingestion_cache.setter
+    def ingestion_cache(self, ingestion_cache: ArtifactStore) -> None:
+        self._ingestion_cache = ingestion_cache
+
 _kvstore = SimpleKVStore()
 Settings = _Settings(
-    _kvstore=_kvstore,
     _artifact_store=KVArtifactStore(_kvstore),
     _index_store=KVIndexStore(_kvstore),
     _graph_store=SimpleGraphStore(),
-    _vector_store=SimpleVectorStore()
+    _vector_store=SimpleVectorStore(),
+    _ingestion_cache=KVArtifactStore(_kvstore, namespace='ingestion_cache')
 )
