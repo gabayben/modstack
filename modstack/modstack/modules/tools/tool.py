@@ -2,7 +2,7 @@ from typing import Any, Type, override
 
 from pydantic import BaseModel
 
-from modstack.modules import Module, ModuleLike, SerializableModule, coerce_to_module
+from modstack.modules import Module, ModuleFunction, ModuleLike, SerializableModule, coerce_to_module, module
 from modstack.modules.tools import ToolSpec
 from modstack.typing import Effect
 
@@ -58,3 +58,23 @@ class Tool(SerializableModule[dict[str, Any], Any]):
             output_schema=self.output_schema(),
             metadata=self.metadata
         )
+
+def tool(
+    func: ModuleFunction | None = None,
+    name: str | None = None,
+    description: str | None = None,
+    input_schema: Type[BaseModel] | None = None,
+    output_schema: Type[BaseModel] | None = None
+) -> Tool:
+    def decorator(func: ModuleFunction) -> Tool:
+        return Tool(
+            module(
+                func=func,
+                name=name,
+                description=description,
+                input_schema=input_schema,
+                output_schema=output_schema
+            )
+        )
+
+    return decorator(func) if func else decorator
