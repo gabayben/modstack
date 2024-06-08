@@ -10,7 +10,7 @@ from modstack.utils.constants import SCHEMA_TYPE
 from modstack.utils.string import type_name
 
 class IndexStruct(Serializable, ABC):
-    index_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    index_id: str = field(default_factory=lambda: str(uuid.uuid4()), kw_only=True)
 
     @override
     def model_dump(
