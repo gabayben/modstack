@@ -100,7 +100,7 @@ class FlowBase(SerializableModule[RunFlow, FlowData], ABC):
             for name, info in node.output_schema().model_fields.items()
         }
 
-        self.graph.add_node(
+        self.graph.add_artifact(
             name,
             name=name,
             instance=node,
