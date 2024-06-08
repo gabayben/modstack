@@ -8,7 +8,7 @@ from modstack.cohere.typing import OMIT
 from modstack.auth import Secret
 from modstack.modules import Modules
 from modstack.modules.ai import TextEmbeddingResponse
-from modstack.utils import tzip
+from modstack.utils.func import tzip
 
 _EMBED_RESPONSE = cohere.EmbedResponse_EmbeddingsFloats | cohere.EmbedResponse_EmbeddingsByType
 

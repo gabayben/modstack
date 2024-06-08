@@ -2,17 +2,17 @@ from typing import Sequence
 
 from modstack.artifacts import Artifact
 from modstack.indices import Index
-from modstack.indices.structs import ListIndexStruct
+from modstack.indices.structs import ListStruct
 from modstack.stores.artifact import RefArtifactInfo
 
-class ListIndex(Index[ListIndexStruct]):
-    def _build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> ListIndexStruct:
-        struct = ListIndexStruct()
+class ListIndex(Index[ListStruct]):
+    def _build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> ListStruct:
+        struct = ListStruct()
         for artifact in artifacts:
             struct.add_artifact(artifact.id)
         return struct
 
-    async def _abuild_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> ListIndexStruct:
+    async def _abuild_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> ListStruct:
         return self._build_from_artifacts(artifacts, **kwargs)
 
     def get_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
