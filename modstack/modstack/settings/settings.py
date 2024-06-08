@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from modstack.stores.artifact import ArtifactStore, KVArtifactStore
+from modstack.stores.artifact import ArtifactStore, InjestionCache, KVArtifactStore
 from modstack.stores.graph import GraphStore, SimpleGraphStore
 from modstack.stores.index import IndexStore, KVIndexStore
 from modstack.stores.keyvalue import SimpleKVStore
@@ -13,7 +13,7 @@ class _Settings:
     _index_store: Optional[IndexStore] = None
     _graph_store: Optional[GraphStore] = None
     _vector_store: Optional[VectorStore] = None
-    _ingestion_cache: Optional[ArtifactStore] = None
+    _ingestion_cache: Optional[InjestionCache] = None
 
     @property
     def artifact_store(self) -> ArtifactStore:
@@ -48,11 +48,11 @@ class _Settings:
         self._vector_store = vector_store
 
     @property
-    def ingestion_cache(self) -> ArtifactStore:
+    def ingestion_cache(self) -> InjestionCache:
         return self._ingestion_cache
 
     @ingestion_cache.setter
-    def ingestion_cache(self, ingestion_cache: ArtifactStore) -> None:
+    def ingestion_cache(self, ingestion_cache: InjestionCache) -> None:
         self._ingestion_cache = ingestion_cache
 
 _kvstore = SimpleKVStore()
@@ -61,5 +61,5 @@ Settings = _Settings(
     _index_store=KVIndexStore(_kvstore),
     _graph_store=SimpleGraphStore(),
     _vector_store=SimpleVectorStore(),
-    _ingestion_cache=KVArtifactStore(_kvstore, namespace='ingestion_cache')
+    _ingestion_cache=InjestionCache(_kvstore)
 )
