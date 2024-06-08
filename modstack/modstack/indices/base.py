@@ -9,7 +9,7 @@ from modstack.indices.structs import IndexStruct
 from modstack.modules import ArtifactTransform
 from modstack.modules.utils import arun_transformations, run_transformations
 from modstack.settings import Settings
-from modstack.stores.artifact import ArtifactStore, RefArtifactInfo
+from modstack.stores.artifact import ArtifactStore, InjestionCache, RefArtifactInfo
 from modstack.stores.index import IndexStore
 
 logger = logging.getLogger(__name__)
@@ -20,6 +20,8 @@ STRUCT = TypeVar('STRUCT', bound=IndexStruct)
 class Index(Generic[STRUCT], ABC):
     _artifact_store: ArtifactStore = field(default=Settings.artifact_store, kw_only=True)
     _index_store: IndexStore = field(default=Settings.index_store, kw_only=True)
+    _cache: Optional[InjestionCache] = field(default=None, kw_only=True)
+    _cache_collection: Optional[str] = field(default=None, kw_only=True)
     _transformations: list[ArtifactTransform] = field(default_factory=list, kw_only=True)
     _struct: Optional[STRUCT] = field(default=None, init=False)
 
@@ -30,6 +32,14 @@ class Index(Generic[STRUCT], ABC):
     @property
     def index_store(self) -> IndexStore:
         return self._index_store
+
+    @property
+    def cache(self) -> Optional[InjestionCache]:
+        return self._cache
+
+    @property
+    def cache_collection(self) -> Optional[str]:
+        return self._cache_collection
 
     @property
     def transformations(self) -> list[ArtifactTransform]:
@@ -97,7 +107,12 @@ class Index(Generic[STRUCT], ABC):
 
     def insert(self, ref_artifact: Artifact, **kwargs) -> None:
         artifacts = (
-            run_transformations([ref_artifact], self.transformations)
+            run_transformations(
+                [ref_artifact],
+                self.transformations,
+                cache=self.cache,
+                cache_collection=self.cache_collection
+            )
             if self.transformations
             else [ref_artifact]
         )
@@ -115,7 +130,12 @@ class Index(Generic[STRUCT], ABC):
 
     async def ainsert(self, ref_artifact: Artifact, **kwargs) -> None:
         artifacts = (
-            await arun_transformations([ref_artifact], self.transformations)
+            await arun_transformations(
+                [ref_artifact],
+                self.transformations,
+                cache=self.cache,
+                cache_collection=self.cache_collection
+            )
             if self.transformations
             else [ref_artifact]
         )
