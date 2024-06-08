@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from modstack.index_structs import IndexStruct
+from modstack.indices.structs import IndexStruct
 
 class IndexStore(ABC):
     @abstractmethod
@@ -21,11 +21,11 @@ class IndexStore(ABC):
         pass
 
     @abstractmethod
-    def insert_struct(self, struct: IndexStruct, **kwargs) -> None:
+    def upsert_struct(self, struct: IndexStruct, **kwargs) -> None:
         pass
 
     @abstractmethod
-    async def ainsert_struct(self, struct: IndexStruct, **kwargs) -> None:
+    async def aupsert_struct(self, struct: IndexStruct, **kwargs) -> None:
         pass
 
     @abstractmethod

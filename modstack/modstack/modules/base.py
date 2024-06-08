@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import partial
-from typing import Any, AsyncIterator, Callable, Generic, Iterator, Mapping, Sequence, Type, Union, final, get_args
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, Mapping, Sequence, Type, Union, final, get_args, override
 
 from pydantic import BaseModel
 
@@ -42,6 +42,9 @@ class Module(Generic[In, Out], ABC):
     def __ror__(self, other: 'ModuleLike[Other, In]') -> 'Module[Other, Out]':
         from modstack.modules.sequential import Sequential
         return Sequential(coerce_to_module(other), self)
+
+    def __str__(self) -> str:
+        return self.get_name()
 
     def map(self, mapper: 'ModuleLike[Out, Other]') -> 'Module[In, Other]':
         return self | mapper
@@ -141,7 +144,9 @@ class Module(Generic[In, Out], ABC):
         return to_dict(data)
 
 class SerializableModule(Serializable, Module[In, Out], ABC):
-    pass
+    @override
+    def __str__(self) -> str:
+        return str(self.model_dump())
 
 class Modules:
     class Sync(SerializableModule[In, Out], ABC):

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from modstack.index_structs import IndexStruct, index_struct_registry
+from modstack.indices.structs import IndexStruct, index_struct_registry
 from modstack.stores.index import IndexStore
 from modstack.stores.keyvalue import KVStore
 
@@ -43,7 +43,7 @@ class KVIndexStore(IndexStore):
         all_data = await self._kvstore.aget_all(collection=self._collection, **kwargs)
         return [index_struct_registry.deserialize(data) for data in all_data.values()]
 
-    def insert_struct(self, struct: IndexStruct, **kwargs) -> None:
+    def upsert_struct(self, struct: IndexStruct, **kwargs) -> None:
         self._kvstore.put(
             struct.index_id,
             struct.model_dump(),
@@ -51,7 +51,7 @@ class KVIndexStore(IndexStore):
             **kwargs
         )
 
-    async def ainsert_struct(self, struct: IndexStruct, **kwargs) -> None:
+    async def aupsert_struct(self, struct: IndexStruct, **kwargs) -> None:
         await self._kvstore.aput(
             struct.index_id,
             struct.model_dump(),
