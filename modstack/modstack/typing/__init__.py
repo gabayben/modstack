@@ -33,7 +33,7 @@ from .types import (
 
 from .protocols import Addable
 from .addable_dict import AddableDict
-from .serializable import Serializable
+from .models import Serializable, Schema
 from .effect import Effect, Effects, ReturnType
 from .registry import PydanticRegistry
 

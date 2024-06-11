@@ -7,8 +7,8 @@ from pdfminer.layout import LAParams, LTPage, LTTextContainer
 
 from modstack.artifacts import ByteStream, TextArtifact, Utf8Artifact
 from modstack.modules import Modules
-from modstack.utils import normalize_metadata
-from modstack.utils import tzip
+from modstack.utils.dicts import normalize_metadata
+from modstack.utils.func import tzip
 from modstack.pdfminer import PDFMinerToText
 
 logger = logging.getLogger(__name__)
@@ -37,19 +37,19 @@ class PDFMiner(Modules.Sync[PDFMinerToText, list[Utf8Artifact]]):
                 continue
             try:
                 pages = extract_pages(io.BytesIO(bytes(bytestream)), laparams=layout_params)
-                results.append(self._convert(pages, bytestream.metadata))
+                results.extend(self._convert(pages, bytestream.metadata))
             except Exception as e:
                 logger.warning(f'Could not read {source} and convert it to TextArtifact. Skipping it.')
                 logger.exception(e)
 
         return results
 
-    def _convert(self, pages: Iterator[LTPage], metadata: dict[str, Any]) -> TextArtifact:
-        texts: list[str] = []
-        for page in pages:
+    def _convert(self, pages: Iterator[LTPage], metadata: dict[str, Any]) -> list[TextArtifact]:
+        artifacts: list[TextArtifact] = []
+        for i, page in enumerate(pages):
             text = ''
             for container in page:
                 if isinstance(container, LTTextContainer):
                     text += container.get_text()
-            texts.append(text)
-        return TextArtifact('\f'.join(texts), metadata=metadata)
+            artifacts.append(TextArtifact(text, metadata={'page': i, **metadata}))
+        return artifacts

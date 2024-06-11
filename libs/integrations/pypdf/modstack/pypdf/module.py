@@ -5,8 +5,8 @@ from pypdf import PdfReader
 
 from modstack.artifacts import ByteStream, Utf8Artifact
 from modstack.modules import Modules
-from modstack.utils import normalize_metadata
-from modstack.utils import tzip
+from modstack.utils.dicts import normalize_metadata
+from modstack.utils.func import tzip
 from modstack.pypdf import PyPDFToText
 from modstack.pypdf.converter import _DefaultConverter
 
@@ -27,7 +27,7 @@ class PyPDF(Modules.Sync[PyPDFToText, list[Utf8Artifact]]):
                 continue
             try:
                 reader = PdfReader(io.BytesIO(bytes(bytestream)))
-                results.append(converter.convert(reader))
+                results.extend(converter.convert(reader))
             except Exception as e:
                 logger.warning(f'Could not read {source} and convert it to TextArtifact. Skipping it.')
                 logger.exception(e)

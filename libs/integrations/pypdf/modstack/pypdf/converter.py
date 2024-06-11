@@ -7,9 +7,15 @@ from modstack.typing import Serializable
 
 class PyPDFConverter(Serializable, ABC):
     @abstractmethod
-    def convert(self, reader: PdfReader) -> Utf8Artifact:
+    def convert(self, reader: PdfReader) -> list[Utf8Artifact]:
         pass
 
 class _DefaultConverter(Serializable, PyPDFConverter):
-    def convert(self, reader: PdfReader) -> Utf8Artifact:
-        return TextArtifact('\f'.join([page.extract_text() for page in reader.pages]))
+    def convert(self, reader: PdfReader) -> list[Utf8Artifact]:
+        return [
+            TextArtifact(
+                page.extract_text(),
+                metadata={'page': page.page_number, **reader.metadata}
+            )
+            for page in reader.pages
+        ]

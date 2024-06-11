@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from modstack.artifacts import Artifact
 from modstack.typing import AfterRetryFailure, Effect, Effects, RetryStrategy, ReturnType, Serializable, StopStrategy, WaitStrategy
-from modstack.typing.vars import In, Out
+from modstack.typing.vars import In, Other, Out
 from modstack.utils.serialization import create_schema, from_dict, to_dict
 
 class Module(Generic[In, Out], ABC):
