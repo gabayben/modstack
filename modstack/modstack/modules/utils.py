@@ -1,10 +1,11 @@
 from hashlib import sha256
 import re
-from typing import Any, NamedTuple, Optional
+from typing import Optional
 
 from modstack.artifacts import Artifact, TextArtifact
 from modstack.modules import ArtifactTransform, Module, coerce_to_module, module
 from modstack.stores.artifact import InjestionCache
+from modstack.typing import MetadataType
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
 
@@ -65,14 +66,14 @@ def get_transformation_hash(
 def _remove_unstable_values(s: str) -> str:
     return re.sub(r'<[\w\s_. ]+ at 0x[a-z0-9]+>', '', s)
 
-class ToTextArtifacts(NamedTuple):
-    content: list[str]
-    metadata: list[dict[str, Any]] | dict[str, Any] | None = None
-
 @module
-def to_text_artifacts(data: ToTextArtifacts) -> list[TextArtifact]:
-    metadata = normalize_metadata(data.metadata, len(data.content))
+def to_text_artifacts(
+    content: list[str],
+    metadata: Optional[MetadataType] = None,
+    **kwargs
+) -> list[TextArtifact]:
+    metadata = normalize_metadata(metadata, len(content))
     artifacts: list[TextArtifact] = []
-    for text, md in tzip(data.content, metadata):
+    for text, md in tzip(content, metadata):
         artifacts.append(TextArtifact(text, metadata=md))
     return artifacts

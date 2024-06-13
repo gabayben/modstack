@@ -1,1 +1,1 @@
-from .module import Tika
+from .module import TikaConverter

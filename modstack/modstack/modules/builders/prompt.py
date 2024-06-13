@@ -4,10 +4,9 @@ from jinja2 import Template, meta
 from pydantic import BaseModel
 
 from modstack.modules import Modules
-from modstack.modules.builders import PromptData
 from modstack.utils.serialization import create_model
 
-class PromptBuilder(Modules.Sync[PromptData, str]):
+class PromptBuilder(Modules.Sync[dict[str, Any], str]):
     def __init__(
         self,
         template: str,
@@ -20,8 +19,7 @@ class PromptBuilder(Modules.Sync[PromptData, str]):
         ast = self.template.environment.parse(template)
         self.template_variables = meta.find_undeclared_variables(ast)
 
-    def _invoke(self, prompt: PromptData, **kwargs) -> str:
-        variables = dict(prompt)
+    def _invoke(self, variables: dict[str, Any], **kwargs) -> str:
         missing_variables = [v for v in self.required_variables if v not in variables]
         if missing_variables:
             raise ValueError(f'Missing required input variables: {', '.join(missing_variables)}.')

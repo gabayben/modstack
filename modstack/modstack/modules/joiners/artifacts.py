@@ -6,14 +6,14 @@ from typing import Iterable
 
 from modstack.artifacts import Artifact
 from modstack.modules import Modules
-from modstack.modules.joiners import JoinArtifacts
+from modstack.typing import Variadic
 from modstack.utils.func import chain_iterables, tzip
 
 logger = logging.getLogger(__name__)
 
-class _ArtifactJoiner(Modules.Sync[JoinArtifacts, list[Artifact]], ABC):
+class _ArtifactJoiner(Modules.Sync[Variadic[list[Artifact]], list[Artifact]], ABC):
     @abstractmethod
-    def _invoke(self, data: JoinArtifacts, **kwargs) -> list[Artifact]:
+    def _invoke(self, artifacts: Variadic[list[Artifact]], **kwargs) -> list[Artifact]:
         pass
 
     def _sort_and_filter_artifacts(
@@ -39,27 +39,41 @@ class _ArtifactJoiner(Modules.Sync[JoinArtifacts, list[Artifact]], ABC):
 
 class ArtifactJoiners:
     class Concatenate(_ArtifactJoiner):
-        def _invoke(self, data: JoinArtifacts, **kwargs) -> list[Artifact]:
+        def _invoke(
+            self,
+            artifacts: Variadic[list[Artifact]],
+            weights: list[float] | None = None,
+            top_k: int | None = None,
+            sort_by_score: bool = True,
+            **kwargs
+        ) -> list[Artifact]:
             joined_artifacts: list[Artifact] = []
             artifacts_by_id: dict[str, list[Artifact]] = defaultdict(list)
-            for artifact in chain_iterables(data.artifacts):
+            for artifact in chain_iterables(artifacts):
                 artifacts_by_id[artifact.id].append(artifact)
             for group in artifacts_by_id.values():
                 artifact_with_best_score = max(group, key=lambda artifact: artifact.score if artifact.score else -inf)
                 joined_artifacts.append(artifact_with_best_score)
             return self._sort_and_filter_artifacts(
                 joined_artifacts,
-                data.weights,
-                data.top_k,
-                data.sort_by_score
+                weights,
+                top_k,
+                sort_by_score
             )
 
     class Merge(_ArtifactJoiner):
-        def _invoke(self, data: JoinArtifacts, **kwargs) -> list[Artifact]:
-            artifacts = list(data.artifacts)
+        def _invoke(
+            self,
+            artifacts: Variadic[list[Artifact]],
+            weights: list[float] | None = None,
+            top_k: int | None = None,
+            sort_by_score: bool = True,
+            **kwargs
+        ) -> list[Artifact]:
+            artifacts = list(artifacts)
             artifact_map: dict[str, Artifact] = {}
             scores_by_id: dict[str, float] = defaultdict(float)
-            weights = data.weights if data.weights else [1 / len(artifacts)] * len(artifacts)
+            weights = weights if weights else [1 / len(artifacts)] * len(artifacts)
             for artifact_list, weight in tzip(artifacts, weights):
                 for artifact in artifact_list:
                     artifact_map[artifact.id] = artifact
@@ -69,16 +83,23 @@ class ArtifactJoiners:
             return self._sort_and_filter_artifacts(
                 artifact_map.values(),
                 weights,
-                data.top_k,
-                data.sort_by_score
+                top_k,
+                sort_by_score
             )
 
     class ReciprocalRankFusion(_ArtifactJoiner):
-        def _invoke(self, data: JoinArtifacts, **kwargs) -> list[Artifact]:
-            artifacts = list(data.artifacts)
+        def _invoke(
+            self,
+            artifacts: Variadic[list[Artifact]],
+            weights: list[float] | None = None,
+            top_k: int | None = None,
+            sort_by_score: bool = True,
+            **kwargs
+        ) -> list[Artifact]:
+            artifacts = list(artifacts)
             artifact_map: dict[str, Artifact] = {}
             scores_by_id: dict[str, float] = defaultdict(float)
-            weights = data.weights if data.weights else [1 / len(artifacts)] * len(artifacts)
+            weights = weights if weights else [1 / len(artifacts)] * len(artifacts)
             k = 61
             for artifact_list, weight in tzip(artifacts, weights):
                 for rank, artifact in enumerate(artifact_list):
@@ -91,6 +112,6 @@ class ArtifactJoiners:
             return self._sort_and_filter_artifacts(
                 artifact_map.values(),
                 weights,
-                data.top_k,
-                data.sort_by_score
+                top_k,
+                sort_by_score
             )

@@ -4,10 +4,10 @@ from typing import Any, Iterator
 import requests
 
 from modstack.modules import Modules
-from modstack.artifacts import ChatMessageChunk, ChatRole
-from modstack.ollama.llm import OllamaLLMRequest
+from modstack.artifacts.messages import ChatMessageChunk, ChatRole
+from modstack.modules.ai import LLMRequest
 
-class OllamaLLM(Modules.Stream[OllamaLLMRequest, list[ChatMessageChunk]]):
+class OllamaLLM(Modules.Stream[LLMRequest, list[ChatMessageChunk]]):
     def __init__(
         self,
         url: str = 'http://localhost:11434/api/generate',
@@ -27,12 +27,23 @@ class OllamaLLM(Modules.Stream[OllamaLLMRequest, list[ChatMessageChunk]]):
         self.raw = raw
         self.generation_args = generation_args
 
-    def _iter(self, data: OllamaLLMRequest, **kwargs) -> Iterator[list[ChatMessageChunk]]:
-        generation_args = {**self.generation_args, **(data.model_extra or {}), 'stream': True}
-        system_prompt = data.system_prompt or self.system_prompt
-        template = data.template or self.template
-        timeout = data.timeout or self.timeout
-        raw = data.raw if data.raw is not None else self.raw
+    def _iter(
+        self,
+        data: LLMRequest,
+        role: ChatRole = ChatRole.USER,
+        images: list[str] | None = None,
+        system_prompt: str | None = None,
+        template: str | None = None,
+        timeout: int | None = None,
+        raw: bool | None = None,
+        stream: bool | None = None,
+        **kwargs
+    ) -> Iterator[list[ChatMessageChunk]]:
+        generation_args = {**self.generation_args, **kwargs, 'stream': True}
+        system_prompt = system_prompt or self.system_prompt
+        template = template or self.template
+        timeout = timeout or self.timeout
+        raw = raw if raw is not None else self.raw
 
         payload = {
             'prompt': data.prompt,

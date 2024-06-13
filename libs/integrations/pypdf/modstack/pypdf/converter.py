@@ -5,12 +5,12 @@ from pypdf import PdfReader
 from modstack.artifacts import TextArtifact, Utf8Artifact
 from modstack.typing import Serializable
 
-class PyPDFConverter(Serializable, ABC):
+class PyPDFExtractor(Serializable, ABC):
     @abstractmethod
     def convert(self, reader: PdfReader) -> list[Utf8Artifact]:
         pass
 
-class _DefaultConverter(Serializable, PyPDFConverter):
+class _DefaultExtractor(Serializable, PyPDFExtractor):
     def convert(self, reader: PdfReader) -> list[Utf8Artifact]:
         return [
             TextArtifact(

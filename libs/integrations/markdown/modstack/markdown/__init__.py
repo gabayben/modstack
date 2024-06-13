@@ -1,2 +1,1 @@
-from .contracts import MdItToText, RendererType
-from .module import MdIt
+from .module import RendererType, MdItConverter

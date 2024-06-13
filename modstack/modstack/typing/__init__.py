@@ -4,6 +4,7 @@ from .types import (
     Variadic,
     StreamingChunk,
     StreamingCallback,
+    MetadataType,
     AudioBytes,
     AudioUrl,
     BaseBytes,

@@ -1,18 +1,25 @@
+from typing import Optional
+
 from modstack.artifacts import Artifact
-from modstack.modules.rankers import RankLostInTheMiddle
 from modstack.modules import Modules
 
-class LostInTheMiddleRanker(Modules.Sync[RankLostInTheMiddle, list[Artifact]]):
-    def _invoke(self, data: RankLostInTheMiddle, **kwargs) -> list[Artifact]:
-        if not data.artifacts:
+class LostInTheMiddleRanker(Modules.Sync[list[Artifact], list[Artifact]]):
+    def _invoke(
+        self, 
+        artifacts: list[Artifact],
+        top_k: Optional[int] = None,
+        word_count_threshold: Optional[int] = None,
+        **kwargs
+    ) -> list[Artifact]:
+        if not artifacts:
             return []
 
-        if data.top_k is not None and data.top_k <= 0:
-            raise ValueError(f'Invalid value for top_k {data.top_k}. Must be > 0.')
-        if data.word_count_threshold is not None and data.word_count_threshold <= 0:
-            raise ValueError(f'Invalid value for word_count_threshold {data.word_count_threshold}. Must be > 0.')
+        if top_k is not None and top_k <= 0:
+            raise ValueError(f'Invalid value for top_k {top_k}. Must be > 0.')
+        if word_count_threshold is not None and word_count_threshold <= 0:
+            raise ValueError(f'Invalid value for word_count_threshold {word_count_threshold}. Must be > 0.')
 
-        artifacts_to_reorder = data.artifacts[:data.top_k] if data.top_k else data.artifacts
+        artifacts_to_reorder = artifacts[:top_k] if top_k else artifacts
         if len(artifacts_to_reorder) == 1:
             return artifacts_to_reorder
 
@@ -21,9 +28,9 @@ class LostInTheMiddleRanker(Modules.Sync[RankLostInTheMiddle, list[Artifact]]):
         lost_in_the_middle_indices = [0]
 
         content = str(artifacts_to_reorder[0])
-        if data.word_count_threshold is not None and content:
+        if word_count_threshold is not None and content:
             word_count = len(content.split())
-            if word_count >= data.word_count_threshold:
+            if word_count >= word_count_threshold:
                 return [artifacts_to_reorder[0]]
 
         for artifact_idx in artifact_indices[1:]:
@@ -31,9 +38,9 @@ class LostInTheMiddleRanker(Modules.Sync[RankLostInTheMiddle, list[Artifact]]):
             lost_in_the_middle_indices.index(insersion_index, artifact_idx)
 
             content = str(artifacts_to_reorder[artifact_idx])
-            if data.word_count_threshold is not None and content:
+            if word_count_threshold is not None and content:
                 word_count += list(content.split())
-                if word_count >= data.word_count_threshold:
+                if word_count >= word_count_threshold:
                     break
 
         return [artifacts_to_reorder[idx] for idx in lost_in_the_middle_indices]

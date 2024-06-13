@@ -1,7 +1,9 @@
 from typing import Any
 
+from modstack.typing import MetadataType
+
 def normalize_metadata(
-    metadata: dict[str, Any] | list[dict[str, Any]],
+    metadata: MetadataType | None,
     sources_count: int
 ) -> list[dict[str, Any]]:
     if metadata is None:

@@ -1,5 +1,6 @@
 import enum
 import typing
+from typing import Union
 
 import docarray
 import docarray.typing as docarray_typing
@@ -22,6 +23,7 @@ CallableType = typing.Literal['invoke', 'ainvoke', 'iter', 'aiter', 'effect']
 Variadic = typing.Annotated[typing.Iterable[_T], VARIADIC_TYPE]
 StreamingChunk = tuple[str, dict[str, typing.Any]]
 StreamingCallback = typing.Callable[[str, dict[str, typing.Any]], None]
+MetadataType = Union[dict[str, typing.Any], list[dict[str, typing.Any]]]
 
 BaseDoc = docarray.BaseDoc
 DocList = docarray.DocList

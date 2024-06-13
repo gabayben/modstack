@@ -1,24 +1,31 @@
 import io
 import logging
+from typing import Optional
 
 from pypdf import PdfReader
 
-from modstack.artifacts import ByteStream, Utf8Artifact
+from modstack.artifacts import ArtifactSource, ByteStream, Utf8Artifact
 from modstack.modules import Modules
+from modstack.typing import MetadataType
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
-from modstack.pypdf import PyPDFToText
-from modstack.pypdf.converter import _DefaultConverter
+from modstack.pypdf.converter import PyPDFExtractor, _DefaultExtractor
 
 logger = logging.getLogger(__name__)
 
-class PyPDF(Modules.Sync[PyPDFToText, list[Utf8Artifact]]):
-    def _invoke(self, data: PyPDFToText, **kwargs) -> list[Utf8Artifact]:
-        metadata = normalize_metadata(data.metadata, len(data.sources))
-        converter = data.converter or _DefaultConverter()
+class PyPDFConverter(Modules.Sync[list[ArtifactSource], list[Utf8Artifact]]):
+    def _invoke(
+        self,
+        sources: list[ArtifactSource],
+        metadata: Optional[MetadataType] = None,
+        converter: PyPDFExtractor | None = None,
+        **kwargs
+    ) -> list[Utf8Artifact]:
+        metadata = normalize_metadata(metadata, len(sources))
+        converter = converter or _DefaultExtractor()
         results: list[Utf8Artifact] = []
 
-        for source, md in tzip(data.sources, metadata):
+        for source, md in tzip(sources, metadata):
             try:
                 bytestream = ByteStream.from_source(source, md)
             except Exception as e:

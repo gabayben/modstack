@@ -35,8 +35,13 @@ class CohereLLM(Modules.Stream[AgenticLLMRequest, list[ChatMessageChunk]]):
             timeout=timeout
         )
 
-    def _iter(self, data: AgenticLLMRequest, **kwargs) -> Iterator[list[ChatMessageChunk]]:
-        generation_args = {**self.generation_args, **(data.model_extra or {})}
+    def _iter(
+        self,
+        data: AgenticLLMRequest,
+        role: ChatRole = ChatRole.USER,
+        **kwargs
+    ) -> Iterator[list[ChatMessageChunk]]:
+        generation_args = {**self.generation_args, **kwargs}
         chat_history = [
             self._build_cohere_message(message)
             for message in data.history

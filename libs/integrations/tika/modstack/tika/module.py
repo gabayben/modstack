@@ -1,26 +1,32 @@
 import io
 import logging
+from typing import Optional
 
 from tika import parser
 
-from modstack.artifacts import ByteStream, TextArtifact, Utf8Artifact
+from modstack.artifacts import ArtifactSource, ByteStream, TextArtifact, Utf8Artifact
 from modstack.modules import Modules
-from modstack.modules import ToText
-from modstack.utils import normalize_metadata
-from modstack.utils import tzip
+from modstack.typing import MetadataType
+from modstack.utils.dicts import normalize_metadata
+from modstack.utils.func import tzip
 
 logger = logging.getLogger(__name__)
 
-class Tika(Modules.Sync[ToText, list[Utf8Artifact]]):
+class TikaConverter(Modules.Sync[list[ArtifactSource], list[Utf8Artifact]]):
     def __init__(self, tika_url: str = 'http://localhost:9998/tika'):
         super().__init__()
         self.tika_url = tika_url
 
-    def _invoke(self, data: ToText, **kwargs) -> list[Utf8Artifact]:
-        metadata = normalize_metadata(data.metadata, len(data.sources))
+    def _invoke(
+        self, 
+        sources: list[ArtifactSource], 
+        metadata: Optional[MetadataType] = None, 
+        **kwargs
+    ) -> list[Utf8Artifact]:
+        metadata = normalize_metadata(metadata, len(sources))
         results: list[TextArtifact] = []
 
-        for source, md in tzip(data.sources, metadata):
+        for source, md in tzip(sources, metadata):
             try:
                 bytestream = ByteStream.from_source(source, md)
             except Exception as e:

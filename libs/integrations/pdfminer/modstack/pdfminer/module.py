@@ -1,24 +1,30 @@
 import io
 import logging
-from typing import Any, Iterator
+from typing import Any, Iterator, Optional
 
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LAParams, LTPage, LTTextContainer
 
-from modstack.artifacts import ByteStream, TextArtifact, Utf8Artifact
+from modstack.artifacts import ArtifactSource, ByteStream, TextArtifact, Utf8Artifact
 from modstack.modules import Modules
+from modstack.typing import MetadataType
 from modstack.utils.dicts import normalize_metadata
 from modstack.utils.func import tzip
-from modstack.pdfminer import PDFMinerToText
 
 logger = logging.getLogger(__name__)
 
-class PDFMiner(Modules.Sync[PDFMinerToText, list[Utf8Artifact]]):
-    def _invoke(self, data: PDFMinerToText, **kwargs) -> list[Utf8Artifact]:
-        metadata = normalize_metadata(data.metadata, len(data.sources))
+class PDFMinerConverter(Modules.Sync[list[ArtifactSource], list[Utf8Artifact]]):
+    def _invoke(
+        self, 
+        sources: list[ArtifactSource], 
+        metadata: Optional[MetadataType] = None,
+        layout_params: LAParams | None = None,
+        **kwargs
+    ) -> list[Utf8Artifact]:
+        metadata = normalize_metadata(metadata, len(sources))
         results: list[TextArtifact] = []
 
-        layout_params = data.layout_params or LAParams(
+        layout_params = layout_params or LAParams(
             line_overlap=0.5,
             char_margin=2.,
             line_margin=0.5,
@@ -28,7 +34,7 @@ class PDFMiner(Modules.Sync[PDFMinerToText, list[Utf8Artifact]]):
             all_texts=False
         )
 
-        for source, md in tzip(data.sources, metadata):
+        for source, md in tzip(sources, metadata):
             try:
                 bytestream = ByteStream.from_source(source, md)
             except Exception as e:

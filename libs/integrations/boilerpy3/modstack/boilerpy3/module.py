@@ -1,18 +1,28 @@
 import logging
-from typing import ClassVar
+from typing import ClassVar, Literal, Optional
 
 from boilerpy3 import extractors
 from boilerpy3.extractors import Extractor
 
-from modstack.boilerpy3 import BoilerToText
-from modstack.artifacts import TextArtifact
+from modstack.artifacts import ArtifactSource, TextArtifact
 from modstack.modules import Modules
-from modstack.utils import normalize_metadata
-from modstack.utils import tzip
+from modstack.typing import MetadataType
+from modstack.utils.dicts import normalize_metadata
+from modstack.utils.func import tzip
 
 logger = logging.getLogger(__name__)
 
-class BoilerPy3(Modules.Sync[BoilerToText, list[TextArtifact]]):
+ExtractorType = Literal[
+    'DefaultExtractor',
+    'KeepEverythingExtractor',
+    'ArticleExtractor',
+    'ArticleSentencesExtractor',
+    'LargestContentExtractor',
+    'CanolaExtractor',
+    'NumWordsRulesExtractor',
+]
+
+class BoilerPy3Converter(Modules.Sync[list[ArtifactSource], list[TextArtifact]]):
     known_html_extractors: ClassVar[list[str]] = [
         'DefaultExtractor',
         'KeepEverythingExtractor',
@@ -23,17 +33,24 @@ class BoilerPy3(Modules.Sync[BoilerToText, list[TextArtifact]]):
         'NumWordsRulesExtractor'
     ]
 
-    def _invoke(self, data: BoilerToText, **kwargs) -> list[TextArtifact]:
-        metadata = normalize_metadata(data.metadata, len(data.sources))
+    def _invoke(
+        self,
+        sources: list[ArtifactSource],
+        metadata: Optional[MetadataType] = None,
+        extractor_type: ExtractorType = 'DefaultExtractor',
+        try_others: bool = True,
+        **kwargs
+    ) -> list[TextArtifact]:
+        metadata = normalize_metadata(metadata, len(sources))
         results: list[TextArtifact] = []
 
         extractors_list = (
-            list(dict.fromkeys([data.extractor_type, *self.known_html_extractors]))
-            if data.try_others
-            else [data.extractor_type]
+            list(dict.fromkeys([extractor_type, *self.known_html_extractors]))
+            if try_others
+            else [extractor_type]
         )
 
-        for source, md in tzip(data.sources, metadata):
+        for source, md in tzip(sources, metadata):
             try:
                 artifact = TextArtifact.from_source(source, metadata=md)
             except Exception as e:
@@ -48,7 +65,7 @@ class BoilerPy3(Modules.Sync[BoilerToText, list[TextArtifact]]):
                     if text:
                         break
                 except Exception as e:
-                    if data.try_others:
+                    if try_others:
                         logger.warning(f'Failed to extract using {extractor_name} from {source}. Trying next extractor.')
                         logger.exception(e)
             if not text:

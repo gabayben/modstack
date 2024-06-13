@@ -5,8 +5,8 @@ from huggingface_hub import ChatCompletionStreamOutput, InferenceClient
 from modstack.auth import Secret
 from modstack.modules import Modules
 from modstack.modules.ai import LLMRequest
-from modstack.artifacts import ChatMessage, ChatMessageChunk, ChatRole
-from modstack.utils import validate_url
+from modstack.artifacts.messages import ChatMessage, ChatMessageChunk, ChatRole
+from modstack.utils.paths import validate_url
 from modstack.huggingface import HFGenerationApiType, HFModelType
 from modstack.huggingface.utils import validate_hf_model
 
@@ -33,10 +33,15 @@ class HuggingFaceApiLLM(Modules.Stream[LLMRequest, list[ChatMessageChunk]]):
         self.generation_args.setdefault('max_tokens', max_tokens)
         self.client = InferenceClient(model_or_url, token=token.resolve_value() if token else None)
 
-    def _iter(self, data: LLMRequest, **kwargs) -> Iterator[list[ChatMessageChunk]]:
-        generation_args = {**self.generation_args, **(data.model_extra or {})}
+    def _iter(
+        self,
+        data: LLMRequest,
+        role: ChatRole = ChatRole.USER,
+        **kwargs
+    ) -> Iterator[list[ChatMessageChunk]]:
+        generation_args = {**self.generation_args, **kwargs}
         history = data.history or []
-        history.append(ChatMessage(data.prompt, data.role or ChatRole.USER))
+        history.append(ChatMessage(data.prompt, role or ChatRole.USER))
         messages = [message.to_common_format() for message in history]
 
         chunks: Iterable[ChatCompletionStreamOutput] = self.client.chat_completion(

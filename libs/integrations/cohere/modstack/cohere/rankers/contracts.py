@@ -1,10 +1,6 @@
 from modstack.artifacts import Utf8Artifact
-from modstack.typing import Serializable
+from modstack.typing import Schema
 
-class CohereRankRequest(Serializable):
+class CohereRankRequest(Schema):
     query: str
     artifacts: list[Utf8Artifact]
-    top_k: int | None = None
-    max_chunks_per_doc: int | None = None
-    meta_fields_to_embed: list[str] | None = None
-    metadata_seperator: str | None = None

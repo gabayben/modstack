@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from modstack.artifacts import Utf8Artifact
 from modstack.modules import Modules
-from modstack.utils import create_model
+from modstack.utils.serialization import create_model
 
 logger = logging.getLogger(__name__)
 

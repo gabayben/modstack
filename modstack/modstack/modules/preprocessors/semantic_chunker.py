@@ -1,15 +1,14 @@
 from modstack.artifacts import Utf8Artifact
 from modstack.modules import Module, Modules
-from modstack.modules.ai import TextEmbeddingRequest, TextEmbeddingResponse
 
 class SemanticChunker(Modules.Sync[list[Utf8Artifact], list[Utf8Artifact]]):
-    embed_model: Module[TextEmbeddingRequest, TextEmbeddingResponse]
+    embed_model: Module[list[Utf8Artifact], list[Utf8Artifact]]
     buffer_size: int
     breakpoint_percentile_threshold: int
 
     def __init__(
         self,
-        embed_model: Module[TextEmbeddingRequest, TextEmbeddingResponse],
+        embed_model: Module[list[Utf8Artifact], list[Utf8Artifact]],
         buffer_size: int = 1,
         breakpoint_percentile_threshold: int = 95,
         **kwargs

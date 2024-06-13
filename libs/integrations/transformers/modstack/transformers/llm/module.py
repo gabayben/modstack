@@ -3,7 +3,7 @@ from typing import Iterator
 from modstack.auth import Secret
 from modstack.modules import Modules
 from modstack.modules.ai import LLMRequest
-from modstack.artifacts import ChatMessageChunk
+from modstack.artifacts.messages import ChatMessageChunk
 from modstack.huggingface import HFTextGenerationTask
 
 class HuggingFaceLocalLLM(Modules.Stream[LLMRequest, list[ChatMessageChunk]]):

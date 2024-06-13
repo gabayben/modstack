@@ -1,3 +1,2 @@
-from .typing import SerperOrganicResult, SerperKnowledgeGraph, SerperPeopleAlsoAsk, SerperError
-from .contracts import SerperSearchResponse, SerperSearchQuery
+from .typing import SerperOrganicResult, SerperKnowledgeGraph, SerperPeopleAlsoAsk, SerperError, SerperSearchResponse
 from .module import SerperSearch

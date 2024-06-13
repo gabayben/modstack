@@ -36,18 +36,26 @@ class CohereRanker(Modules.Async[CohereRankRequest, list[Utf8Artifact]]):
         self.meta_fields_to_embed = meta_fields_to_embed or []
         self.metadata_seperator = metadata_seperator
 
-    async def _ainvoke(self, data: CohereRankRequest, **kwargs) -> list[Utf8Artifact]:
+    async def _ainvoke(
+        self,
+        data: CohereRankRequest,
+        top_k: int | None = None,
+        max_chunks_per_doc: int | None = None,
+        meta_fields_to_embed: list[str] | None = None,
+        metadata_seperator: str | None = None,
+        **kwargs
+    ) -> list[Utf8Artifact]:
         if not data.query or not data.artifacts:
             return []
 
-        top_k = data.top_k or self.top_k
+        top_k = top_k or self.top_k
         if top_k <= 0:
             raise ValueError(f'top_k must be greater than 0, but got {top_k}.')
 
-        max_chunks_per_doc = data.max_chunks_per_doc or self.max_chunks_per_doc
+        max_chunks_per_doc = max_chunks_per_doc or self.max_chunks_per_doc
         max_chunks_per_doc = min(max_chunks_per_doc, 10000) if max_chunks_per_doc else None
-        meta_fields_to_embed = list({*self.meta_fields_to_embed, *(data.meta_fields_to_embed or [])})
-        metadata_seperator = data.metadata_seperator or self.metadata_seperator
+        meta_fields_to_embed = list({*self.meta_fields_to_embed, *(meta_fields_to_embed or [])})
+        metadata_seperator = metadata_seperator or self.metadata_seperator
 
         cohere_input_docs = []
         for artifact in data.artifacts:
