@@ -1,3 +1,7 @@
+"""
+Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/channels/binary_op.py
+"""
+
 from contextlib import contextmanager
 from typing import Callable, Generator, Optional, Self, Sequence, Type
 

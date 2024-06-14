@@ -1,3 +1,7 @@
+"""
+Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/channels/topic.py
+"""
+
 from contextlib import contextmanager
 from typing import Generator, Iterator, Optional, Self, Sequence, Type, Union
 
@@ -5,8 +9,6 @@ from modflow.channels import Channel
 
 class TopicValue[Value](Channel[Sequence[Value], Union[Value, list[Value]], tuple[set[Value], list[Value]]]):
     """
-    Taken from LangGraph's Topic.
-
     A configurable PubSub Topic.
 
     Args:

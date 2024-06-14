@@ -1,3 +1,7 @@
+"""
+Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/channels/context.py
+"""
+
 from contextlib import asynccontextmanager, contextmanager
 from typing import Any, AsyncContextManager, AsyncGenerator, Callable, Generator, Optional, Self, Sequence, Type
 

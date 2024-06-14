@@ -1,3 +1,7 @@
+"""
+Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/channels/named_barrier.py
+"""
+
 from contextlib import contextmanager
 from typing import Any, Generator, Optional, Self, Sequence, Type
 
@@ -5,7 +9,6 @@ from modflow.channels import Channel, EmptyChannelError, InvalidUpdateError
 
 class NamedBarrierValue[Value](Channel[Value, Value, set[Value]]):
     """
-    Taken from LangGraph's NamedBarrierValue.
     A channel that waits until all named values are received before making the value available.
     """
 

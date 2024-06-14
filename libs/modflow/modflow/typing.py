@@ -1,9 +1,8 @@
 from collections import deque
-from typing import Any, Literal, NamedTuple, Optional, Sequence, Union
+from typing import Any, Literal, NamedTuple, NotRequired, Optional, Sequence, TypedDict, Union
 
 from modflow.checkpoints import CheckpointMetadata
 from modstack.modules import Module
-from modstack.typing import Serializable
 
 FlowInput = Union[dict[str, Any], Any]
 FlowOutputChunk = Union[dict[str, Any], Any]
@@ -11,15 +10,14 @@ FlowOutput = Union[FlowOutputChunk, list[FlowOutputChunk]]
 All = Literal['*']
 StreamMode = Literal['values', 'updates', 'debug']
 
-class RunFlow(Serializable):
-    input: FlowInput
-    input_keys: Optional[Union[str, Sequence[str]]] = None
-    output_keys: Optional[Union[str, Sequence[str]]] = None
-    interrupt_before: Optional[Union[Sequence[str], All]] = None
-    interrupt_after: Optional[Union[Sequence[str], All]] = None
-    config: dict[str, Any] = {}
-    stream_mode: StreamMode = 'values'
-    debug: Optional[bool] = None
+class RunFlow(TypedDict, total=False):
+    input_keys: NotRequired[Union[str, Sequence[str]]]
+    output_keys: NotRequired[Union[str, Sequence[str]]]
+    interrupt_before: NotRequired[Union[Sequence[str], All]]
+    interrupt_after: NotRequired[Union[Sequence[str], All]]
+    config: NotRequired[dict[str, Any]]
+    stream_mode: NotRequired[StreamMode]
+    debug: NotRequired[bool]
 
 class PregelTaskDescription(NamedTuple):
     name: str

@@ -5,7 +5,7 @@ from typing import Any, Callable, NamedTuple, Optional, Sequence
 from modflow.constants import IS_CHANNEL_WRITER, WRITE_KEY
 from modstack.modules import Module, Passthrough, SerializableModule
 from modstack.typing import Effect, Effects
-from modstack.utils import tzip
+from modstack.utils.func import tzip
 
 SKIP_WRITE = object()
 WRITE_TYPE = Callable[[Sequence[tuple[str, Any]]], None]

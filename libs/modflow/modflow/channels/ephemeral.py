@@ -1,3 +1,7 @@
+"""
+Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/channels/ephemeral.py
+"""
+
 from contextlib import contextmanager
 from typing import Any, Generator, Optional, Self, Sequence, Type
 
@@ -5,7 +9,6 @@ from modflow.channels import Channel, EmptyChannelError, InvalidUpdateError
 
 class EphemeralValue[Value](Channel[Value, Value, Value]):
     """
-    Taken from LangGraph's EphemeralValue.
     Stores the value received in the step immediately preceding, clears after.
     """
 

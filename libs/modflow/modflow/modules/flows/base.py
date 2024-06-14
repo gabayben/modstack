@@ -7,11 +7,11 @@ from collections import defaultdict, deque
 from concurrent import futures
 from functools import partial
 import logging
-from typing import Any, AsyncIterator, Iterator, Literal, Optional, Sequence, Type, Union, final, overload, override
+from typing import Any, AsyncIterator, Iterator, Literal, Optional, Sequence, Type, Union, Unpack, final, overload, override
 
 from pydantic import BaseModel, Field, model_validator
 
-from modflow import All, FlowOutput, FlowOutputChunk, FlowRecursionError, PregelExecutableTask, PregelTaskDescription, RunFlow, StateSnapshot, StreamMode
+from modflow import All, FlowInput, FlowOutput, FlowOutputChunk, FlowRecursionError, PregelExecutableTask, PregelTaskDescription, RunFlow, StateSnapshot, StreamMode
 from modflow.channels import AsyncChannelManager, Channel, ChannelManager, EmptyChannelError, InvalidUpdateError
 from modflow.checkpoints import Checkpoint, CheckpointMetadata, Checkpointer
 from modflow.constants import READ_KEY, INTERRUPT, HIDDEN
@@ -23,13 +23,12 @@ from modflow.utils.io import map_input, map_output_updates, map_output_values, r
 from modflow.utils.validation import validate_flow, validate_keys
 from modstack.modules import Sequential, SerializableModule
 from modstack.typing import Effect, Effects
-from modstack.typing.vars import In, Out
-from modstack.utils import create_model
-from modstack.utils import get_executor
+from modstack.utils.serialization import create_model
+from modstack.utils.threading import get_executor
 
 logger = logging.getLogger(__name__)
 
-class Pregel(SerializableModule[RunFlow, FlowOutput]):
+class Pregel(SerializableModule[FlowInput, FlowOutput]):
     nodes: dict[str, PregelNode]
     channels: dict[str, Channel]
     input_channels: Union[str, Sequence[str]]
@@ -45,14 +44,14 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
     
     @property
     @override
-    def InputType(self) -> Type[In]:
+    def InputType(self) -> Type[Any]:
         if isinstance(self.input_channels, str):
             return self.channels[self.input_channels].UpdateType
         return super().InputType
     
     @property
     @override
-    def OutputType(self) -> Type[Out]:
+    def OutputType(self) -> Type[Any]:
         if isinstance(self.output_channels, str):
             return self.channels[self.output_channels].ValueType
         return super().OutputType
@@ -270,58 +269,59 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
             raise ValueError('No checkpointer set.')
 
     @final
-    def forward(self, data: RunFlow, **kwargs) -> Effect[FlowOutput]:
+    def forward(self, inputs: FlowInput, **kwargs) -> Effect[FlowOutput]:
         return Effects.Provide(
-            invoke=partial(self._invoke, data, **kwargs),
-            ainvoke=partial(self._ainvoke, data, **kwargs),
-            iter_=partial(self._iter, data, **kwargs),
-            aiter_=partial(self._aiter, data, **kwargs)
+            invoke=partial(self._invoke, inputs, **kwargs),
+            ainvoke=partial(self._ainvoke, inputs, **kwargs),
+            iter_=partial(self._iter, inputs, **kwargs),
+            aiter_=partial(self._aiter, inputs, **kwargs)
         )
 
-    def _invoke(self, data: RunFlow, **kwargs) -> FlowOutput:
-        if data.stream_mode == 'values':
+    def _invoke(self, inputs: FlowInput, **data: Unpack[RunFlow]) -> FlowOutput:
+        if data['stream_mode'] == 'values':
             latest: FlowOutputChunk = None
         else:
             chunks: list[FlowOutputChunk] = []
-        for chunk in self._iter(data, **kwargs):
+        for chunk in self._iter(inputs, **data):
             latest = chunk
             chunks.append(chunk)
-        if data.stream_mode == 'values':
+        if data['stream_mode'] == 'values':
             return latest
         return chunks
 
-    async def _ainvoke(self, data: RunFlow, **kwargs) -> FlowOutput:
-        if data.stream_mode == 'values':
+    async def _ainvoke(self, inputs: FlowInput, **data: Unpack[RunFlow]) -> FlowOutput:
+        if data['stream_mode'] == 'values':
             latest: FlowOutputChunk = None
         else:
             chunks: list[FlowOutputChunk] = []
-        async for chunk in self._aiter(data, **kwargs): #type: ignore
+        async for chunk in self._aiter(inputs, **data): #type: ignore
             latest = chunk
             chunks.append(chunk)
-        if data.stream_mode == 'values':
+        if data['stream_mode'] == 'values':
             return latest
         return chunks
 
-    def _iter(self, data: RunFlow, **kwargs) -> Iterator[FlowOutput]:
-        self._set_defaults(data, **kwargs)
+    def _iter(self, inputs: FlowInput, **data: Unpack[RunFlow]) -> Iterator[FlowOutput]:
+        self._set_defaults(**data)
         try:
-            self._validate_config(data.config)
+            config = data['config']
+            self._validate_config(config)
             background_tasks: list[futures.Future] = []
             # copy nodes to ignore mutations during execution
             processes: dict[str, PregelNode] = {**self.nodes}
-            saved = self.checkpointer.get(**data.config) if self.checkpointer else None
+            saved = self.checkpointer.get(**config) if self.checkpointer else None
             checkpoint = saved.checkpoint if saved else empty_checkpoint()
-            checkpoint_config = saved.config if saved else data.config
+            checkpoint_config = saved.config if saved else config
             start = saved.metadata.get('step', -2) + 1 if saved else -1
-            recursion_limit = data.config['recursion_limit']
+            recursion_limit = config['recursion_limit']
             # create channels from checkpoint
             with (
                 ChannelManager(self.channels, checkpoint) as channels,
-                ManagedValuesManager(self.managed_values_dict, self, **data.config) as managed_values,
+                ManagedValuesManager(self.managed_values_dict, self, **config) as managed_values,
                 get_executor() as executor
             ):
                 # map inputs to channel updates
-                if input_writes := deque(map_input(data.input_keys, data.input)):
+                if input_writes := deque(map_input(data['input_keys'], inputs)):
                     # discard any unfinished tasks from previous checkpoint
                     checkpoint, _ = _prepare_next_tasks(
                         checkpoint,
@@ -330,7 +330,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                         managed_values,
                         -1,
                         for_execution=True,
-                        **data.config
+                        **config
                     )
                     # apply input writes
                     _apply_writes(checkpoint, channels, input_writes)
@@ -341,8 +341,8 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                             executor.submit(
                                 self.checkpointer.put,
                                 checkpoint,
-                                CheckpointMetadata(source='input', step=start, writes=data.input),
-                                **data.config
+                                CheckpointMetadata(source='input', step=start, writes=inputs),
+                                **config
                             )
                         )
                         checkpoint_config = {**checkpoint_config, 'thread_ts': checkpoint['id']}
@@ -367,7 +367,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                         managed_values,
                         step,
                         for_execution=True,
-                        **data.config
+                        **config
                     )
 
                     # if no more tasks, we're done
@@ -386,9 +386,9 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                         break
                     checkpoint = next_checkpoint
 
-                    if data.debug:
+                    if data['debug']:
                         print_step_tasks(step, next_tasks)
-                    if data.stream_mode == 'debug':
+                    if data['stream_mode'] == 'debug':
                         for chunk in map_debug_tasks(step, next_tasks):
                             yield chunk
 
@@ -413,20 +413,20 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                     for task in next_tasks:
                         pending_writes.extend(task.writes)
 
-                    if data.debug:
+                    if data['debug']:
                         print_step_writes(step, pending_writes, self.stream_channels_list)
 
                     _apply_writes(checkpoint, channels, pending_writes)
 
-                    if data.debug:
+                    if data['debug']:
                         print_step_checkpoint(step, channels, self.stream_channels_list)
 
                     # map and yield current value or updates
-                    if data.stream_mode == 'values':
-                        mapped_values = map_output_values(data.output_keys, pending_writes, channels)
+                    if data['stream_mode'] == 'values':
+                        mapped_values = map_output_values(data['output_keys'], pending_writes, channels)
                         yield mapped_values
-                    elif data.stream_mode == 'updates':
-                        mapped_updates = map_output_updates(data.output_keys, next_tasks)
+                    elif data['stream_mode'] == 'updates':
+                        mapped_updates = map_output_updates(data['output_keys'], next_tasks)
                         yield from mapped_updates
                     else:
                         mapped_debug_task_results = map_debug_task_results(step, next_tasks, self.stream_channels_list)
@@ -442,16 +442,16 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                                 CheckpointMetadata(
                                     source='loop',
                                     step=step,
-                                    writes=_single(mapped_updates) if data.stream_mode == 'updates' else _single(mapped_values)
+                                    writes=_single(mapped_updates) if data['stream_mode'] == 'updates' else _single(mapped_values)
                                 ),
-                                **data.config
+                                **config
                             )
                         )
                         checkpoint_config = {**checkpoint_config, 'thread_ts': checkpoint['id']}
 
                     # yield debug checkpoint
-                    if data.stream_mode == 'debug':
-                        yield map_debug_checkpoint(step, channels, self.stream_channels_asis, **data.config)
+                    if data['stream_mode'] == 'debug':
+                        yield map_debug_checkpoint(step, channels, self.stream_channels_asis, **config)
 
                     # after execution, check if we should interrupt
                     if _should_interrupt(
@@ -477,25 +477,26 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
             for task in done:
                 task.result()
 
-    async def _aiter(self, data: RunFlow, **kwargs) -> AsyncIterator[FlowOutput]:
-        self._set_defaults(data, **kwargs)
+    async def _aiter(self, inputs: FlowInput, **data: Unpack[RunFlow]) -> AsyncIterator[FlowOutput]:
+        self._set_defaults(**data)
         try:
-            self._validate_config(data.config)
+            config = data['config']
+            self._validate_config(config)
             background_tasks: list[asyncio.Task] = []
             # copy nodes to ignore mutations during execution
             processes: dict[str, PregelNode] = {**self.nodes}
-            saved = await self.checkpointer.aget(**data.config) if self.checkpointer else None
+            saved = await self.checkpointer.aget(**config) if self.checkpointer else None
             checkpoint = saved.checkpoint if saved else empty_checkpoint()
-            checkpoint_config = saved.config if saved else data.config
+            checkpoint_config = saved.config if saved else config
             start = saved.metadata.get('step', -2) + 1 if saved else -1
-            recursion_limit = data.config['recursion_limit']
+            recursion_limit = config['recursion_limit']
             # create channels from checkpoint
             async with (
                 AsyncChannelManager(self.channels, checkpoint) as channels,
-                AsyncManagedValuesManager(self.managed_values_dict, self, **data.config) as managed_values
+                AsyncManagedValuesManager(self.managed_values_dict, self, **config) as managed_values
             ):
                 # map inputs to channel updates
-                if input_writes := deque(map_input(data.input_keys, data.input)):
+                if input_writes := deque(map_input(data['input_keys'], inputs)):
                     # discard any unfinished tasks from previous checkpoint
                     checkpoint, _ = _prepare_next_tasks(
                         checkpoint,
@@ -504,7 +505,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                         managed_values,
                         -1,
                         for_execution=True,
-                        **data.config
+                        **config
                     )
                     # apply input writes
                     _apply_writes(checkpoint, channels, input_writes)
@@ -515,8 +516,8 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                             asyncio.create_task(
                                 self.checkpointer.aput(
                                     checkpoint,
-                                    CheckpointMetadata(source='input', step=start, writes=data.input),
-                                    **data.config
+                                    CheckpointMetadata(source='input', step=start, writes=inputs),
+                                    **config
                                 )
                             )
                         )
@@ -542,7 +543,7 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                         managed_values,
                         step,
                         for_execution=True,
-                        **data.config
+                        **config
                     )
 
                     # if no more tasks, we're done
@@ -561,9 +562,9 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                         break
                     checkpoint = next_checkpoint
 
-                    if data.debug:
+                    if data['debug']:
                         print_step_tasks(step, next_tasks)
-                    if data.stream_mode == 'debug':
+                    if data['stream_mode'] == 'debug':
                         for chunk in map_debug_tasks(step, next_tasks):
                             yield chunk
 
@@ -588,21 +589,21 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                     for task in next_tasks:
                         pending_writes.extend(task.writes)
 
-                    if data.debug:
+                    if data['debug']:
                         print_step_writes(step, pending_writes, self.stream_channels_list)
 
                     _apply_writes(checkpoint, channels, pending_writes)
 
-                    if data.debug:
+                    if data['debug']:
                         print_step_checkpoint(step, channels, self.stream_channels_list)
 
                     # map and yield current value or updates
-                    if data.stream_mode == 'values':
-                        mapped_values = map_output_values(data.output_keys, pending_writes, channels)
+                    if data['stream_mode'] == 'values':
+                        mapped_values = map_output_values(data['output_keys'], pending_writes, channels)
                         for value in mapped_values:
                             yield value
-                    elif data.stream_mode == 'updates':
-                        mapped_updates = map_output_updates(data.output_keys, next_tasks)
+                    elif data['stream_mode'] == 'updates':
+                        mapped_updates = map_output_updates(data['output_keys'], next_tasks)
                         for value in mapped_updates:
                             yield value
                     else:
@@ -620,17 +621,17 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
                                     CheckpointMetadata(
                                         source='loop',
                                         step=step,
-                                        writes=_single(mapped_updates) if data.stream_mode == 'updates' else _single(mapped_values)
+                                        writes=_single(mapped_updates) if data['stream_mode'] == 'updates' else _single(mapped_values)
                                     ),
-                                    **data.config
+                                    **config
                                 )
                             )
                         )
                         checkpoint_config = {**checkpoint_config, 'thread_ts': checkpoint['id']}
 
                     # yield debug checkpoint
-                    if data.stream_mode == 'debug':
-                        yield map_debug_checkpoint(step, channels, self.stream_channels_asis, **data.config)
+                    if data['stream_mode'] == 'debug':
+                        yield map_debug_checkpoint(step, channels, self.stream_channels_asis, **config)
 
                     # after execution, check if we should interrupt
                     if _should_interrupt(
@@ -655,22 +656,21 @@ class Pregel(SerializableModule[RunFlow, FlowOutput]):
             # wait for all background tasks to finish
             await asyncio.gather(*background_tasks)
 
-    def _set_defaults(self, data: RunFlow, **kwargs) -> None:
-        if data.input_keys is None:
-            data.input_keys = self.input_channels
-        if data.output_keys is None:
-            data.output_keys = self.stream_channels_asis
+    def _set_defaults(self, **data: Unpack[RunFlow]) -> None:
+        if data['input_keys'] is None:
+            data['input_keys'] = self.input_channels
+        if data['output_keys'] is None:
+            data['output_keys'] = self.stream_channels_asis
         else:
-            validate_keys(data.output_keys, self.channels)
-        data.interrupt_before = data.interrupt_before or self.interrupt_before
-        data.interrupt_after = data.interrupt_after or self.interrupt_after
-        data.config = {**data.config, **kwargs}
-        data.config.setdefault('recursion_limit', 3)
-        if data.config.get(READ_KEY, None):
-            data.stream_mode = 'values'
+            validate_keys(data['output_keys'], self.channels)
+        data['interrupt_before'] = data['interrupt_before'] or self.interrupt_before
+        data['interrupt_after'] = data['interrupt_after'] or self.interrupt_after
+        data['config'].setdefault('recursion_limit', 3)
+        if data['config'].get(READ_KEY, None):
+            data['stream_mode'] = 'values' # type: ignore
         else:
-            data.stream_mode = data.stream_mode if data.stream_mode is not None else self.stream_mode
-        data.debug = data.debug if data.debug is not None else self.debug
+            data['stream_mode'] = data['stream_mode'] if data['stream_mode'] is not None else self.stream_mode
+        data['debug'] = data['debug'] if data['debug'] is not None else self.debug
 
     def _validate_config(self, config: dict[str, Any]) -> None:
         if 'recursion_limit' in config:
