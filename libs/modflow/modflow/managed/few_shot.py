@@ -54,16 +54,16 @@ class FewShotExamples(ManagedValue[Sequence[V]]):
         for example in self.flow.checkpointer.search({
             'score': score,
             **self.metadata_filter_dict
-        }, limit=self.k).iter():
+        }, limit=self.k):
             with ChannelManager(self.flow.channels, example.checkpoint) as channels:
                 yield read_channels(channels, self.flow.output_channels)
 
     async def aiter(self, score: int = 1) -> AsyncIterator[V]:
         # noinspection PyTypeChecker
-        async for example in self.flow.checkpointer.search({
+        async for example in self.flow.checkpointer.asearch({
             'score': score,
             **self.metadata_filter_dict
-        }, limit=self.k).aiter():
+        }, limit=self.k):
             async with AsyncChannelManager(self.flow.channels, example.checkpoint) as channels:
                 yield read_channels(channels, self.flow.output_channels)
 
