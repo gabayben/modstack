@@ -269,7 +269,7 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
             raise ValueError('No checkpointer set.')
 
     @final
-    def forward(self, inputs: FlowInput, **kwargs: Unpack[Union[RunFlow, Any]]) -> Effect[FlowOutput]:
+    def forward(self, inputs: FlowInput, **kwargs) -> Effect[FlowOutput]:
         return Effects.Provide(
             invoke=partial(self._invoke, inputs, **kwargs),
             ainvoke=partial(self._ainvoke, inputs, **kwargs),
