@@ -184,7 +184,7 @@ class CompiledStateFlow(CompiledFlow):
                     else None
                 )
             ) | node
-            self.channels[name] = EphemeralValue(Any)
+            self.channels[name] = EphemeralValue(Any, guard=False)
 
     @override
     def attach_edge(
