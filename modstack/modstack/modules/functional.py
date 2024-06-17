@@ -1,5 +1,6 @@
+from functools import partial
 import inspect
-from typing import AsyncIterator, Iterator, Type, final, override
+from typing import Type, final, override
 
 from pydantic import BaseModel
 
@@ -47,27 +48,14 @@ class Functional(Module[In, Out]):
     def forward(self, data: In, **kwargs) -> Effect[Out]:
         if self.callable_type == 'effect':
             return self._func(data, **kwargs)
-        elif self.callable_type == 'aiter':
-            async def _aiter() -> AsyncIterator[Out]:
-                async for item in self._func(data, **kwargs):
-                    yield item
-
-            return Effects.AsyncIterator(_aiter)
+        func = partial(self._func, data, **kwargs)
+        if self.callable_type == 'aiter':
+            return Effects.AsyncIterator(func)
         elif self.callable_type == 'iter':
-            def _iter() -> Iterator[Out]:
-                yield from self._func(data, **kwargs)
-
-            return Effects.Iterator(_iter)
+            return Effects.Iterator(func)
         elif self.callable_type == 'ainvoke':
-            async def _ainvoke() -> Out:
-                return await self._func(data, **kwargs)
-
-            return Effects.Async(_ainvoke)
-
-        def _invoke() -> Out:
-            return self._func(data, **kwargs)
-
-        return Effects.Sync(_invoke)
+            return Effects.Async(func)
+        return Effects.Sync(func)
 
     @override
     def get_name(
