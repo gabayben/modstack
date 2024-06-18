@@ -1,4 +1,5 @@
-from .base import EmptyChannelError, InvalidUpdateError, Channel, ChannelManager, AsyncChannelManager
+from .base import EmptyChannelError, InvalidUpdateError, Channel
+from .manager import AsyncChannelManager, ChannelManager
 from .binary_op import BinaryOperatorAggregate
 from .context import ContextValue
 from .dynamic_barrier import WaitForNames, DynamicBarrierValue

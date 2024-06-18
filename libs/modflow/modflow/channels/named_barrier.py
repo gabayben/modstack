@@ -3,7 +3,7 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 """
 
 from contextlib import contextmanager
-from typing import Any, Generator, Optional, Self, Sequence, Type
+from typing import Any, Generator, Optional, Self, Sequence, Type, override
 
 from modflow.channels import Channel, EmptyChannelError, InvalidUpdateError
 
@@ -43,12 +43,20 @@ class NamedBarrierValue[Value](Channel[Value, Value, set[Value]]):
             raise EmptyChannelError()
         return None
 
-    def update(self, values: Optional[Sequence[Value]]) -> None:
-        if self.names == self.seen:
-            self.seen = set()
+    def update(self, values: Optional[Sequence[Value]]) -> bool:
+        updated = False
         if values:
             for value in values:
                 if value in self.names:
                     self.seen.add(value)
+                    updated = True
                 else:
                     raise InvalidUpdateError(f'Value {value} not in {self.names}.')
+        return updated
+
+    @override
+    def consume(self) -> bool:
+        if self.names == self.seen:
+            self.seen = set()
+            return True
+        return False

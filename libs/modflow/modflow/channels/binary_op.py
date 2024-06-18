@@ -57,11 +57,12 @@ class BinaryOperatorAggregate[Value](Channel[Value, Value, Value]):
         except AttributeError:
             raise EmptyChannelError()
 
-    def update(self, values: Optional[Sequence[Value]]) -> None:
+    def update(self, values: Optional[Sequence[Value]]) -> bool:
         if not values:
-            return
+            return False
         if not hasattr(self, 'value'):
             self.value = values[0]
             values = values[1:]
         for value in values:
             self.value = self.operator(self.value, value)
+        return True

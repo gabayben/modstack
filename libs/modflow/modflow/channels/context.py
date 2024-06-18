@@ -80,6 +80,7 @@ class ContextValue[Value](Channel[Value, None, None]):
         except AttributeError:
             raise EmptyChannelError()
 
-    def update(self, values: Optional[Sequence[None]]) -> None:
+    def update(self, values: Optional[Sequence[None]]) -> bool:
         if values:
             raise InvalidUpdateError()
+        return False

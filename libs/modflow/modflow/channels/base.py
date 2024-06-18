@@ -4,9 +4,7 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager, contextmanager
-from typing import Any, AsyncGenerator, Generator, Mapping, Optional, Self, Sequence
-
-from modflow.checkpoints import Checkpoint
+from typing import Any, AsyncGenerator, Generator, Optional, Self, Sequence
 
 class EmptyChannelError(Exception):
     pass
@@ -62,45 +60,17 @@ class Channel[Value, Update, C](ABC):
         """
 
     @abstractmethod
-    def update(self, values: Optional[Sequence[Update]]) -> None:
+    def update(self, values: Optional[Sequence[Update]]) -> bool:
         """
         Update the channel's value with the given sequence of updates.
         The order of the updates in the sequence is arbitrary.
         Raises InvalidUpdateError if the sequence of updates is invalid.
         """
 
-@contextmanager
-def ChannelManager(
-    channels: Mapping[str, Channel],
-    checkpoint: Checkpoint
-) -> Generator[Mapping[str, Channel], None, None]:
-    """
-    Manage channels for the lifetime of a Pipeline invocation (multiple steps).
-    """
-    empty = {
-        k: v.new(checkpoint)
-        for k, v in channels.items()
-    }
-    try:
-        yield {k: v.__enter__() for k, v in empty.items()}
-    finally:
-        for v in empty.values():
-            v.__exit__(None, None, None)
-
-@asynccontextmanager
-async def AsyncChannelManager(
-    channels: Mapping[str, Channel],
-    checkpoint: Checkpoint
-) -> AsyncGenerator[Mapping[str, Channel], None, None]:
-    """
-    Manage channels for the lifetime of a Pipeline invocation (multiple steps).
-    """
-    empty = {
-        k: v.anew(checkpoint)
-        for k, v in channels.items()
-    }
-    try:
-        yield {k: await v.__aenter__() for k, v in empty.items()}
-    finally:
-        for v in empty.values():
-            await v.__aexit__(None, None, None)
+    def consume(self) -> bool:
+        """
+        Mark the current value of the channel as consumed. By default, no-op.
+        This is called by Pregel before the start of the next step, for all
+        channels that triggered a node. If the channel was updated, return True.
+        """
+        return False

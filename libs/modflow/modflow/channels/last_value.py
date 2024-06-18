@@ -47,9 +47,10 @@ class LastValue[Value](Channel[Value, Value, Value]):
         except AttributeError:
             raise EmptyChannelError()
 
-    def update(self, values: Optional[Sequence[Value]]) -> None:
+    def update(self, values: Optional[Sequence[Value]]) -> bool:
         if not values or len(values) == 0:
-            return
+            return False
         if len(values) != 1:
             raise InvalidUpdateError('LastValue can only receive one value per step.')
         self.value = values[-1]
+        return True

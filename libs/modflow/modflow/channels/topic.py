@@ -54,7 +54,8 @@ class TopicValue[Value](Channel[Sequence[Value], Union[Value, list[Value]], tupl
     def get(self) -> Optional[Sequence[Value]]:
         return list(self.values)
 
-    def update(self, values: Optional[Sequence[Sequence[Value]]]) -> None:
+    def update(self, values: Optional[Sequence[Sequence[Value]]]) -> bool:
+        current = list(self.values)
         if not self.accumulate:
             self.values = list[Value]()
         if values:
@@ -66,6 +67,7 @@ class TopicValue[Value](Channel[Sequence[Value], Union[Value, list[Value]], tupl
                             self.values.append(value)
                 else:
                     self.values.extend(flat_values)
+        return self.values != current
 
 def _flatten[Value](values: Sequence[Union[Value, list[Value]]]) -> Iterator[Value]:
     for value in values:

@@ -3,7 +3,7 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 """
 
 from contextlib import contextmanager
-from typing import Generator, NamedTuple, Optional, Self, Sequence, Type, Union
+from typing import Generator, NamedTuple, Optional, Self, Sequence, Type, Union, override
 
 from modflow.channels import Channel, EmptyChannelError, InvalidUpdateError
 
@@ -58,18 +58,28 @@ class DynamicBarrierValue[Value](Channel[Value, Union[Value, WaitForNames[Value]
             raise EmptyChannelError()
         return None
 
-    def update(self, values: Sequence[Union[Value, WaitForNames]]) -> None:
-        if self.names == self.seen:
-            self.names = None
-            self.seen = set()
+    def update(self, values: Sequence[Union[Value, WaitForNames]]) -> bool:
         if wait_for_names := [v for v in values if isinstance(v, WaitForNames)]:
             if len(wait_for_names) > 1:
                 raise InvalidUpdateError('Received multiple WaitForNames updates in the same step.')
             self.names = wait_for_names[0].names
+            return True
         elif self.names is not None:
+            updated = False
             for value in values:
                 assert not isinstance(value, WaitForNames)
                 if value in self.names:
                     self.seen.add(value)
+                    updated = True
                 else:
                     raise InvalidUpdateError(f'{value} not in {self.names}')
+            return updated
+        return False
+
+    @override
+    def consume(self) -> bool:
+        if self.names == self.seen:
+            self.names = None
+            self.seen = set()
+            return True
+        return False
