@@ -16,7 +16,6 @@ docarray = { version = "^0.40.0", extras = ['proto'] }
 tenacity = "^8.3.0"
 unsync = "^1.4.0"
 uuid6 = "^2024.1.12"
-networkx = "^3.3"
 
 
 [build-system]
