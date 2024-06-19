@@ -91,8 +91,8 @@ def map_debug_checkpoint(
     channels: Mapping[str, Channel],
     stream_channels: Union[str, Sequence[str]],
     **kwargs
-) -> CheckpointDebugOutput:
-    return CheckpointDebugOutput(
+) -> Iterator[CheckpointDebugOutput]:
+    yield CheckpointDebugOutput(
         step=step,
         timestamp=datetime.now(timezone.utc).isoformat(),
         payload=CheckpointPayload(

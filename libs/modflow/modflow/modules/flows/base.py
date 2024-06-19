@@ -74,6 +74,14 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
             if is_managed_value(v)
         }
 
+    @property
+    def _get_next_version(self) -> Callable[[int, Channel], int]:
+        return (
+            self.checkpointer.get_next_version
+            if self.checkpointer is not None
+            else _increment
+        )
+
     @classmethod
     @model_validator(mode='before')
     def validate_on_init(cls, data: dict[str, Any]) -> dict[str, Any]:
@@ -354,15 +362,58 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
             processes: dict[str, PregelNode] = {**self.nodes}
             saved = self.checkpointer.get(**config) if self.checkpointer else None
             checkpoint = saved.checkpoint if saved else empty_checkpoint()
-            checkpoint_config = saved.config if saved else config
             start = saved.metadata.get('step', -2) + 1 if saved else -1
+            stream_modes = [kwargs['stream_mode']] if isinstance(kwargs['stream_mode'], str) else kwargs['stream_mode']
             recursion_limit = config['recursion_limit']
+
+            # merge config fields with previous checkpoint config
+            checkpoint_config = config
+            if saved:
+                checkpoint_config = {
+                    **config,
+                    **saved.config
+                }
+
             # create channels from checkpoint
             with (
                 ChannelManager(self.channels, checkpoint) as channels,
                 ManagedValuesManager(self.managed_values_dict, self, **config) as managed_values,
                 get_executor() as executor
             ):
+                def put_checkpoint(metadata: CheckpointMetadata) -> Iterator[Any]:
+                    nonlocal checkpoint, checkpoint_config, channels
+
+                    if self.checkpointer is None:
+                        return
+                    if kwargs['debug']:
+                        print_step_checkpoint(metadata['step'], channels, self.stream_channels_list)
+
+                    # create new checkpoint
+                    checkpoint = create_checkpoint(checkpoint, channels, metadata['step'])
+                    # save it, without blocking
+                    background_tasks.append(
+                        executor.submit(
+                            self.checkpointer.put,
+                            copy_checkpoint(checkpoint),
+                            metadata,
+                            **checkpoint_config
+                        )
+                    )
+                    # update checkpoint config
+                    checkpoint_config = {**checkpoint_config, 'thread_ts': checkpoint['id']}
+                    # yield debug checkpoint event
+                    if 'debug' in stream_modes:
+                        yield from _with_mode(
+                            'debug',
+                            isinstance(kwargs['stream_mode'], list),
+                            map_debug_checkpoint(
+                                metadata['step'],
+                                channels,
+                                self.stream_channels_asis,
+                                **config
+                            )
+                        )
+
                 # map inputs to channel updates
                 if input_writes := deque(map_input(kwargs['input_keys'], inputs)):
                     # discard any unfinished tasks from previous checkpoint
@@ -373,22 +424,23 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                         managed_values,
                         -1,
                         for_execution=True,
+                        get_next_version=self._get_next_version,
                         **config
                     )
                     # apply input writes
-                    _apply_writes(checkpoint, channels, input_writes, self.checkpointer.get_next_version)
+                    _apply_writes(
+                        checkpoint,
+                        channels,
+                        input_writes,
+                        self._get_next_version
+                    )
                     # save input checkpoint
-                    if self.checkpointer is not None:
-                        checkpoint = create_checkpoint(checkpoint, channels, start)
-                        background_tasks.append(
-                            executor.submit(
-                                self.checkpointer.put,
-                                checkpoint,
-                                CheckpointMetadata(source='input', step=start, writes=inputs),
-                                **config
-                            )
-                        )
-                        checkpoint_config = {**checkpoint_config, 'thread_ts': checkpoint['id']}
+                    yield from put_checkpoint({
+                        'source': 'input',
+                        'step': start,
+                        'writes': inputs
+                    })
+                    # increment start to 0
                     start += 1
                 else:
                     # if no input received, take that as a signal to proceed past previous interrupt, if any
@@ -410,7 +462,7 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                         managed_values,
                         step,
                         for_execution=True,
-                        get_next_version=self.checkpointer.get_next_version,
+                        get_next_version=self._get_next_version,
                         **config
                     )
 
@@ -436,21 +488,47 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                         for chunk in map_debug_tasks(step, next_tasks):
                             yield chunk
 
-                    futures_ = [
-                        executor.submit(task.process.invoke, task.data, **task.kwargs)
+                    futures_ = {
+                        executor.submit(task.process.invoke, task.data, **task.kwargs): task
                         for task in next_tasks
-                    ]
+                    }
 
-                    # execute tasks, and wait for one to fail or all to finish.
-                    # each task is independent from all other concurrent tasks.
-                    done, inflight = futures.wait(
-                        futures_,
-                        timeout=self.step_timeout,
-                        return_when=futures.FIRST_EXCEPTION
-                    )
+                    while futures_:
+                        # execute tasks, and wait for one to fail or all to finish
+                        # each task is independent from all other concurrent tasks
+                        done, inflight = futures.wait(
+                            futures_,
+                            timeout=self.step_timeout,
+                            return_when=futures.FIRST_COMPLETED
+                        )
+                        for future in done:
+                            task = futures_.pop(future)
+                            if not future.exception:
+                                # we got an exception, break out of while loop
+                                # exception will be handled in panic_or_proceed
+                                futures_.clear()
+                            else:
+                                # yield updates output for the finished task
+                                if 'updates' in stream_modes:
+                                    yield from _with_mode(
+                                        'updates',
+                                        isinstance(kwargs['stream_mode'], list),
+                                        map_output_updates(kwargs['output_keys'], [task])
+                                    )
+                                if 'debug' in stream_modes:
+                                    yield from _with_mode(
+                                        'debug',
+                                        isinstance(kwargs['stream_mode'], list),
+                                        map_debug_task_results(step, [task], self.stream_channels_list)
+                                    )
+                        else:
+                            # remove references to loop vars
+                            del future, task
 
                     # panic on failure or timeout
                     _panic_or_proceed(done, inflight, step)
+                    # don't keep futures around in memory longer than needed
+                    del futures_, done, inflight
 
                     # combine pending writes from all tasks
                     pending_writes: deque[tuple[str, Any]] = deque()
@@ -460,42 +538,30 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                     if kwargs['debug']:
                         print_step_writes(step, pending_writes, self.stream_channels_list)
 
-                    _apply_writes(checkpoint, channels, pending_writes)
+                    # apply writes to channels
+                    _apply_writes(
+                        checkpoint,
+                        channels,
+                        pending_writes,
+                        self._get_next_version
+                    )
 
-                    if kwargs['debug']:
-                        print_step_checkpoint(step, channels, self.stream_channels_list)
-
-                    # map and yield current value or updates
-                    if kwargs['stream_mode'] == 'values':
-                        mapped_values = map_output_values(kwargs['output_keys'], pending_writes, channels)
-                        yield mapped_values
-                    elif kwargs['stream_mode'] == 'updates':
-                        mapped_updates = map_output_updates(kwargs['output_keys'], next_tasks)
-                        yield from mapped_updates
-                    else:
-                        mapped_debug_task_results = map_debug_task_results(step, next_tasks, self.stream_channels_list)
-                        yield from mapped_debug_task_results
-
-                    # save end of step checkpoint
-                    if self.checkpointer is not None:
-                        checkpoint = create_checkpoint(checkpoint, channels, step)
-                        background_tasks.append(
-                            executor.submit(
-                                self.checkpointer.put,
-                                checkpoint.copy(),
-                                CheckpointMetadata(
-                                    source='loop',
-                                    step=step,
-                                    writes=_single(mapped_updates) if kwargs['stream_mode'] == 'updates' else _single(mapped_values)
-                                ),
-                                **config
-                            )
+                    if 'values' in stream_modes:
+                        yield from _with_mode(
+                            'values',
+                            isinstance(kwargs['stream_mode'], list),
+                            map_output_values(kwargs['output_keys'], pending_writes, channels)
                         )
-                        checkpoint_config = {**checkpoint_config, 'thread_ts': checkpoint['id']}
 
-                    # yield debug checkpoint
-                    if kwargs['stream_mode'] == 'debug':
-                        yield map_debug_checkpoint(step, channels, self.stream_channels_asis, **config)
+                    yield from put_checkpoint({
+                        'source': 'loop',
+                        'step': step,
+                        'writes': ( # type: ignore
+                            _single(map_output_updates(kwargs['output_keys'], next_tasks))
+                            if self.stream_mode == 'updates'
+                            else _single(map_output_values(kwargs['output_keys'], pending_writes, channels))
+                        )
+                    })
 
                     # after execution, check if we should interrupt
                     if _should_interrupt(
@@ -504,11 +570,13 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                         self.stream_channels_list,
                         next_tasks
                     ):
-                        raise FlowRecursionError(
-                            f'Recursion limit of {recursion_limit} reached'
-                            'without hitting a stop condition. You can increase the '
-                            'limit by setting the `recursion_limit` config key.'
-                        )
+                        break
+                else:
+                    raise FlowRecursionError(
+                        f'Recursion limit of {recursion_limit} reached'
+                        'without hitting a stop condition. You can increase the '
+                        'limit by setting the `recursion_limit` config key.'
+                    )
         finally:
             # cancel any pending tasks when generator is interrupted
             try:
@@ -531,14 +599,59 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
             processes: dict[str, PregelNode] = {**self.nodes}
             saved = await self.checkpointer.aget(**config) if self.checkpointer else None
             checkpoint = saved.checkpoint if saved else empty_checkpoint()
-            checkpoint_config = saved.config if saved else config
             start = saved.metadata.get('step', -2) + 1 if saved else -1
+            stream_modes = [kwargs['stream_mode']] if isinstance(kwargs['stream_mode'], str) else kwargs['stream_mode']
             recursion_limit = config['recursion_limit']
+
+            # merge config fields with previous checkpoint config
+            checkpoint_config = config
+            if saved:
+                checkpoint_config = {
+                    **config,
+                    **saved.config
+                }
+
             # create channels from checkpoint
             async with (
                 AsyncChannelManager(self.channels, checkpoint) as channels,
                 AsyncManagedValuesManager(self.managed_values_dict, self, **config) as managed_values
             ):
+                async def aput_checkpoint(metadata: CheckpointMetadata) -> AsyncIterator[Any]:
+                    nonlocal checkpoint, checkpoint_config, channels
+
+                    if self.checkpointer is None:
+                        return
+                    if kwargs['debug']:
+                        print_step_checkpoint(metadata['step'], channels, self.stream_channels_list)
+
+                    # create new checkpoint
+                    checkpoint = create_checkpoint(checkpoint, channels, metadata['step'])
+                    # save it, without blocking
+                    background_tasks.append(
+                        asyncio.create_task(
+                            self.checkpointer.aput(
+                                copy_checkpoint(checkpoint),
+                                metadata,
+                                **checkpoint_config
+                            )
+                        )
+                    )
+                    # update checkpoint config
+                    checkpoint_config = {**checkpoint_config, 'thread_ts': checkpoint['id']}
+                    # yield debug checkpoint event
+                    if 'debug' in stream_modes:
+                        for chunk in _with_mode(
+                            'debug',
+                            isinstance(kwargs['stream_mode'], list),
+                            map_debug_checkpoint(
+                                metadata['step'],
+                                channels,
+                                self.stream_channels_asis,
+                                **config
+                            )
+                        ):
+                            yield chunk
+
                 # map inputs to channel updates
                 if input_writes := deque(map_input(kwargs['input_keys'], inputs)):
                     # discard any unfinished tasks from previous checkpoint
@@ -549,23 +662,24 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                         managed_values,
                         -1,
                         for_execution=True,
+                        get_next_version=self._get_next_version,
                         **config
                     )
                     # apply input writes
-                    _apply_writes(checkpoint, channels, input_writes)
+                    _apply_writes(
+                        checkpoint,
+                        channels,
+                        input_writes,
+                        self._get_next_version
+                    )
                     # save input checkpoint
-                    if self.checkpointer is not None:
-                        checkpoint = create_checkpoint(checkpoint, channels, start)
-                        background_tasks.append(
-                            asyncio.create_task(
-                                self.checkpointer.aput(
-                                    checkpoint,
-                                    CheckpointMetadata(source='input', step=start, writes=inputs),
-                                    **config
-                                )
-                            )
-                        )
-                        checkpoint_config = {**checkpoint_config, 'thread_ts': checkpoint['id']}
+                    async for chunk in aput_checkpoint({
+                        'source': 'input',
+                        'step': start,
+                        'writes': inputs
+                    }):
+                        yield chunk
+                    # increment start to 0
                     start += 1
                 else:
                     # if no input received, take that as a signal to proceed past previous interrupt, if any
@@ -587,6 +701,7 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                         managed_values,
                         step,
                         for_execution=True,
+                        get_next_version=self._get_next_version,
                         **config
                     )
 
@@ -612,21 +727,51 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                         for chunk in map_debug_tasks(step, next_tasks):
                             yield chunk
 
-                    futures_ = [
-                        asyncio.create_task(task.process.ainvoke(task.data, **task.kwargs))
+                    futures_ = {
+                        asyncio.create_task(
+                            task.process.ainvoke(task.data, **task.kwargs)
+                        ): task
                         for task in next_tasks
-                    ]
+                    }
 
-                    # execute tasks, and wait for one to fail or all to finish.
-                    # each task is independent from all other concurrent tasks.
-                    done, inflight = await asyncio.wait(
-                        futures_,
-                        timeout=self.step_timeout,
-                        return_when=asyncio.FIRST_EXCEPTION
-                    )
+                    while futures_:
+                        # execute tasks, and wait for one to fail or all to finish
+                        # each task is independent from all other concurrent tasks
+                        done, inflight = await asyncio.wait(
+                            futures_,
+                            timeout=self.step_timeout,
+                            return_when=futures.FIRST_COMPLETED
+                        )
+                        for future in done:
+                            task = futures_.pop(future)
+                            if not future.exception:
+                                # we got an exception, break out of while loop
+                                # exception will be handled in panic_or_proceed
+                                futures_.clear()
+                            else:
+                                # yield updates output for the finished task
+                                if 'updates' in stream_modes:
+                                    for chunk in _with_mode(
+                                        'updates',
+                                        isinstance(kwargs['stream_mode'], list),
+                                        map_output_updates(kwargs['output_keys'], [task])
+                                    ):
+                                        yield chunk
+                                if 'debug' in stream_modes:
+                                    for chunk in _with_mode(
+                                        'debug',
+                                        isinstance(kwargs['stream_mode'], list),
+                                        map_debug_task_results(step, [task], self.stream_channels_list)
+                                    ):
+                                        yield chunk
+                        else:
+                            # remove references to loop vars
+                            del future, task
 
                     # panic on failure or timeout
                     _panic_or_proceed(done, inflight, step)
+                    # don't keep futures around in memory longer than needed
+                    del futures_, done, inflight
 
                     # combine pending writes from all tasks
                     pending_writes: deque[tuple[str, Any]] = deque()
@@ -636,46 +781,32 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                     if kwargs['debug']:
                         print_step_writes(step, pending_writes, self.stream_channels_list)
 
-                    _apply_writes(checkpoint, channels, pending_writes)
+                    # apply writes to channels
+                    _apply_writes(
+                        checkpoint,
+                        channels,
+                        pending_writes,
+                        self._get_next_version
+                    )
 
-                    if kwargs['debug']:
-                        print_step_checkpoint(step, channels, self.stream_channels_list)
+                    if 'values' in stream_modes:
+                        for chunk in _with_mode(
+                            'values',
+                            isinstance(kwargs['stream_mode'], list),
+                            map_output_values(kwargs['output_keys'], pending_writes, channels)
+                        ):
+                            yield chunk
 
-                    # map and yield current value or updates
-                    if kwargs['stream_mode'] == 'values':
-                        mapped_values = map_output_values(kwargs['output_keys'], pending_writes, channels)
-                        for value in mapped_values:
-                            yield value
-                    elif kwargs['stream_mode'] == 'updates':
-                        mapped_updates = map_output_updates(kwargs['output_keys'], next_tasks)
-                        for value in mapped_updates:
-                            yield value
-                    else:
-                        mapped_debug_task_results = map_debug_task_results(step, next_tasks, self.stream_channels_list)
-                        for value in mapped_debug_task_results:
-                            yield value
-
-                    # save end of step checkpoint
-                    if self.checkpointer is not None:
-                        checkpoint = create_checkpoint(checkpoint, channels, step)
-                        background_tasks.append(
-                            asyncio.create_task(
-                                self.checkpointer.aput(
-                                    checkpoint.copy(),
-                                    CheckpointMetadata(
-                                        source='loop',
-                                        step=step,
-                                        writes=_single(mapped_updates) if kwargs['stream_mode'] == 'updates' else _single(mapped_values)
-                                    ),
-                                    **config
-                                )
-                            )
+                    async for chunk in aput_checkpoint({
+                        'source': 'loop',
+                        'step': step,
+                        'writes': (  # type: ignore
+                            _single(map_output_updates(kwargs['output_keys'], next_tasks))
+                            if self.stream_mode == 'updates'
+                            else _single(map_output_values(kwargs['output_keys'], pending_writes, channels))
                         )
-                        checkpoint_config = {**checkpoint_config, 'thread_ts': checkpoint['id']}
-
-                    # yield debug checkpoint
-                    if kwargs['stream_mode'] == 'debug':
-                        yield map_debug_checkpoint(step, channels, self.stream_channels_asis, **config)
+                    }):
+                        yield chunk
 
                     # after execution, check if we should interrupt
                     if _should_interrupt(
@@ -684,11 +815,13 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                         self.stream_channels_list,
                         next_tasks
                     ):
-                        raise FlowRecursionError(
-                            f'Recursion limit of {recursion_limit} reached'
-                            'without hitting a stop condition. You can increase the '
-                            'limit by setting the `recursion_limit` config key.'
-                        )
+                        break
+                else:
+                    raise FlowRecursionError(
+                        f'Recursion limit of {recursion_limit} reached'
+                        'without hitting a stop condition. You can increase the '
+                        'limit by setting the `recursion_limit` config key.'
+                    )
         finally:
             # cancel any pending tasks when generator is interrupted
             try:
@@ -698,7 +831,7 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
             except NameError:
                 pass
             # wait for all background tasks to finish
-            await asyncio.gather(*background_tasks)
+            await asyncio.shield(asyncio.gather(*background_tasks))
 
     def _set_defaults(self, **data: Unpack[FlowOptions]) -> None:
         if data['input_keys'] is None:
@@ -786,6 +919,13 @@ def _should_interrupt(
             )
         )
     )
+
+def _with_mode(mode: StreamMode, on: bool, iterator: Iterator[Any]) -> Iterator[Any]:
+    if on:
+        for chunk in iterator:
+            yield mode, chunk
+    else:
+        yield from iterator
 
 def _increment(current: Optional[int]) -> int:
     return current + 1 if current is not None else 1
