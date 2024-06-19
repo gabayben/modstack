@@ -137,7 +137,7 @@ class AiMessageChunk(AiMessage, MessageChunk):
                 metadata=metadata,
                 tool_call_chunks=tool_call_chunks,
                 usage_metadata=usage_metadata,
-                **self.model_dump(exclude={'content', 'metadata', 'tool_call_chunks', 'usage_metadata'})
+                id=self.id
             )
 
         return super().__add__(other)
