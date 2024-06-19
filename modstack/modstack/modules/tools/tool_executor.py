@@ -1,9 +1,9 @@
 from typing import Any, Optional
 
-from modstack.modules import Module, ModuleLike, coerce_to_module
+from modstack.modules import ModuleLike, SerializableModule, coerce_to_module
 from modstack.typing import Effect
 
-class ToolExecutor(Module):
+class ToolExecutor(SerializableModule):
     def __init__(
         self,
         tools: list[ModuleLike],

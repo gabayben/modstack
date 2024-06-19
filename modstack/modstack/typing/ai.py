@@ -1,21 +1,21 @@
-from typing import Any, NotRequired, TypedDict
+from typing import Any, NotRequired, Optional, TypedDict
 
 class ToolCall(TypedDict):
     name: str
     args: dict[str, Any]
-    id: NotRequired[str]
+    id: NotRequired[Optional[str]]
 
 class ToolCallChunk(TypedDict):
-    name: NotRequired[str]
-    args: NotRequired[str]
-    id: NotRequired[str]
-    index: NotRequired[int]
+    name: NotRequired[Optional[str]]
+    args: NotRequired[Optional[str]]
+    id: NotRequired[Optional[str]]
+    index: NotRequired[Optional[int]]
 
 class InvalidToolCall(TypedDict):
-    name: NotRequired[str]
-    args: NotRequired[str]
-    id: NotRequired[str]
-    error: NotRequired[str]
+    name: NotRequired[Optional[str]]
+    args: NotRequired[Optional[str]]
+    id: NotRequired[Optional[str]]
+    error: NotRequired[Optional[str]]
 
 class UsageMetadata(TypedDict):
     input_tokens: int

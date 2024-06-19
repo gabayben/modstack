@@ -46,7 +46,7 @@ class OllamaLLM(Modules.Stream[LLMRequest, MessageChunk]):
         raw = raw if raw is not None else self.raw
 
         payload = {
-            'prompt': data.prompt,
+            'prompt': str(data.prompt),
             'model': self.model,
             'system': system_prompt,
             'template': template,
