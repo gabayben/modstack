@@ -1,4 +1,4 @@
-from typing import Any, Type, override
+from typing import Any, Type, final, override
 
 from pydantic import BaseModel
 
@@ -6,6 +6,7 @@ from modstack.modules import Module, ModuleFunction, ModuleLike, SerializableMod
 from modstack.modules.tools import ToolSpec
 from modstack.typing import Effect
 
+@final
 class Tool(SerializableModule[dict[str, Any], Any]):
     function: Module
     metadata: dict[str, Any]
