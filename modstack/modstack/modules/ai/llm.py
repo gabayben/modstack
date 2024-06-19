@@ -22,10 +22,6 @@ class LLMPrompt:
     def prompt(self) -> MessageArtifact:
         return self.messages[-1]
 
-    @property
-    def history(self) -> list[MessageArtifact]:
-        return self.messages[1:] if len(self.messages) > 1 else []
-
     def __add__(self, other: 'LLMPrompt') -> 'LLMPrompt':
         self.messages += other.messages
         return self
