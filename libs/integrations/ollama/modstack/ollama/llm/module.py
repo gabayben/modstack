@@ -4,10 +4,10 @@ from typing import Any, Iterator
 import requests
 
 from modstack.modules import Modules
-from modstack.artifacts.messages import ChatMessageChunk, ChatRole
+from modstack.artifacts.messages import MessageChunk, MessageType
 from modstack.modules.ai import LLMRequest
 
-class OllamaLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
+class OllamaLLM(Modules.Stream[LLMRequest, MessageChunk]):
     def __init__(
         self,
         url: str = 'http://localhost:11434/api/generate',
@@ -30,7 +30,7 @@ class OllamaLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
     def _iter(
         self,
         data: LLMRequest,
-        role: ChatRole = ChatRole.USER,
+        role: MessageType = MessageType.HUMAN,
         images: list[str] | None = None,
         system_prompt: str | None = None,
         template: str | None = None,
@@ -38,7 +38,7 @@ class OllamaLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
         raw: bool | None = None,
         stream: bool | None = None,
         **kwargs
-    ) -> Iterator[list[ChatMessageChunk]]:
+    ) -> Iterator[list[MessageChunk]]:
         generation_args = {**self.generation_args, **kwargs, 'stream': True}
         system_prompt = system_prompt or self.system_prompt
         template = template or self.template
@@ -60,8 +60,8 @@ class OllamaLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
 
         for line in response.iter_lines():
             chunk = json.load(line.decode('utf-8'))
-            yield ChatMessageChunk(
+            yield MessageChunk(
                 chunk.get('response'),
-                ChatRole.ASSISTANT,
+                MessageType.AI,
                 metadata={key: value for key, value in chunk.items() if key != 'response'}
             )

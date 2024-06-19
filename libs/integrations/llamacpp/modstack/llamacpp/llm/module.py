@@ -3,10 +3,10 @@ from typing import Optional
 from llama_cpp import ChatCompletionRequestMessage, Llama
 
 from modstack.modules import Modules
-from modstack.artifacts.messages import ChatMessageChunk, ChatRole
+from modstack.artifacts.messages import MessageChunk, MessageType
 from modstack.modules.ai import LLMRequest
 
-class LlamaCppLLM(Modules.Sync[LLMRequest, ChatMessageChunk]):
+class LlamaCppLLM(Modules.Sync[LLMRequest, MessageChunk]):
     def __init__(
         self,
         model: str,
@@ -20,14 +20,14 @@ class LlamaCppLLM(Modules.Sync[LLMRequest, ChatMessageChunk]):
     def _invoke(
         self,
         data: LLMRequest,
-        role: ChatRole = ChatRole.USER,
+        role: MessageType = MessageType.HUMAN,
         echo: bool = False,
         **kwargs
-    ) -> ChatMessageChunk:
+    ) -> MessageChunk:
         history = data.history or []
-        history.append(ChatMessageChunk(
+        history.append(MessageChunk(
             data.prompt,
-            role or ChatRole.USER
+            role or MessageType.HUMAN
         ))
 
         response = self.client.create_chat_completion(
@@ -38,12 +38,12 @@ class LlamaCppLLM(Modules.Sync[LLMRequest, ChatMessageChunk]):
             )
         )
 
-def _convert_to_llamacpp_messages(messages: list[ChatMessageChunk]) -> list[ChatCompletionRequestMessage]:
+def _convert_to_llamacpp_messages(messages: list[MessageChunk]) -> list[ChatCompletionRequestMessage]:
     formatted_messages: list[ChatCompletionRequestMessage] = []
     for message in messages:
         formatted_messages.append({
             'content': message.content,
-            'role': message.role,
+            'role': message.message_type,
             'name': message.name
         })
     return formatted_messages

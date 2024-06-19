@@ -6,10 +6,10 @@ from anthropic.types import ContentBlockDeltaEvent, MessageDeltaEvent, MessageSt
 from modstack.auth import Secret
 from modstack.modules import Modules
 
-from modstack.artifacts.messages import ChatMessage, ChatMessageChunk, ChatRole
+from modstack.artifacts.messages import MessageArtifact, MessageChunk, MessageType
 from modstack.modules.ai import LLMRequest
 
-class AnthropicLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
+class AnthropicLLM(Modules.Stream[LLMRequest, MessageChunk]):
     def __init__(
         self,
         token: Secret = Secret.from_env_var('ANTHROPIC_API_KEY'),
@@ -45,7 +45,7 @@ class AnthropicLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
     def _iter(
         self,
         data: LLMRequest,
-        role: ChatRole = ChatRole.USER,
+        role: MessageType = MessageType.HUMAN,
         max_tokens: int | None = None,
         system_prompt: str | None = None,
         top_k: int | None = None,
@@ -53,7 +53,7 @@ class AnthropicLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
         temperature: float | None = None,
         stop_sequences: list[str] | None = None,
         **kwargs
-    ) -> Iterator[ChatMessageChunk]:
+    ) -> Iterator[MessageChunk]:
         generation_args = {**self.generation_args, **kwargs}
         generation_args.update({'stream': True})
         max_tokens = max_tokens or self.max_tokens
@@ -64,7 +64,7 @@ class AnthropicLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
         stop_sequences = stop_sequences or self.stop_sequences
 
         history = data.history or []
-        history.append(ChatMessageChunk(data.prompt, role))
+        history.append(MessageChunk(data.prompt, role))
         formatted_messages = _convert_to_anthropic_format(history)
 
         response = self.client.messages.create(
@@ -80,7 +80,7 @@ class AnthropicLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
             **generation_args
         )
 
-        completions: list[ChatMessageChunk] = []
+        completions: list[MessageChunk] = []
         message_start: MessageStartEvent | None = None
         delta: MessageDeltaEvent | None = None
         for stream_event in response:
@@ -89,7 +89,7 @@ class AnthropicLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
             if isinstance(stream_event, MessageDeltaEvent):
                 delta = stream_event
             if isinstance(stream_event, ContentBlockDeltaEvent):
-                chunk = ChatMessageChunk(stream_event.delta.text or '', ChatRole.ASSISTANT)
+                chunk = MessageChunk(stream_event.delta.text or '', MessageType.AI)
                 chunk.metadata.update({
                     'model': self.model,
                     'index': stream_event.index,
@@ -98,7 +98,7 @@ class AnthropicLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
                 })
                 yield chunk
 
-def _convert_to_anthropic_format(messages: Iterable[ChatMessage]) -> list[dict[str, Any]]:
+def _convert_to_anthropic_format(messages: Iterable[MessageArtifact]) -> list[dict[str, Any]]:
     formatted_messages: list[dict[str, Any]] = []
     for message in messages:
         message_dict = dict(message)

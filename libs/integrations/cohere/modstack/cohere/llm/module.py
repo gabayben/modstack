@@ -3,18 +3,17 @@ from typing import Any, ClassVar, Iterator
 import cohere
 
 from modstack.cohere.utils import build_cohore_metadata
-from modstack.artifacts.messages import ChatMessage, ChatMessageChunk, ChatRole
+from modstack.artifacts.messages import MessageArtifact, MessageChunk, MessageType
 from modstack.auth import Secret
 from modstack.modules import Modules
 from modstack.modules.ai import LLMRequest
-from modstack.modules.tools import ToolResult, ToolSpec
 
-class CohereLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
-    ROLES_MAP: ClassVar[dict[ChatRole, str]] = {
-        ChatRole.USER: 'USER',
-        ChatRole.FUNCTION: 'USER',
-        ChatRole.ASSISTANT: 'CHAT',
-        ChatRole.SYSTEM: 'SYSTEM'
+class CohereLLM(Modules.Stream[LLMRequest, MessageChunk]):
+    ROLES_MAP: ClassVar[dict[MessageType, str]] = {
+        MessageType.HUMAN: 'USER',
+        MessageType.FUNCTION: 'USER',
+        MessageType.AI: 'CHAT',
+        MessageType.SYSTEM: 'SYSTEM'
     }
 
     def __init__(
@@ -38,16 +37,16 @@ class CohereLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
     def _iter(
         self,
         data: LLMRequest,
-        role: ChatRole = ChatRole.USER,
+        role: MessageType = MessageType.HUMAN,
         **kwargs
-    ) -> Iterator[ChatMessageChunk]:
+    ) -> Iterator[MessageChunk]:
         generation_args = {**self.generation_args, **kwargs}
         chat_history = [
             self._build_cohere_message(message)
             for message in data.history
         ] if data.history else []
         cohere_tools: list[cohere.Tool] = self._build_cohere_tools(data.tools) if data.tools else None
-        cohere_tool_results: list[ToolResult] = self._build_cohere_tool_results(data.tool_results) if data.tool_results else None
+        cohere_tool_results: list[cohere.ToolResult] = self._build_cohere_tool_results(data.tool_results) if data.tool_results else None
 
         response = self.client.chat_stream(
             message=data.prompt,
@@ -59,7 +58,7 @@ class CohereLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
         )
 
         for event in response:
-            chat_message = ChatMessageChunk(event.text or '', ChatRole.ASSISTANT)
+            chat_message = MessageChunk(event.text or '', MessageType.AI)
             if event.event_type == 'llm-generation':
                 chat_message.metadata.update({
                     'event_type': event.event_type,
@@ -70,14 +69,14 @@ class CohereLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
                 build_cohore_metadata(chat_message.metadata, response)
             yield chat_message
 
-    def _build_cohere_message(self, message: ChatMessage) -> cohere.ChatMessage:
-        return cohere.ChatMessage(
-            role=self.ROLES_MAP[message.role],
+    def _build_cohere_message(self, message: MessageArtifact) -> cohere.MessageArtifact:
+        return cohere.MessageArtifact(
+            role=self.ROLES_MAP[message.message_type],
             message=message.content
         )
 
     def _build_cohere_tools(self, tools: list[Any]) -> list[cohere.Tool]:
         return []
 
-    def _build_cohere_tool_results(self, tool_results: list[Any]) -> list[ToolResult]:
+    def _build_cohere_tool_results(self, tool_results: list[Any]) -> list[cohere.ToolResult]:
         return []

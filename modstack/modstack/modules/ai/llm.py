@@ -1,16 +1,16 @@
 from typing import Iterable
 
 from modstack.typing import Schema
-from modstack.artifacts.messages import ChatMessage
+from modstack.artifacts.messages import MessageArtifact
 
 class LLMRequest(Schema):
     prompt: str
-    history: Iterable[ChatMessage] | None = None
+    history: Iterable[MessageArtifact] | None = None
 
     def __init__(
         self,
         prompt: str,
-        history: Iterable[ChatMessage] | None = None,
+        history: Iterable[MessageArtifact] | None = None,
         **kwargs
     ):
         super().__init__(

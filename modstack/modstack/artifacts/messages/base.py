@@ -1,40 +1,80 @@
-from typing import Any, Optional, Union
+from enum import StrEnum
+from typing import Literal, Optional, Union
 
 from modstack.artifacts import Utf8Artifact
 from modstack.artifacts.messages.utils import merge_content
 
+class MessageType(StrEnum):
+    HUMAN = 'user'
+    AI = 'assistant'
+    SYSTEM = 'system'
+    FUNCTION = 'function'
+    TOOL = 'tool'
+
 class MessageArtifact(Utf8Artifact):
     content: str
-    message_type: str
     name: Optional[str] = None
-    
+    message_type: MessageType | str
+    role: Optional[str] = None
+
     def __init__(
-        self, 
+        self,
         content: str,
-        message_type: str,
-        name: Optional[str] = None,
-        metadata: dict[str, Any] = {},
+        message_type: MessageType | str,
+        role: str,
+        name: str | None = None,
         **kwargs
     ):
+        _ = kwargs.pop('message_type', None)
         super().__init__(
             content=content,
-            message_type=message_type,
             name=name,
-            metadata=metadata,
+            message_type=message_type,
+            role=role,
             **kwargs
         )
-    
+
     def to_utf8(self) -> str:
-        return self.content
+        if not self.message_type:
+            return self.content
+        text = self.message_type
+        if self.name:
+            text += f' {self.name}'
+        return f'{text}:\n{self.content}'
+
+    def to_common_format(self) -> dict[str, str]:
+        msg = {'content': self.content, 'role': self.message_type}
+        if self.name:
+            msg['name'] = self.name
+        return msg
 
 class MessageChunk(MessageArtifact):
+    message_type: Literal['chat_chunk']
+
+    def __init__(
+        self,
+        content: str,
+        role: str,
+        name: str | None = None,
+        **kwargs
+    ):
+        _ = kwargs.pop('message_type', None)
+        super().__init__(
+            content,
+            'chat_chunk',
+            role=role,
+            name=name,
+            **kwargs
+        )
+
     def __add__(self, other: Union[str, list[str], 'MessageChunk']) -> 'MessageChunk':
         if isinstance(other, MessageChunk):
             return self.__class__(
                 content=merge_content(self.content, other.content),
                 message_type=self.message_type,
                 name=self.name,
-                metadata={**self.metadata, **other.metadata}
+                metadata={**self.metadata, **other.metadata},
+                role=self.role
             )
         return self.__class__(
             content=merge_content(
@@ -43,5 +83,6 @@ class MessageChunk(MessageArtifact):
             ),
             message_type=self.message_type,
             name=self.name,
-            metadata=self.metadata
+            metadata=self.metadata,
+            role=self.role
         )

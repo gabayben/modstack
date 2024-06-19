@@ -1,9 +1,9 @@
 from typing import Literal
 
-from modstack.artifacts.messages import ChatMessage, ChatMessageChunk, ChatRole
+from modstack.artifacts.messages import MessageArtifact, MessageChunk, MessageType
 
-class SystemMessage(ChatMessage):
-    role: Literal[ChatRole.SYSTEM]
+class SystemMessage(MessageArtifact):
+    message_type: Literal[MessageType.SYSTEM]
 
     def __init__(
         self,
@@ -11,7 +11,9 @@ class SystemMessage(ChatMessage):
         name: str | None = None,
         **kwargs
     ):
-        super().__init__(content, ChatRole.SYSTEM, name=name, **kwargs)
+        super().__init__(content, MessageType.SYSTEM, name=name, **kwargs)
 
-class SystemMessageChunk(SystemMessage, ChatMessageChunk):
+SystemMessage.model_rebuild()
+
+class SystemMessageChunk(SystemMessage, MessageChunk):
     pass
