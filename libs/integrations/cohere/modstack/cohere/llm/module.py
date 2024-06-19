@@ -43,8 +43,8 @@ class CohereLLM(Modules.Stream[LLMPrompt, MessageChunk]):
         generation_args = {**self.generation_args, **kwargs}
         chat_history = [
             self._build_cohere_message(message)
-            for message in prompt.messages[:-1]
-        ] if len(prompt.messages) > 1 else []
+            for message in prompt.history
+        ]
 
         response = self.client.chat_stream(
             message=str(prompt.prompt),

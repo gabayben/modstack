@@ -1,7 +1,7 @@
 from typing import Union
 
 from modstack.artifacts import Utf8Artifact
-from modstack.artifacts.messages import HumanMessage, MessageArtifact
+from modstack.artifacts.messages import HumanMessage, MessageArtifact, SystemMessage
 
 class LLMPrompt:
     messages: list[MessageArtifact]
@@ -21,6 +21,14 @@ class LLMPrompt:
     @property
     def prompt(self) -> MessageArtifact:
         return self.messages[-1]
+
+    @property
+    def history(self) -> list[MessageArtifact]:
+        return [
+            message
+            for message in self.messages[:-1]
+            if not isinstance(message, SystemMessage)
+        ]
 
     def __add__(self, other: 'LLMPrompt') -> 'LLMPrompt':
         self.messages += other.messages
