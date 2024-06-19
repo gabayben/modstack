@@ -594,6 +594,7 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
         try:
             config = kwargs['config']
             self._validate_config(config)
+            loop = asyncio.get_event_loop()
             background_tasks: list[asyncio.Task] = []
             # copy nodes to ignore mutations during execution
             processes: dict[str, PregelNode] = {**self.nodes}
