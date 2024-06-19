@@ -2,7 +2,9 @@ import asyncio
 from functools import partial
 from typing import Any, Callable, NamedTuple, Optional, Sequence
 
-from modflow.constants import IS_CHANNEL_WRITER, WRITE_KEY
+from modflow import Send
+from modflow.channels import InvalidUpdateError
+from modflow.constants import IS_CHANNEL_WRITER, TASKS, WRITE_KEY
 from modstack.modules import Module, Passthrough, SerializableModule
 from modstack.typing import Effect, Effects
 from modstack.utils.func import tzip
@@ -22,11 +24,13 @@ class ChannelWrite(SerializableModule):
         self,
         writes: Sequence[ChannelWriteEntry],
         tags: list[str] = [],
+        require_at_least_one_of: Optional[Sequence[str]] = None,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.writes = writes
         self.tags = set(tags)
+        self.require_at_least_one_of = require_at_least_one_of
 
     def forward(self, data: Any, **kwargs) -> Effect[Any]:
         return Effects.From(
@@ -39,22 +43,37 @@ class ChannelWrite(SerializableModule):
         data: Any,
         **kwargs
     ) -> Any:
+        # split packets and entries
+        writes = [(TASKS, write) for write in self.writes if isinstance(write, Send)]
+        entries = [write for write in self.writes if isinstance(write, ChannelWriteEntry)]
+        for entry in entries:
+            if entry.channel == TASKS:
+                raise InvalidUpdateError(f'Cannot write to the reserved channel {TASKS}.')
+
+        # process entries into values
         values = [
             data if write.value is Passthrough else write.value
-            for write in self.writes
+            for write in entries
         ]
         values = [
             write.mapper.invoke(value, **kwargs)
             if write.mapper
             else value
-            for value, write in tzip(values, self.writes)
+            for value, write in tzip(values, entries)
         ]
         values = [
             (write.channel, value)
-            for value, write in tzip(values, self.writes)
+            for value, write in tzip(values, entries)
             if not write.skip_none or value is not None
         ]
-        self.do_write(values, kwargs)
+
+        # write packets and values
+        self.do_write(
+            writes + values,
+            kwargs,
+            require_at_least_one_of=self.require_at_least_one_of if data is not None else None
+        )
+
         return data
 
     async def _awrite(
@@ -62,24 +81,39 @@ class ChannelWrite(SerializableModule):
         data: Any,
         **kwargs
     ) -> Any:
+        # split packets and entries
+        writes = [(TASKS, write) for write in self.writes if isinstance(write, Send)]
+        entries = [write for write in self.writes if isinstance(write, ChannelWriteEntry)]
+        for entry in entries:
+            if entry.channel == TASKS:
+                raise InvalidUpdateError(f'Cannot write to the reserved channel {TASKS}.')
+
+        # process entries into values
         values = [
             data if write.value is Passthrough else write.value
-            for write in self.writes
+            for write in entries
         ]
         values = await asyncio.gather(
             *(
                 write.mapper.ainvoke(value, **kwargs)
                 if write.mapper
                 else _make_future(value)
-                for value, write in tzip(values, self.writes)
+                for value, write in tzip(values, entries)
             )
         )
         values = [
             (write.channel, value)
-            for value, write in tzip(values, self.writes)
+            for value, write in tzip(values, entries)
             if not write.skip_none or value is not None
         ]
-        self.do_write(values, kwargs)
+
+        # write packets and values
+        self.do_write(
+            writes + values,
+            kwargs,
+            require_at_least_one_of=self.require_at_least_one_of if data is not None else None
+        )
+
         return data
 
     @staticmethod
@@ -98,10 +132,14 @@ class ChannelWrite(SerializableModule):
     def do_write(
         values: list[tuple[str, Any]],
         config: dict[str, Any],
-        requires_at_least_one_of: Optional[Sequence[str]] = None
+        require_at_least_one_of: Optional[Sequence[str]] = None
     ) -> None:
-        write = config.get(WRITE_KEY)
-        write([(chan, value) for chan, value in values if value is not SKIP_WRITE])
+        filtered = [(chan, value) for chan, value in values if value is not SKIP_WRITE]
+        if require_at_least_one_of is not None:
+            if not {chan for chan, _ in filtered} and set(require_at_least_one_of):
+                raise InvalidUpdateError(f'Must write to at least one of {require_at_least_one_of}.')
+        write: WRITE_TYPE = config.get(WRITE_KEY)
+        write(filtered)
 
 def _make_future(value: Any) -> asyncio.Future:
     future = asyncio.Future()
