@@ -1,17 +1,19 @@
 from typing import NotRequired, Optional, Sequence, TypedDict, Union
 
 from modflow.checkpoints import Checkpointer
+from modflow.constants import END
 from modflow.managed import ManagedValue
 from modflow.modules import StateFlow
 from modstack.artifacts.messages import AiMessage, MessageArtifact, SystemMessage
-from modstack.modules import Module, ModuleLike, SerializableModule
-from modstack.modules.ai import LLMRequest
+from modstack.modules import Module, ModuleLike, SerializableModule, coerce_to_module, module
+from modstack.modules.ai import LLMPrompt
+from modstack.modules.tools import ToolExecutor
 from modstack.typing import Effect, Effects
 
 _MessageModifier = Union[
     str,
     SystemMessage,
-    ModuleLike[list[MessageArtifact], list[MessageArtifact]]
+    ModuleLike[LLMPrompt, LLMPrompt]
 ]
 
 class ReactAgentState(TypedDict):
@@ -19,7 +21,7 @@ class ReactAgentState(TypedDict):
     is_last_step: NotRequired[ManagedValue[bool]]
 
 def create_react_agent(
-    model: Module[LLMRequest, MessageArtifact],
+    model: Module[LLMPrompt, MessageArtifact],
     tools: list[ModuleLike],
     message_modifier: Optional[_MessageModifier] = None,
     checkpointer: Optional[Checkpointer] = None,
@@ -27,6 +29,8 @@ def create_react_agent(
     interrupt_after: Optional[Sequence[str]] = None,
     debug: bool = False
 ) -> SerializableModule[ReactAgentState, ReactAgentState]:
+    tools = [coerce_to_module(tool) for tool in tools]
+
     # Define the function that determines whether to continue or not
     def should_continue(state: ReactAgentState) -> str:
         last_message = state['messages'][-1]
@@ -41,32 +45,21 @@ def create_react_agent(
         llm = model
     elif isinstance(message_modifier, str):
         system_message = SystemMessage(message_modifier)
-        llm = (lambda messages: [system_message] + messages) | model
+        llm = (lambda prompt: prompt + LLMPrompt([system_message])) | model
     elif isinstance(message_modifier, SystemMessage):
-        llm = (lambda messages: [message_modifier] + messages) | model
+        llm = (lambda prompt: prompt + LLMPrompt([message_modifier])) | model
     else:
         llm = message_modifier | model
 
-    # Define the function that calls the model
+    # Define the function that calls llm
+    @module
     def call_model(state: ReactAgentState, **kwargs) -> Effect[ReactAgentState]:
         def invoke() -> ReactAgentState:
-            response = llm.invoke(
-                LLMRequest(
-                    prompt=state['messages'][-1],
-                    messages=state['messages'][1:] or []
-                ),
-                **kwargs
-            )
+            response = llm.invoke(LLMPrompt(state['messages']), **kwargs)
             return handle_response(response)
 
         async def ainvoke() -> ReactAgentState:
-            response = await llm.ainvoke(
-                LLMRequest(
-                    prompt=state['messages'][-1],
-                    messages=state['messages'][1:] or []
-                ),
-                **kwargs
-            )
+            response = await llm.ainvoke(LLMPrompt(state['messages']), **kwargs)
             return handle_response(response)
 
         def handle_response(response: MessageArtifact) -> ReactAgentState:
@@ -85,3 +78,28 @@ def create_react_agent(
 
     # Define a new flow
     flow = StateFlow(ReactAgentState)
+
+    # Define the two nodes that the agent will cycle between
+    flow.add_node(call_model, 'agent')
+    flow.add_node(ToolExecutor(tools), 'tools')
+
+    # Set the entrypoint as `agent`, this means that this node is the first one called
+    flow.set_entry_point('agent')
+
+    # Conditional edge
+    flow.add_conditional_edges(
+        'agent',
+        should_continue,
+        path_map={'continue': 'tools', 'end': END}
+    )
+
+    # Add an edge from `tools` to `agent`
+    flow.add_edge('tools', 'agent')
+
+    # Compile and return flow
+    return flow.compile(
+        checkpointer=checkpointer,
+        interrupt_before=interrupt_before,
+        interrupt_after=interrupt_after,
+        debug=debug
+    )

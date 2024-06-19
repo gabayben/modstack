@@ -6,15 +6,15 @@ from anthropic.types import ContentBlockDeltaEvent, MessageDeltaEvent, MessageSt
 from modstack.auth import Secret
 from modstack.modules import Module, Modules
 
-from modstack.artifacts.messages import AiMessageChunk, HumanMessageChunk, MessageArtifact, MessageChunk, MessageType
-from modstack.modules.ai import LLMRequest
+from modstack.artifacts.messages import AiMessageChunk, MessageArtifact, MessageChunk, MessageType
+from modstack.modules.ai import LLMPrompt
 
 class AnthropicTool(TypedDict):
     name: str
     description: str
     input_schema: dict[str, Any]
 
-class AnthropicLLM(Modules.Stream[LLMRequest, MessageChunk]):
+class AnthropicLLM(Modules.Stream[LLMPrompt, MessageChunk]):
     def __init__(
         self,
         token: Secret = Secret.from_env_var('ANTHROPIC_API_KEY'),
@@ -52,7 +52,7 @@ class AnthropicLLM(Modules.Stream[LLMRequest, MessageChunk]):
 
     def _iter(
         self,
-        data: LLMRequest,
+        prompt: LLMPrompt,
         role: MessageType = MessageType.HUMAN,
         max_tokens: int | None = None,
         system_prompt: str | None = None,
@@ -71,9 +71,7 @@ class AnthropicLLM(Modules.Stream[LLMRequest, MessageChunk]):
         temperature = temperature or self.temperature
         stop_sequences = stop_sequences or self.stop_sequences
 
-        history = data.messages or []
-        history.append(HumanMessageChunk(str(data.prompt), role=role))
-        formatted_messages = _convert_to_anthropic_format(history)
+        formatted_messages = _convert_to_anthropic_format(prompt.messages)
 
         response = self.client.messages.create(
             max_tokens=max_tokens,

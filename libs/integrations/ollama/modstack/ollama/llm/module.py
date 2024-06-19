@@ -5,9 +5,9 @@ import requests
 
 from modstack.modules import Modules
 from modstack.artifacts.messages import AiMessageChunk, MessageChunk, MessageType
-from modstack.modules.ai import LLMRequest
+from modstack.modules.ai import LLMPrompt
 
-class OllamaLLM(Modules.Stream[LLMRequest, MessageChunk]):
+class OllamaLLM(Modules.Stream[LLMPrompt, MessageChunk]):
     def __init__(
         self,
         url: str = 'http://localhost:11434/api/generate',
@@ -29,7 +29,7 @@ class OllamaLLM(Modules.Stream[LLMRequest, MessageChunk]):
 
     def _iter(
         self,
-        data: LLMRequest,
+        prompt: LLMPrompt,
         role: MessageType = MessageType.HUMAN,
         images: list[str] | None = None,
         system_prompt: str | None = None,
@@ -46,7 +46,7 @@ class OllamaLLM(Modules.Stream[LLMRequest, MessageChunk]):
         raw = raw if raw is not None else self.raw
 
         payload = {
-            'prompt': str(data.prompt),
+            'prompt': str(prompt.prompt),
             'model': self.model,
             'system': system_prompt,
             'template': template,

@@ -1,1 +1,1 @@
-from .llm import LLMRequest
+from .llm import LLMPrompt

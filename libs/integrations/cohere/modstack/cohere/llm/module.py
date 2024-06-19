@@ -6,9 +6,9 @@ from modstack.cohere.utils import build_cohore_metadata
 from modstack.artifacts.messages import AiMessageChunk, MessageArtifact, MessageChunk, MessageType
 from modstack.auth import Secret
 from modstack.modules import Modules
-from modstack.modules.ai import LLMRequest
+from modstack.modules.ai import LLMPrompt
 
-class CohereLLM(Modules.Stream[LLMRequest, MessageChunk]):
+class CohereLLM(Modules.Stream[LLMPrompt, MessageChunk]):
     ROLES_MAP: ClassVar[dict[MessageType, str]] = {
         MessageType.HUMAN: 'USER',
         MessageType.FUNCTION: 'USER',
@@ -36,18 +36,18 @@ class CohereLLM(Modules.Stream[LLMRequest, MessageChunk]):
 
     def _iter(
         self,
-        data: LLMRequest,
+        prompt: LLMPrompt,
         role: MessageType = MessageType.HUMAN,
         **kwargs
     ) -> Iterator[MessageChunk]:
         generation_args = {**self.generation_args, **kwargs}
         chat_history = [
             self._build_cohere_message(message)
-            for message in data.messages
-        ] if data.messages else []
+            for message in prompt.history
+        ] if prompt.messages else []
 
         response = self.client.chat_stream(
-            message=data.str(data.prompt),
+            message=str(prompt.prompt),
             chat_history=chat_history,
             model=self.model,
             **generation_args
