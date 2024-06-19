@@ -169,7 +169,7 @@ class Effects:
                 yield item
 
     @final
-    class Provide(Effect[Out]):
+    class From(Effect[Out]):
         def __init__(
             self,
             invoke: Optional[Callable[[], Out]] = None,

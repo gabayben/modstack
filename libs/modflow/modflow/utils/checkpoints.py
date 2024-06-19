@@ -17,7 +17,8 @@ def empty_checkpoint() -> Checkpoint:
         timestamp=datetime.now(timezone.utc).isoformat(),
         channel_versions=defaultdict(int),
         versions_seen=defaultdict(_seen_dict),
-        channel_values={}
+        channel_values={},
+        seen=[]
     )
 
 def copy_checkpoint(checkpoint: Checkpoint) -> Checkpoint:
@@ -30,7 +31,8 @@ def copy_checkpoint(checkpoint: Checkpoint) -> Checkpoint:
             _seen_dict,
             {k: defaultdict(int, v) for k, v in checkpoint["versions_seen"].items()},
         ),
-        channel_values=checkpoint['channel_values'].copy()
+        channel_values=checkpoint['channel_values'].copy(),
+        seen=checkpoint['seen'].copy()
     )
 
 def create_checkpoint(checkpoint: Checkpoint, channels: Mapping[str, Channel], step: int) -> Checkpoint:
@@ -46,5 +48,6 @@ def create_checkpoint(checkpoint: Checkpoint, channels: Mapping[str, Channel], s
         timestamp=datetime.now(timezone.utc).isoformat(),
         channel_versions=checkpoint['channel_versions'],
         versions_seen=checkpoint['versions_seen'],
-        channel_values=values
+        channel_values=values,
+        seen=[]
     )

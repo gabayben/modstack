@@ -7,14 +7,14 @@ from collections import defaultdict, deque
 from concurrent import futures
 from functools import partial
 import logging
-from typing import Any, AsyncIterator, Iterator, Literal, Optional, Sequence, Type, Union, Unpack, final, overload, override
+from typing import Any, AsyncIterator, Callable, Iterator, Literal, Optional, Sequence, Type, Union, Unpack, final, overload, override
 
 from pydantic import BaseModel, Field, model_validator
 
-from modflow import All, FlowInput, FlowOutput, FlowOutputChunk, FlowRecursionError, PregelExecutableTask, PregelTaskDescription, RunFlow, StateSnapshot, StreamMode
+from modflow import All, FlowInput, FlowOutput, FlowOutputChunk, FlowRecursionError, PregelExecutableTask, PregelTaskDescription, FlowOptions, Send, StateSnapshot, StreamMode
 from modflow.channels import AsyncChannelManager, Channel, ChannelManager, EmptyChannelError, InvalidUpdateError
 from modflow.checkpoints import Checkpoint, CheckpointMetadata, Checkpointer
-from modflow.constants import READ_KEY, INTERRUPT, HIDDEN
+from modflow.constants import PENDING_WRITES_CHANNEL, READ_KEY, INTERRUPT, HIDDEN, TASKS, WRITE_KEY
 from modflow.managed import AsyncManagedValuesManager, ManagedValueSpec, ManagedValuesManager, is_managed_value
 from modflow.modules import PregelNode
 from modflow.utils.checkpoints import copy_checkpoint, create_checkpoint, empty_checkpoint
@@ -178,8 +178,10 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
         self._validate_checkpointer()
         saved = self.checkpointer.get(**kwargs)
         checkpoint = saved.checkpoint if saved else empty_checkpoint()
+
         # find last node that updated the state, if not provided
         as_node = as_node if as_node is not None else self._get_node_to_update(checkpoint)
+
         # update channels
         with ChannelManager(self.channels, checkpoint) as channels:
             writers = self.nodes[as_node].writers
@@ -193,9 +195,28 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                 [INTERRUPT],
                 kwargs
             )
-            task.process.invoke(task.data, **kwargs)
-            _apply_writes(checkpoint, channels, task.writes)
+            task.process.invoke(
+                task.data,
+                **{
+                    **kwargs,
+                    WRITE_KEY: task.writes.extend,
+                    READ_KEY: partial(
+                        _local_read,
+                        checkpoint,
+                        channels,
+                        task.writes
+                    )
+                }
+            )
+            # apply to checkpoint and save
+            _apply_writes(checkpoint, channels, task.writes, self.checkpointer.get_next_version)
             step = saved.metadata.get('step', -2) + 1 if saved else -1
+
+            # merge config fields with previous checkpoint config
+            checkpoint_config = kwargs
+            if saved:
+                checkpoint_config = {**kwargs, **saved.config}
+
             return self.checkpointer.put(
                 create_checkpoint(checkpoint, channels, step),
                 CheckpointMetadata(
@@ -203,7 +224,7 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                     step=step,
                     writes={as_node: values}
                 ),
-                **(saved.config if saved else kwargs)
+                **checkpoint_config
             )
 
     async def aupdate_state(
@@ -215,8 +236,10 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
         self._validate_checkpointer()
         saved = await self.checkpointer.aget(**kwargs)
         checkpoint = saved.checkpoint if saved else empty_checkpoint()
+
         # find last node that updated the state, if not provided
         as_node = as_node if as_node is not None else self._get_node_to_update(checkpoint)
+
         # update channels
         async with AsyncChannelManager(self.channels, checkpoint) as channels:
             writers = self.nodes[as_node].writers
@@ -230,16 +253,36 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                 [INTERRUPT],
                 kwargs
             )
-            await task.process.ainvoke(task.data, **kwargs)
-            _apply_writes(checkpoint, channels, task.writes)
+            await task.process.ainvoke(
+                task.data,
+                **{
+                    **kwargs,
+                    WRITE_KEY: task.writes.extend,
+                    READ_KEY: partial(
+                        _local_read,
+                        checkpoint,
+                        channels,
+                        task.writes
+                    )
+                }
+            )
+            # apply to checkpoint and save
+            _apply_writes(checkpoint, channels, task.writes, self.checkpointer.get_next_version)
             step = saved.metadata.get('step', -2) + 1 if saved else -1
+
+            # merge config fields with previous checkpoint config
+            checkpoint_config = kwargs
+            if saved:
+                checkpoint_config = {**kwargs, **saved.config}
+
             return await self.checkpointer.aput(
                 create_checkpoint(checkpoint, channels, step),
                 CheckpointMetadata(
                     source='update',
                     step=step,
                     writes={as_node: values}
-                )
+                ),
+                **checkpoint_config
             )
 
     def _get_node_to_update(self, checkpoint: Checkpoint) -> str:
@@ -270,38 +313,38 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
 
     @final
     def forward(self, inputs: FlowInput, **kwargs) -> Effect[FlowOutput]:
-        return Effects.Provide(
+        return Effects.From(
             invoke=partial(self._invoke, inputs, **kwargs),
             ainvoke=partial(self._ainvoke, inputs, **kwargs),
-            iter_=partial(self._iter, inputs, **kwargs),
-            aiter_=partial(self._aiter, inputs, **kwargs)
+            iter_=partial(self._stream, inputs, **kwargs),
+            aiter_=partial(self._astream, inputs, **kwargs)
         )
 
-    def _invoke(self, inputs: FlowInput, **kwargs: Unpack[RunFlow]) -> FlowOutput:
+    def _invoke(self, inputs: FlowInput, **kwargs: Unpack[FlowOptions]) -> FlowOutput:
         if kwargs['stream_mode'] == 'values':
             latest: FlowOutputChunk = None
         else:
             chunks: list[FlowOutputChunk] = []
-        for chunk in self._iter(inputs, **kwargs):
+        for chunk in self._stream(inputs, **kwargs):
             latest = chunk
             chunks.append(chunk)
         if kwargs['stream_mode'] == 'values':
             return latest
         return chunks
 
-    async def _ainvoke(self, inputs: FlowInput, **kwargs: Unpack[RunFlow]) -> FlowOutput:
+    async def _ainvoke(self, inputs: FlowInput, **kwargs: Unpack[FlowOptions]) -> FlowOutput:
         if kwargs['stream_mode'] == 'values':
             latest: FlowOutputChunk = None
         else:
             chunks: list[FlowOutputChunk] = []
-        async for chunk in self._aiter(inputs, **kwargs): #type: ignore
+        async for chunk in self._astream(inputs, **kwargs): #type: ignore
             latest = chunk
             chunks.append(chunk)
         if kwargs['stream_mode'] == 'values':
             return latest
         return chunks
 
-    def _iter(self, inputs: FlowInput, **kwargs: Unpack[RunFlow]) -> Iterator[FlowOutput]:
+    def _stream(self, inputs: FlowInput, **kwargs: Unpack[FlowOptions]) -> Iterator[FlowOutput]:
         self._set_defaults(**kwargs)
         try:
             config = kwargs['config']
@@ -333,7 +376,7 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                         **config
                     )
                     # apply input writes
-                    _apply_writes(checkpoint, channels, input_writes)
+                    _apply_writes(checkpoint, channels, input_writes, self.checkpointer.get_next_version)
                     # save input checkpoint
                     if self.checkpointer is not None:
                         checkpoint = create_checkpoint(checkpoint, channels, start)
@@ -367,6 +410,7 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
                         managed_values,
                         step,
                         for_execution=True,
+                        get_next_version=self.checkpointer.get_next_version,
                         **config
                     )
 
@@ -477,7 +521,7 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
             for task in done:
                 task.result()
 
-    async def _aiter(self, inputs: FlowInput, **kwargs: Unpack[RunFlow]) -> AsyncIterator[FlowOutput]:
+    async def _astream(self, inputs: FlowInput, **kwargs: Unpack[FlowOptions]) -> AsyncIterator[FlowOutput]:
         self._set_defaults(**kwargs)
         try:
             config = kwargs['config']
@@ -656,7 +700,7 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
             # wait for all background tasks to finish
             await asyncio.gather(*background_tasks)
 
-    def _set_defaults(self, **data: Unpack[RunFlow]) -> None:
+    def _set_defaults(self, **data: Unpack[FlowOptions]) -> None:
         if data['input_keys'] is None:
             data['input_keys'] = self.input_channels
         if data['output_keys'] is None:
@@ -743,41 +787,122 @@ def _should_interrupt(
         )
     )
 
-def _apply_writes(
-    checkpoint: Checkpoint,
-    channels: dict[str, Channel],
-    pending_writes: Sequence[tuple[str, Any]]
-) -> None:
-    pending_writes_by_channel: dict[str, list[Any]] = defaultdict(list)
-    for chan, value in pending_writes:
-        pending_writes_by_channel[chan].append(value)
-
-    if checkpoint['channel_versions']:
-        max_version = max(checkpoint['channel_versions'].values())
-    else:
-        max_version = 0
-
-    updated_channels: set[str] = set()
-    for chan, writes in pending_writes_by_channel.items():
-        if chan in channels:
-            try:
-                channels[chan].update(writes)
-            except InvalidUpdateError as e:
-                raise InvalidUpdateError(
-                    f'Invalid update for channel {chan}: {e}.'
-                ) from e
-            checkpoint['channel_versions'][chan] = max_version + 1
-            updated_channels.add(chan)
-        else:
-            logger.warning(f'Skipping write for channel {chan} which has no readers.')
-
-    for chan in channels:
-        if chan not in updated_channels:
-            channels[chan].update([])
+def _increment(current: Optional[int]) -> int:
+    return current + 1 if current is not None else 1
 
 def _single[T](iterator: Iterator[T]) -> Optional[T]:
     for item in iterator:
         return item
+
+def _apply_writes(
+    checkpoint: Checkpoint,
+    channels: dict[str, Channel],
+    pending_writes: Sequence[tuple[str, Any]],
+    get_next_version: Optional[Callable[[int, Channel], int]]
+) -> None:
+    pending_writes_by_channel: dict[str, list[Any]] = defaultdict(list)
+
+    for chan, value in pending_writes:
+        if chan == TASKS:
+            pending_writes_by_channel[PENDING_WRITES_CHANNEL].append(value)
+        else:
+            pending_writes_by_channel[chan].append(value)
+
+    if checkpoint['channel_versions']:
+        max_version = max(checkpoint['channel_versions'].values())
+    else:
+        max_version = None
+
+    updated_channels: set[str] = set()
+    # Apply writes to channels
+    for chan, values in pending_writes_by_channel.items():
+        if chan in channels:
+            try:
+                updated = channels[chan].update(values)
+            except InvalidUpdateError as e:
+                raise InvalidUpdateError(
+                    f'Invalid update for channel {chan}: {e}.'
+                ) from e
+            if updated and get_next_version is not None:
+                checkpoint['channel_versions'][chan] = get_next_version(max_version, channels[chan])
+            updated_channels.add(chan)
+        else:
+            logger.warning(f'Skipping write for channel {chan} which has no readers.')
+    # Channels that weren't updated in this step are notified of a new step
+    for chan in channels:
+        if chan not in updated_channels:
+            if channels[chan].update([]) and get_next_version is not None:
+                checkpoint['channel_versions'][chan] = get_next_version(max_version, channels[chan])
+
+def _local_write(
+    commit: Callable[[Sequence[tuple[str, Any]]], None],
+    processes: dict[str, PregelNode],
+    channels: dict[str, Channel],
+    writes: Sequence[tuple[str, Any]]
+) -> None:
+    for chan, value in writes:
+        if chan == TASKS:
+            if not isinstance(value, Send):
+                raise ValueError(f'Invalid packet type. Expected Send, got {value}.')
+            if value.node not in processes:
+                raise ValueError(f'Invalid node name {value.node} in packet.')
+        elif chan not in channels:
+            logger.warning(f'Skipping write for channel {chan}, which has no readers.')
+    commit(writes)
+
+def _local_read(
+    checkpoint: Checkpoint,
+    channels: dict[str, Channel],
+    writes: Sequence[tuple[str, Any]],
+    select: Union[str, list[str]],
+    fresh: bool = False
+) -> Union[dict[str, Any], Any]:
+    if fresh:
+        checkpoint = create_checkpoint(checkpoint, channels, -1)
+        with ChannelManager(channels, checkpoint) as channels:
+            _apply_writes(copy_checkpoint(checkpoint), channels, writes, None)
+            return read_channels(channels, select)
+    return read_channels(channels, select)
+
+def _process_input(
+    step: int,
+    name: str,
+    process: PregelNode,
+    managed: dict[str, ManagedValueSpec],
+    channels: dict[str, Channel]
+) -> Iterator[Any]:
+    if isinstance(process.channels, dict):
+        try:
+            value = {
+                k: read_channel(channels, chan, catch=chan not in process.triggers)
+                for k, chan in process.channels.items()
+                if isinstance(chan, str)
+            }
+            managed_values = {}
+            for key, chan in process.channels.items():
+                if is_managed_value(chan):
+                    managed_values[key] = managed[key](step, PregelTaskDescription(name, value))
+            value.update(managed_values)
+        except EmptyChannelError:
+            return
+    elif isinstance(process.channels, list):
+        for chan in process.channels:
+            try:
+                value = read_channel(channels, chan, catch=False)
+                break
+            except EmptyChannelError:
+                pass
+        else:
+            return
+    else:
+        raise TypeError(
+            f'Invalid channels type for process. Expected dict or list, got {process.channels}.'
+        )
+
+    if process.mapper is not None:
+        value = process.mapper(value)
+
+    yield value
 
 @overload
 def _prepare_next_tasks(
@@ -787,6 +912,7 @@ def _prepare_next_tasks(
     managed: dict[str, ManagedValueSpec],
     step: int,
     for_execution: Literal[False],
+    get_next_version: Literal[None] = None,
     **kwargs
 ) -> tuple[Checkpoint, list[PregelTaskDescription]]:
     ...
@@ -799,6 +925,7 @@ def _prepare_next_tasks(
     managed: dict[str, ManagedValueSpec],
     step: int,
     for_execution: Literal[True],
+    get_next_version: Callable[[int, Channel], int],
     **kwargs
 ) -> tuple[Checkpoint, list[PregelExecutableTask]]:
     ...
@@ -810,12 +937,58 @@ def _prepare_next_tasks(
     managed: dict[str, ManagedValueSpec],
     step: int,
     for_execution: bool,
+    get_next_version: Union[Callable[[int, Channel], int], None] = None,
     **kwargs
 ) -> tuple[Checkpoint, Union[list[PregelTaskDescription], list[PregelExecutableTask]]]:
     # Check if any processes should be run in next step
     # If so, prepare the values to be passed to them
     checkpoint = copy_checkpoint(checkpoint)
     tasks: list[Union[PregelTaskDescription, PregelExecutableTask]]
+
+    # Consume pending packets
+    for packet in checkpoint['pending_sends']:
+        if for_execution:
+            if node := processes[packet.node].get_node():
+                writes = deque()
+                tasks.append(
+                    PregelExecutableTask(
+                        name=packet.node,
+                        data=packet.arg,
+                        process=node,
+                        writes=writes,
+                        triggers=[TASKS],
+                        kwargs={
+                            **kwargs,
+                            WRITE_KEY: partial(
+                                _local_write,
+                                writes.extend,
+                                processes,
+                                channels
+                            ),
+                            READ_KEY: partial(
+                                _local_read,
+                                checkpoint,
+                                channels,
+                                tasks
+                            )
+                        }
+                    )
+                )
+        else:
+            tasks.append(PregelTaskDescription(packet.node, packet.arg))
+
+    if for_execution:
+        checkpoint['pending_sends'].clear()
+
+    # Collect channels to consume
+    channels_to_consume = set()
+
+    # Check if any processes should be run in next step
+    # If so, prepare the values to be passed to them
+    version_type = type(next(iter(checkpoint['channel_versions'].values()), None))
+    null_version = version_type()
+    if null_version is None:
+        return checkpoint, tasks
     for name, process in processes.items():
         seen = checkpoint['versions_seen'][name]
         # If any of the channels read by this process were updated
@@ -827,56 +1000,27 @@ def _prepare_next_tasks(
                     read_channel(channels, chan, return_exception=True),
                     EmptyChannelError
                 )
-                and checkpoint['channel_versions'][chan] > seen[chan]
+                and checkpoint['channel_versions'].get(chan, null_version) > seen.get(chan, null_version)
             )
         ]:
-            # If all trigger channels subscribed by this process are not empty
-            # invoke the process with the values of all non-empty channels
-            if isinstance(process.channels, dict):
-                try:
-                    value = {
-                        k: read_channel(channels, chan, catch=chan not in process.triggers)
-                        for k, chan in process.channels
-                        if isinstance(chan, str)
-                    }
-
-                    managed_values = {}
-                    for key, chan in process.channels.items():
-                        if is_managed_value(chan):
-                            managed_values[key] = managed[key](step, PregelTaskDescription(name, value))
-
-                    value.update(managed_values)
-                except EmptyChannelError:
-                    continue
-            elif isinstance(process.channels, list):
-                for chan in process.channels:
-                    try:
-                        value = read_channel(channels, chan, catch=False)
-                        break
-                    except EmptyChannelError:
-                        pass
-                else:
-                    continue
-            else:
-                raise TypeError(
-                    f'Invalid channels type for process. Expected dict or list, got {process.channels}.'
-                )
-
-            # If the process has a mapper, apply it to the value
-            if process.mapper:
-                value = process.mapper(value)
+            channels_to_consume.update(triggers)
+            try:
+                value = next(_process_input(step, name, process, managed, channels))
+            except StopIteration:
+                continue
 
             # update seen versions
             if for_execution:
-                for chan in process.channels:
-                    seen.update({
-                        chan: checkpoint['channel_versions'][chan]
-                        for chan in process.triggers
-                    })
+                seen.update({
+                    chan: checkpoint['channel_versions'][chan]
+                    for chan in process.triggers
+                    if chan in checkpoint['channel_versions']
+                })
 
             if for_execution:
                 if node := process.get_node():
                     writes = deque()
+                    triggers = sorted(triggers)
                     tasks.append(
                         PregelExecutableTask(
                             name=name,
@@ -884,10 +1028,35 @@ def _prepare_next_tasks(
                             process=node,
                             writes=writes,
                             triggers=triggers,
-                            kwargs=kwargs
+                            kwargs={
+                                **kwargs,
+                                WRITE_KEY: partial(
+                                    _local_write,
+                                    writes.extend,
+                                    processes,
+                                    channels
+                                ),
+                                READ_KEY: partial(
+                                    _local_read,
+                                    checkpoint,
+                                    channels,
+                                    writes
+                                )
+                            }
                         )
                     )
             else:
                 tasks.append(PregelTaskDescription(name, value))
+
+    # Find the highest version of all channels
+    if checkpoint['channel_versions']:
+        max_version = max(checkpoint['channel_versions'].values())
+    else:
+        max_version = None
+    # Consume all channels that were read
+    if for_execution:
+        for chan in channels_to_consume:
+            if channels[chan].consume():
+                checkpoint['channel_versions'][chan] = get_next_version(max_version, channels[chan])
 
     return checkpoint, tasks

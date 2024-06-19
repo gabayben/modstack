@@ -3,7 +3,7 @@ from .base import (
     Checkpoint,
     CheckpointAt,
     CheckpointSerializer,
-    CheckpointTuple,
+    SavedCheckpoint,
     Checkpointer
 )
 from .memory import MemoryCheckpointer

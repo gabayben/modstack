@@ -4,5 +4,7 @@ READ_KEY = "__pregel_read"
 INTERRUPT = "__interrupt__"
 HIDDEN = "modflow:hidden"
 IS_CHANNEL_WRITER = '_is_channel_writer'
+TASKS = '__pregel_tasks__'
+PENDING_WRITES_CHANNEL = 'pending_writes'
 START = '__start__'
 END = '__end__'

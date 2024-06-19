@@ -1,6 +1,7 @@
 """
 Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/graphs/state.py
 """
+
 from functools import partial
 import inspect
 import logging

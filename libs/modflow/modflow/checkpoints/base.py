@@ -7,6 +7,9 @@ from collections import defaultdict
 from enum import StrEnum
 from typing import Any, AsyncIterator, Iterator, Literal, NamedTuple, NotRequired, Optional, Protocol, TypedDict
 
+from modflow import Send
+from modflow.channels import Channel
+
 class CheckpointMetadata(TypedDict, total=False):
     """
     The source of the checkpoint.
@@ -74,16 +77,16 @@ class Checkpoint(TypedDict):
     """
     channel_values: dict[str, Any]
 
-"""
-Taken from LangGraph's CheckpointAt.
-"""
+    """
+    List of packets sent to nodes but not yet processed.
+    Cleared by the next checkpoint.
+    """
+    pending_sends: list[Send]
+
 class CheckpointAt(StrEnum):
     END_OF_STEP = 'end_of_step'
     END_OF_RUN = 'end_of_run'
 
-"""
-Taken from LangGraph's CheckpointSerializer.
-"""
 class CheckpointSerializer(Protocol):
     def loads(self, bytes_: bytes) -> Any:
         pass
@@ -91,7 +94,7 @@ class CheckpointSerializer(Protocol):
     def dumps(self, data: Any) -> bytes:
         pass
 
-class CheckpointTuple(NamedTuple):
+class SavedCheckpoint(NamedTuple):
     checkpoint: Checkpoint
     metadata: CheckpointMetadata
     config: dict[str, Any]
@@ -119,7 +122,7 @@ class Checkpointer(ABC):
         *,
         limit: Optional[int] = None,
         **kwargs
-    ) -> Iterator[CheckpointTuple]:
+    ) -> Iterator[SavedCheckpoint]:
         pass
 
     @abstractmethod
@@ -129,23 +132,23 @@ class Checkpointer(ABC):
         *,
         limit: Optional[int] = None,
         **kwargs
-    ) -> AsyncIterator[CheckpointTuple]:
+    ) -> AsyncIterator[SavedCheckpoint]:
         pass
 
     @abstractmethod
-    def get_list(self, limit: Optional[int] = None, **kwargs) -> Iterator[CheckpointTuple]:
+    def get_list(self, limit: Optional[int] = None, **kwargs) -> Iterator[SavedCheckpoint]:
         pass
 
     @abstractmethod
-    async def aget_list(self, limit: Optional[int] = None, **kwargs) -> AsyncIterator[CheckpointTuple]:
+    async def aget_list(self, limit: Optional[int] = None, **kwargs) -> AsyncIterator[SavedCheckpoint]:
         pass
 
     @abstractmethod
-    def get(self, **kwargs) -> Optional[CheckpointTuple]:
+    def get(self, **kwargs) -> Optional[SavedCheckpoint]:
         pass
 
     @abstractmethod
-    async def aget(self, **kwargs) -> Optional[CheckpointTuple]:
+    async def aget(self, **kwargs) -> Optional[SavedCheckpoint]:
         pass
 
     @abstractmethod
@@ -165,3 +168,14 @@ class Checkpointer(ABC):
         **kwargs
     ) -> dict[str, Any]:
         pass
+
+    def get_next_version[V: (int, float, str)](
+        self,
+        current: Optional[V],
+        channel: Channel
+    ) -> V:
+        """
+        Get the next version of a channel. Default is to use int versions, incrementing by 1. If you override, you can use str/int/float versions,
+        as long as they are monotonically increasing.
+        """
+        return current + 1 if current is not None else 1

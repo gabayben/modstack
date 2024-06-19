@@ -29,7 +29,7 @@ class ChannelWrite(SerializableModule):
         self.tags = set(tags)
 
     def forward(self, data: Any, **kwargs) -> Effect[Any]:
-        return Effects.Provide(
+        return Effects.From(
             invoke=partial(self._write, data, **kwargs),
             ainvoke=partial(self._awrite, data, **kwargs)
         )
@@ -54,7 +54,7 @@ class ChannelWrite(SerializableModule):
             for value, write in tzip(values, self.writes)
             if not write.skip_none or value is not None
         ]
-        self.do_write(data, kwargs)
+        self.do_write(values, kwargs)
         return data
 
     async def _awrite(
@@ -79,7 +79,7 @@ class ChannelWrite(SerializableModule):
             for value, write in tzip(values, self.writes)
             if not write.skip_none or value is not None
         ]
-        self.do_write(data, kwargs)
+        self.do_write(values, kwargs)
         return data
 
     @staticmethod
@@ -95,9 +95,13 @@ class ChannelWrite(SerializableModule):
         )
 
     @staticmethod
-    def do_write(values: dict[str, Any], config: dict[str, Any]) -> None:
+    def do_write(
+        values: list[tuple[str, Any]],
+        config: dict[str, Any],
+        requires_at_least_one_of: Optional[Sequence[str]] = None
+    ) -> None:
         write = config.get(WRITE_KEY)
-        write([(chan, value) for chan, value in values.items() if value is not SKIP_WRITE])
+        write([(chan, value) for chan, value in values if value is not SKIP_WRITE])
 
 def _make_future(value: Any) -> asyncio.Future:
     future = asyncio.Future()

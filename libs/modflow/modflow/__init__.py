@@ -6,8 +6,9 @@ from .typing import (
     FlowOutput,
     All,
     StreamMode,
-    RunFlow,
+    FlowOptions,
     PregelTaskDescription,
     PregelExecutableTask,
-    StateSnapshot
+    StateSnapshot,
+    Send
 )

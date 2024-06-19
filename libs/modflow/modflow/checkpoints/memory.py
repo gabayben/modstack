@@ -5,7 +5,7 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 from collections import defaultdict
 from typing import Any, AsyncIterator, Iterator, Optional
 
-from modflow.checkpoints import Checkpoint, CheckpointMetadata, CheckpointTuple, Checkpointer
+from modflow.checkpoints import Checkpoint, CheckpointMetadata, SavedCheckpoint, Checkpointer
 from modflow.serde import SerializerProtocol
 
 class MemoryCheckpointer(Checkpointer):
@@ -38,7 +38,7 @@ class MemoryCheckpointer(Checkpointer):
         *,
         limit: Optional[int] = None,
         **kwargs
-    ) -> Iterator[CheckpointTuple]:
+    ) -> Iterator[SavedCheckpoint]:
         pass
 
     async def asearch(
@@ -47,19 +47,19 @@ class MemoryCheckpointer(Checkpointer):
         *,
         limit: Optional[int] = None,
         **kwargs
-    ) -> AsyncIterator[CheckpointTuple]:
+    ) -> AsyncIterator[SavedCheckpoint]:
         pass
 
-    def get_list(self, limit: Optional[int] = None, **kwargs) -> Iterator[CheckpointTuple]:
+    def get_list(self, limit: Optional[int] = None, **kwargs) -> Iterator[SavedCheckpoint]:
         pass
 
-    async def aget_list(self, limit: Optional[int] = None, **kwargs) -> AsyncIterator[CheckpointTuple]:
+    async def aget_list(self, limit: Optional[int] = None, **kwargs) -> AsyncIterator[SavedCheckpoint]:
         pass
 
-    def get(self, **kwargs) -> Optional[CheckpointTuple]:
+    def get(self, **kwargs) -> Optional[SavedCheckpoint]:
         pass
 
-    async def aget(self, **kwargs) -> Optional[CheckpointTuple]:
+    async def aget(self, **kwargs) -> Optional[SavedCheckpoint]:
         pass
 
     def put(
