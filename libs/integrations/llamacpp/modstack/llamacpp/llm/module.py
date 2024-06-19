@@ -4,9 +4,9 @@ from llama_cpp import ChatCompletionRequestMessage, Llama
 
 from modstack.modules import Modules
 from modstack.artifacts.messages import ChatMessageChunk, ChatRole
-from modstack.modules.ai import AgenticLLMRequest
+from modstack.modules.ai import LLMRequest
 
-class LlamaCppLLM(Modules.Sync[AgenticLLMRequest, ChatMessageChunk]):
+class LlamaCppLLM(Modules.Sync[LLMRequest, ChatMessageChunk]):
     def __init__(
         self,
         model: str,
@@ -19,7 +19,7 @@ class LlamaCppLLM(Modules.Sync[AgenticLLMRequest, ChatMessageChunk]):
 
     def _invoke(
         self,
-        data: AgenticLLMRequest,
+        data: LLMRequest,
         role: ChatRole = ChatRole.USER,
         echo: bool = False,
         **kwargs

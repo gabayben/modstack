@@ -6,10 +6,10 @@ from modstack.cohere.utils import build_cohore_metadata
 from modstack.artifacts.messages import ChatMessage, ChatMessageChunk, ChatRole
 from modstack.auth import Secret
 from modstack.modules import Modules
-from modstack.modules.ai import AgenticLLMRequest
+from modstack.modules.ai import LLMRequest
 from modstack.modules.tools import ToolResult, ToolSpec
 
-class CohereLLM(Modules.Stream[AgenticLLMRequest, ChatMessageChunk]):
+class CohereLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
     ROLES_MAP: ClassVar[dict[ChatRole, str]] = {
         ChatRole.USER: 'USER',
         ChatRole.FUNCTION: 'USER',
@@ -37,7 +37,7 @@ class CohereLLM(Modules.Stream[AgenticLLMRequest, ChatMessageChunk]):
 
     def _iter(
         self,
-        data: AgenticLLMRequest,
+        data: LLMRequest,
         role: ChatRole = ChatRole.USER,
         **kwargs
     ) -> Iterator[ChatMessageChunk]:
