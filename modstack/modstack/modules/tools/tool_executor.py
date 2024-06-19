@@ -4,7 +4,7 @@ import json
 from typing import Any, Iterable, Optional, final
 
 from modstack.artifacts.messages import AiMessage, MessageArtifact, ToolMessage
-from modstack.modules import Module, ModuleLike, SerializableModule, coerce_to_module
+from modstack.modules import Module, SerializableModule
 from modstack.typing import Effect, Effects, ToolCall
 from modstack.utils.threading import get_executor
 
@@ -13,17 +13,13 @@ class ToolExecutor(SerializableModule[MessageArtifact, list[ToolMessage]]):
 
     def __init__(
         self,
-        tools: list[ModuleLike],
+        tools: list[Module],
         name: str = 'tools',
         tags: Optional[list[str]] = None,
         **kwargs
     ):
         super().__init__(name=name, tags=tags, **kwargs)
-        tools_by_name = {}
-        for tool in tools:
-            tool = coerce_to_module(tool)
-            tools_by_name[tool.get_name()] = tool
-        self.tools = tools_by_name
+        self.tools = {tool.get_name(): tool for tool in tools}
 
     @final
     def forward(self, message: MessageArtifact, **kwargs) -> Effect[list[ToolMessage]]:

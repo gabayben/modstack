@@ -1,13 +1,18 @@
-from typing import Any, Iterable, Iterator, Mapping
+from typing import Any, Iterable, Iterator, Mapping, TypedDict
 
 from anthropic import Anthropic, NOT_GIVEN
 from anthropic.types import ContentBlockDeltaEvent, MessageDeltaEvent, MessageStartEvent
 
 from modstack.auth import Secret
-from modstack.modules import Modules
+from modstack.modules import Module, Modules
 
 from modstack.artifacts.messages import AiMessageChunk, HumanMessageChunk, MessageArtifact, MessageChunk, MessageType
 from modstack.modules.ai import LLMRequest
+
+class AnthropicTool(TypedDict):
+    name: str
+    description: str
+    input_schema: dict[str, Any]
 
 class AnthropicLLM(Modules.Stream[LLMRequest, MessageChunk]):
     def __init__(
@@ -24,7 +29,8 @@ class AnthropicLLM(Modules.Stream[LLMRequest, MessageChunk]):
         top_k: int | None = None,
         top_p: float | None = None,
         temperature: float | None = None,
-        stop_sequences: list[str] | None = None
+        stop_sequences: list[str] | None = None,
+        tools: list[Module] | None = None
     ):
         self.client = Anthropic(
             api_key=token.resolve_value(),
@@ -41,6 +47,8 @@ class AnthropicLLM(Modules.Stream[LLMRequest, MessageChunk]):
         self.top_p = top_p
         self.temperature = temperature
         self.stop_sequences = stop_sequences
+        if tools:
+            self.tools = [_convert_to_anthropic_tool(tool) for tool in tools]
 
     def _iter(
         self,
@@ -97,6 +105,13 @@ class AnthropicLLM(Modules.Stream[LLMRequest, MessageChunk]):
                     'usage': dict(message_start.message.usage, **dict(delta.usage)) if message_start and delta else {}
                 })
                 yield chunk
+
+def _convert_to_anthropic_tool(tool: Module) -> AnthropicTool:
+    return {
+        'name': tool.get_name(),
+        'description': tool.get_description(),
+        'input_schema': tool.input_schema().model_fields
+    }
 
 def _convert_to_anthropic_format(messages: Iterable[MessageArtifact]) -> list[dict[str, Any]]:
     formatted_messages: list[dict[str, Any]] = []
