@@ -6,7 +6,7 @@ from anthropic.types import ContentBlockDeltaEvent, MessageDeltaEvent, MessageSt
 from modstack.auth import Secret
 from modstack.modules import Modules
 
-from modstack.artifacts.messages import MessageArtifact, MessageChunk, MessageType
+from modstack.artifacts.messages import AiMessageChunk, HumanMessageChunk, MessageArtifact, MessageChunk, MessageType
 from modstack.modules.ai import LLMRequest
 
 class AnthropicLLM(Modules.Stream[LLMRequest, MessageChunk]):
@@ -63,8 +63,8 @@ class AnthropicLLM(Modules.Stream[LLMRequest, MessageChunk]):
         temperature = temperature or self.temperature
         stop_sequences = stop_sequences or self.stop_sequences
 
-        history = data.history or []
-        history.append(MessageChunk(data.prompt, role))
+        history = data.messages or []
+        history.append(HumanMessageChunk(str(data.prompt), role=role))
         formatted_messages = _convert_to_anthropic_format(history)
 
         response = self.client.messages.create(
@@ -89,7 +89,7 @@ class AnthropicLLM(Modules.Stream[LLMRequest, MessageChunk]):
             if isinstance(stream_event, MessageDeltaEvent):
                 delta = stream_event
             if isinstance(stream_event, ContentBlockDeltaEvent):
-                chunk = MessageChunk(stream_event.delta.text or '', MessageType.AI)
+                chunk = AiMessageChunk(stream_event.delta.text or '')
                 chunk.metadata.update({
                     'model': self.model,
                     'index': stream_event.index,

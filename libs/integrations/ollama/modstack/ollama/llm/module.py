@@ -4,7 +4,7 @@ from typing import Any, Iterator
 import requests
 
 from modstack.modules import Modules
-from modstack.artifacts.messages import MessageChunk, MessageType
+from modstack.artifacts.messages import AiMessageChunk, MessageChunk, MessageType
 from modstack.modules.ai import LLMRequest
 
 class OllamaLLM(Modules.Stream[LLMRequest, MessageChunk]):
@@ -60,8 +60,7 @@ class OllamaLLM(Modules.Stream[LLMRequest, MessageChunk]):
 
         for line in response.iter_lines():
             chunk = json.load(line.decode('utf-8'))
-            yield MessageChunk(
+            yield AiMessageChunk(
                 chunk.get('response'),
-                MessageType.AI,
                 metadata={key: value for key, value in chunk.items() if key != 'response'}
             )

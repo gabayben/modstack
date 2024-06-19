@@ -5,7 +5,7 @@ from huggingface_hub import ChatCompletionStreamOutput, InferenceClient
 from modstack.auth import Secret
 from modstack.modules import Modules
 from modstack.modules.ai import LLMRequest
-from modstack.artifacts.messages import MessageArtifact, MessageChunk, MessageType
+from modstack.artifacts.messages import AiMessageChunk, HumanMessageChunk, MessageArtifact, MessageChunk, MessageType
 from modstack.utils.paths import validate_url
 from modstack.huggingface import HFGenerationApiType, HFModelType
 from modstack.huggingface.utils import validate_hf_model
@@ -40,8 +40,8 @@ class HuggingFaceApiLLM(Modules.Stream[LLMRequest, MessageChunk]):
         **kwargs
     ) -> Iterator[MessageChunk]:
         generation_args = {**self.generation_args, **kwargs}
-        history = data.history or []
-        history.append(MessageArtifact(data.prompt, role or MessageType.HUMAN))
+        history = data.messages or []
+        history.append(HumanMessageChunk(str(data.prompt), role=role))
         messages = [message.to_common_format() for message in history]
 
         chunks: Iterable[ChatCompletionStreamOutput] = self.client.chat_completion(
@@ -56,4 +56,4 @@ class HuggingFaceApiLLM(Modules.Stream[LLMRequest, MessageChunk]):
             finish_reason = chunk.choices[0].finish_reason
             if finish_reason:
                 metadata['finish_reason'] = finish_reason
-            yield MessageChunk(text, MessageType.AI, metadata=metadata)
+            yield AiMessageChunk(text, metadata=metadata)

@@ -3,7 +3,7 @@ from typing import Optional
 from llama_cpp import ChatCompletionRequestMessage, Llama
 
 from modstack.modules import Modules
-from modstack.artifacts.messages import MessageChunk, MessageType
+from modstack.artifacts.messages import HumanMessageChunk, MessageChunk, MessageType
 from modstack.modules.ai import LLMRequest
 
 class LlamaCppLLM(Modules.Sync[LLMRequest, MessageChunk]):
@@ -24,10 +24,10 @@ class LlamaCppLLM(Modules.Sync[LLMRequest, MessageChunk]):
         echo: bool = False,
         **kwargs
     ) -> MessageChunk:
-        history = data.history or []
-        history.append(MessageChunk(
-            data.prompt,
-            role or MessageType.HUMAN
+        history = data.messages or []
+        history.append(HumanMessageChunk(
+            str(data.prompt),
+            role=role
         ))
 
         response = self.client.create_chat_completion(

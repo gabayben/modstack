@@ -1,20 +1,21 @@
-from typing import Iterable
+from pydantic import Field
 
+from modstack.artifacts import Utf8Artifact
 from modstack.typing import Schema
 from modstack.artifacts.messages import MessageArtifact
 
 class LLMRequest(Schema):
-    prompt: str
-    history: Iterable[MessageArtifact] | None = None
+    prompt: Utf8Artifact
+    messages: list[MessageArtifact] = Field(default_factory=list)
 
     def __init__(
         self,
-        prompt: str,
-        history: Iterable[MessageArtifact] | None = None,
+        prompt: Utf8Artifact,
+        messages: list[MessageArtifact] = [],
         **kwargs
     ):
         super().__init__(
             prompt=prompt,
-            history=history,
+            messages=messages,
             **kwargs
         )
