@@ -76,8 +76,8 @@ class CohereLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
             message=message.content
         )
 
-    def _build_cohere_tools(self, tools: list[ToolSpec]) -> list[cohere.Tool]:
+    def _build_cohere_tools(self, tools: list[Any]) -> list[cohere.Tool]:
         return []
 
-    def _build_cohere_tool_results(self, tool_results: list[ToolResult]) -> list[ToolResult]:
+    def _build_cohere_tool_results(self, tool_results: list[Any]) -> list[ToolResult]:
         return []

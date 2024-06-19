@@ -3,7 +3,6 @@ from typing import Any, Type, final, override
 from pydantic import BaseModel
 
 from modstack.modules import Module, ModuleFunction, ModuleLike, SerializableModule, coerce_to_module, module
-from modstack.modules.tools import ToolSpec
 from modstack.typing import Effect
 
 @final
@@ -50,15 +49,6 @@ class Tool(SerializableModule[dict[str, Any], Any]):
     @override
     def output_schema(self) -> Type[BaseModel]:
         return self._output_schema
-
-    def spec(self) -> ToolSpec:
-        return ToolSpec(
-            name=self.get_name(),
-            description=self.get_description(),
-            input_schema=self.input_schema(),
-            output_schema=self.output_schema(),
-            metadata=self.metadata
-        )
 
 def tool(
     func: ModuleFunction | None = None,
