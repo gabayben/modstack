@@ -1,8 +1,13 @@
+"""
+Credit to LangChain - https://github.com/langchain-ai/langchain/blob/master/libs/core/langchain_core/messages/base.py
+"""
+
 from enum import StrEnum
-from typing import Literal, Optional, Union
+from typing import Literal, Optional, Union, override
 
 from modstack.artifacts import Utf8Artifact
 from modstack.artifacts.messages.utils import merge_content
+from modstack.utils.merge import merge_dicts
 
 class MessageType(StrEnum):
     HUMAN = 'user'
@@ -48,6 +53,13 @@ class MessageArtifact(Utf8Artifact):
             msg['name'] = self.name
         return msg
 
+    @override
+    def pretty_repr(self, **kwargs) -> str:
+        title = f'{self.message_type.title()} Message'
+        if self.name is not None:
+            title += f'\nName: {self.name}'
+        return f'{title}\n\n{self.content}'
+
 class MessageChunk(MessageArtifact):
     message_type: Literal['chat_chunk']
 
@@ -73,7 +85,7 @@ class MessageChunk(MessageArtifact):
                 content=merge_content(self.content, other.content),
                 message_type=self.message_type,
                 name=self.name,
-                metadata={**self.metadata, **other.metadata},
+                metadata=merge_dicts(self.metadata, other.metadata),
                 role=self.role
             )
         return self.__class__(

@@ -7,13 +7,13 @@ class ToolCall(TypedDict):
 
 class ToolCallChunk(TypedDict):
     name: NotRequired[str]
-    args: NotRequired[dict[str, Any]]
+    args: NotRequired[str]
     id: NotRequired[str]
     index: NotRequired[int]
 
 class InvalidToolCall(TypedDict):
     name: NotRequired[str]
-    args: NotRequired[dict[str, Any]]
+    args: NotRequired[str]
     id: NotRequired[str]
     error: NotRequired[str]
 

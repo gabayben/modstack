@@ -181,6 +181,9 @@ class Artifact(BaseDoc, ABC):
     def is_empty(self) -> bool:
         return bytes(self) == b''
 
+    def pretty_repr(self, **kwargs) -> str:
+        return repr(self)
+
     @staticmethod
     def get_mime_type(source: 'ArtifactSource') -> str:
         path: Path
