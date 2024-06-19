@@ -52,7 +52,7 @@ class PregelNode(DecoratorBase):
                 kwargs=self.kwargs
             )
         return PregelNode(
-            bound=self | other,
+            bound=self.bound | other,
             channels=self.channels,
             triggers=self.triggers,
             writers=self.writers,
