@@ -9,7 +9,7 @@ from modstack.modules import Modules
 from modstack.modules.ai import AgenticLLMRequest
 from modstack.modules.tools import ToolResult, ToolSpec
 
-class CohereLLM(Modules.Stream[AgenticLLMRequest, list[ChatMessageChunk]]):
+class CohereLLM(Modules.Stream[AgenticLLMRequest, ChatMessageChunk]):
     ROLES_MAP: ClassVar[dict[ChatRole, str]] = {
         ChatRole.USER: 'USER',
         ChatRole.FUNCTION: 'USER',
@@ -40,7 +40,7 @@ class CohereLLM(Modules.Stream[AgenticLLMRequest, list[ChatMessageChunk]]):
         data: AgenticLLMRequest,
         role: ChatRole = ChatRole.USER,
         **kwargs
-    ) -> Iterator[list[ChatMessageChunk]]:
+    ) -> Iterator[ChatMessageChunk]:
         generation_args = {**self.generation_args, **kwargs}
         chat_history = [
             self._build_cohere_message(message)
@@ -68,7 +68,7 @@ class CohereLLM(Modules.Stream[AgenticLLMRequest, list[ChatMessageChunk]]):
             elif event.event_type == 'stream-end':
                 chat_message.metadata['model'] = self.model
                 build_cohore_metadata(chat_message.metadata, response)
-            yield [chat_message]
+            yield chat_message
 
     def _build_cohere_message(self, message: ChatMessage) -> cohere.ChatMessage:
         return cohere.ChatMessage(

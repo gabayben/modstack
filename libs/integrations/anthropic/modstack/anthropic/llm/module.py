@@ -9,7 +9,7 @@ from modstack.modules import Modules
 from modstack.artifacts.messages import ChatMessage, ChatMessageChunk, ChatRole
 from modstack.modules.ai import LLMRequest
 
-class AnthropicLLM(Modules.Stream[LLMRequest, list[ChatMessageChunk]]):
+class AnthropicLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
     def __init__(
         self,
         token: Secret = Secret.from_env_var('ANTHROPIC_API_KEY'),
@@ -53,7 +53,7 @@ class AnthropicLLM(Modules.Stream[LLMRequest, list[ChatMessageChunk]]):
         temperature: float | None = None,
         stop_sequences: list[str] | None = None,
         **kwargs
-    ) -> Iterator[list[ChatMessageChunk]]:
+    ) -> Iterator[ChatMessageChunk]:
         generation_args = {**self.generation_args, **kwargs}
         generation_args.update({'stream': True})
         max_tokens = max_tokens or self.max_tokens
@@ -96,7 +96,7 @@ class AnthropicLLM(Modules.Stream[LLMRequest, list[ChatMessageChunk]]):
                     'finish_reason': delta.delta.stop_reason if delta else 'end_turn',
                     'usage': dict(message_start.message.usage, **dict(delta.usage)) if message_start and delta else {}
                 })
-                yield [chunk]
+                yield chunk
 
 def _convert_to_anthropic_format(messages: Iterable[ChatMessage]) -> list[dict[str, Any]]:
     formatted_messages: list[dict[str, Any]] = []

@@ -6,7 +6,7 @@ from modstack.modules import Modules
 from modstack.artifacts.messages import ChatMessageChunk, ChatRole
 from modstack.modules.ai import AgenticLLMRequest
 
-class LlamaCppLLM(Modules.Sync[AgenticLLMRequest, list[ChatMessageChunk]]):
+class LlamaCppLLM(Modules.Sync[AgenticLLMRequest, ChatMessageChunk]):
     def __init__(
         self,
         model: str,
@@ -23,7 +23,7 @@ class LlamaCppLLM(Modules.Sync[AgenticLLMRequest, list[ChatMessageChunk]]):
         role: ChatRole = ChatRole.USER,
         echo: bool = False,
         **kwargs
-    ) -> list[ChatMessageChunk]:
+    ) -> ChatMessageChunk:
         history = data.history or []
         history.append(ChatMessageChunk(
             data.prompt,

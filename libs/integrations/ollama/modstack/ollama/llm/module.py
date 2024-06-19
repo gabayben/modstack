@@ -7,7 +7,7 @@ from modstack.modules import Modules
 from modstack.artifacts.messages import ChatMessageChunk, ChatRole
 from modstack.modules.ai import LLMRequest
 
-class OllamaLLM(Modules.Stream[LLMRequest, list[ChatMessageChunk]]):
+class OllamaLLM(Modules.Stream[LLMRequest, ChatMessageChunk]):
     def __init__(
         self,
         url: str = 'http://localhost:11434/api/generate',
@@ -60,10 +60,8 @@ class OllamaLLM(Modules.Stream[LLMRequest, list[ChatMessageChunk]]):
 
         for line in response.iter_lines():
             chunk = json.load(line.decode('utf-8'))
-            yield [
-                ChatMessageChunk(
-                    chunk.get('response'),
-                    ChatRole.ASSISTANT,
-                    metadata={key: value for key, value in chunk.items() if key != 'response'}
-                )
-            ]
+            yield ChatMessageChunk(
+                chunk.get('response'),
+                ChatRole.ASSISTANT,
+                metadata={key: value for key, value in chunk.items() if key != 'response'}
+            )
