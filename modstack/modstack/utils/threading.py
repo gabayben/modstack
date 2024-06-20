@@ -3,7 +3,9 @@ from concurrent.futures import Executor, Future, ThreadPoolExecutor
 from contextlib import contextmanager
 from contextvars import copy_context
 from functools import partial
-from typing import Any, Callable, Coroutine, Generator, Iterable, Iterator, List, Optional, cast, override
+from typing import Any, AsyncIterator, Callable, Coroutine, Generator, Iterable, Iterator, List, Optional, cast, override
+
+from unsync import unsync
 
 class ContextThreadPoolExecutor(ThreadPoolExecutor):
     """
@@ -91,3 +93,37 @@ def run_sync[T](
             return cast(T, future.result())
     else:
         return context.run(asyncio.run, coroutine)
+
+async def run_async[T](
+    func: Callable[..., T],
+    *args,
+    **kwargs
+) -> T:
+    return await asyncio.get_running_loop().run_in_executor(
+        None,
+        partial(func, **kwargs),
+        *args
+    )
+
+def run_sync_iter[T](
+    func: Callable[..., AsyncIterator[T]],
+    *args,
+    **kwargs
+) -> Iterator[T]:
+    @unsync
+    async def _aiter() -> list[T]:
+        return [item async for item in func(*args, **kwargs)]
+    yield from _aiter().result()
+
+async def run_async_iter[T](
+    func: Callable[..., Iterator[T]],
+    *args,
+    **kwargs
+) -> AsyncIterator[T]:
+    loop = asyncio.get_running_loop()
+    iterator = await loop.run_in_executor(None, partial(func, **kwargs), *args)
+    while True:
+        if item := await loop.run_in_executor(None, next, iterator, None):
+            yield item
+        else:
+            break

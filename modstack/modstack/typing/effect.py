@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Any, AsyncIterator, Callable, Coroutine, Generic, Iterator, Optional, TypeVar, final
 
-from unsync import unsync
-
 from modstack.typing.protocols import Addable
 from modstack.typing.vars import Other, Out
-from modstack.utils.threading import run_sync
+from modstack.utils.threading import run_async, run_async_iter, run_sync, run_sync_iter
 
 class Effect(Generic[Out], ABC):
     def map(
@@ -65,13 +63,13 @@ class Effects:
             return self.func()
 
         async def ainvoke(self) -> Out:
-            return self.invoke()
+            return await run_async(self.invoke)
 
         def iter(self) -> Iterator[Out]:
             yield self.invoke()
 
         async def aiter(self) -> AsyncIterator[Out]:
-            yield self.invoke()
+            yield await self.ainvoke()
 
     @final
     class Async(Effect[Out]):
@@ -119,13 +117,13 @@ class Effects:
             return values[-1] if values else None
 
         async def ainvoke(self) -> Out:
-            return self.invoke()
+            return await run_async(self.invoke)
 
         def iter(self) -> Iterator[Out]:
             yield from self.func()
 
         async def aiter(self) -> AsyncIterator[Out]:
-            for item in self.iter():
+            async for item in run_async_iter(self.iter):
                 yield item
 
     @final
@@ -159,10 +157,7 @@ class Effects:
             return last_value
 
         def iter(self) -> Iterator[Out]:
-            @unsync
-            async def _aiter():
-                return [item async for item in self.aiter()]
-            yield from _aiter().result()
+            yield from run_sync_iter(self.aiter)
 
         async def aiter(self) -> AsyncIterator[Out]:
             async for item in self.func():
@@ -178,7 +173,7 @@ class Effects:
             aiter_: Optional[Callable[[], AsyncIterator[Out]]] = None
         ):
             if not invoke and not ainvoke and not iter_ and not aiter_:
-                raise ValueError('You must provide at least 1 function to Effects.Any.')
+                raise ValueError('You must provide at least 1 function to Effects.From.')
             self._invoke = invoke
             self._ainvoke = ainvoke
             self._iter = iter_
@@ -197,16 +192,16 @@ class Effects:
             if self._ainvoke:
                 return await self._ainvoke()
             elif self._invoke:
-                return self._invoke()
+                return await run_async(self._invoke)
             elif self._aiter:
                 return await self._aiter_forward().ainvoke()
-            return self._iter_forward().invoke()
+            return await self._iter_forward().ainvoke()
 
         def iter(self) -> Iterator[Out]:
             if self._iter:
                 yield from self._iter()
             elif self._aiter:
-                yield from self._aiter_forward().iter()
+                yield from run_sync_iter(self._aiter)
             elif self._invoke:
                 yield self._invoke()
             yield self._aforward().invoke()
@@ -216,11 +211,11 @@ class Effects:
                 async for item in self._aiter():
                     yield item
             elif self._iter:
-                for item in self._iter():
+                async for item in run_async_iter(self._iter):
                     yield item
             elif self._ainvoke:
                 yield await self._ainvoke()
-            yield self._invoke()
+            yield await run_async(self._invoke)
 
         def _aforward(self) -> Effect[Out]:
             return Effects.Async(self._ainvoke)
