@@ -15,7 +15,7 @@ jupyter = "^1.0.0"
 modstack-markdown = { path = "libs/integrations/markdown/", develop = true }
 modstack-boilerpy3 = { path = "libs/integrations/boilerpy3/", develop = true }
 modstack-pypdf = { path = "libs/integrations/pypdf/", develop = true }
-modstack-tika = { path = "libs/integrations/tika/", develop = true }
+#modstack-tika = { path = "libs/integrations/tika/", develop = true }
 
 modstack-serper = { path = "libs/integrations/serper/", develop = true }
 modstack-web = { path = "libs/integrations/web/", develop = true }
