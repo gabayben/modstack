@@ -116,9 +116,9 @@ class Checkpointer(ABC):
         self.serde = serde or self.serde
 
     @abstractmethod
-    def search(
+    def get_many(
         self,
-        metadata: CheckpointMetadata,
+        filters: Optional[dict[str, Any]] = None,
         *,
         limit: Optional[int] = None,
         **kwargs
@@ -126,21 +126,13 @@ class Checkpointer(ABC):
         pass
 
     @abstractmethod
-    async def asearch(
+    async def aget_many(
         self,
-        metadata: CheckpointMetadata,
+        filters: Optional[dict[str, Any]] = None,
         *,
         limit: Optional[int] = None,
         **kwargs
     ) -> AsyncIterator[SavedCheckpoint]:
-        pass
-
-    @abstractmethod
-    def get_list(self, limit: Optional[int] = None, **kwargs) -> Iterator[SavedCheckpoint]:
-        pass
-
-    @abstractmethod
-    async def aget_list(self, limit: Optional[int] = None, **kwargs) -> AsyncIterator[SavedCheckpoint]:
         pass
 
     @abstractmethod

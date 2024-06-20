@@ -8,6 +8,7 @@ packages = [{ include = "modflow" }]
 [tool.poetry.dependencies]
 python = "^3.12"
 modstack = { path = "../../modstack/" }
+aiosqlite = "^0.20.0"
 
 
 [build-system]

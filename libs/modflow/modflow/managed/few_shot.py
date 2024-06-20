@@ -51,7 +51,7 @@ class FewShotExamples(ManagedValue[Sequence[V]]):
             yield value
 
     def iter(self, score: int = 1) -> Iterator[V]:
-        for example in self.flow.checkpointer.search({
+        for example in self.flow.checkpointer.get_many({
             'score': score,
             **self.metadata_filter_dict
         }, limit=self.k):
@@ -60,7 +60,7 @@ class FewShotExamples(ManagedValue[Sequence[V]]):
 
     async def aiter(self, score: int = 1) -> AsyncIterator[V]:
         # noinspection PyTypeChecker
-        async for example in self.flow.checkpointer.asearch({
+        async for example in self.flow.checkpointer.aget_many({
             'score': score,
             **self.metadata_filter_dict
         }, limit=self.k):

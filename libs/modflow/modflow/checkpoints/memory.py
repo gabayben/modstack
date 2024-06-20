@@ -32,7 +32,7 @@ class MemoryCheckpointer(Checkpointer):
         super().__init__(serde=serde)
         self.storage = defaultdict(dict)
 
-    def search(
+    def get_many(
         self,
         metadata: CheckpointMetadata,
         *,
@@ -41,7 +41,7 @@ class MemoryCheckpointer(Checkpointer):
     ) -> Iterator[SavedCheckpoint]:
         pass
 
-    async def asearch(
+    async def aget_many(
         self,
         metadata: CheckpointMetadata,
         *,

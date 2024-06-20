@@ -169,12 +169,12 @@ class Pregel(SerializableModule[FlowInput, FlowOutput]):
 
     def get_state_history(self, limit: Optional[int] = None, **kwargs) -> Iterator[StateSnapshot]:
         self._validate_checkpointer()
-        for checkpoint, metadata, other_kwargs in self.checkpointer.get_list(**kwargs):
+        for checkpoint, metadata, other_kwargs in self.checkpointer.get_many(**kwargs):
             yield self._get_state(checkpoint, metadata, **other_kwargs)
 
     async def aget_state_history(self, limit: Optional[int] = None, **kwargs) -> AsyncIterator[StateSnapshot]:
         self._validate_checkpointer()
-        async for checkpoint, metadata, other_kwargs in self.checkpointer.get(**kwargs).aiter(): #type: ignore
+        async for checkpoint, metadata, other_kwargs in self.checkpointer.aget_many(**kwargs): #type: ignore
             yield await self._aget_state(checkpoint, metadata, **other_kwargs)
 
     def update_state(
