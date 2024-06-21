@@ -1,5 +1,7 @@
 from typing import Any, Optional, override
 
+import neo4j
+
 from modstack.stores.graph import GraphNode, GraphNodeQuery, GraphRelation, GraphStore, GraphTriplet, GraphTripletQuery
 from modstack.stores.vector import VectorStoreQuery
 from modstack.typing import Embedding
@@ -15,8 +17,42 @@ class Neo4jGraphStore(GraphStore):
     def supports_vector_query(self) -> bool:
         return True
 
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        url: str,
+        database: Optional[str] = 'neo4j',
+        refresh_schema: bool = True,
+        enhanced_schema: bool = False,
+        sanitize_query_output: bool = True,
+        **kwargs
+    ):
+        self.enhanced_schema = enhanced_schema
+        self.sanitize_query_output = sanitize_query_output
+        self.database = database
+        self.structured_schema = {}
+
+        self._driver = neo4j.GraphDatabase.driver(
+            url,
+            auth=(username, password),
+            **kwargs
+        )
+        self._async_driver = neo4j.AsyncGraphDatabase.driver(
+            url,
+            auth=(username, password),
+            **kwargs
+        )
+
+        if refresh_schema:
+            self.refresh_schema()
+
+    def refresh_schema(self) -> None:
+        pass
+
     def structured_query(
-        self, query: str,
+        self,
+        query: str,
         param_map: Optional[dict[str, Any]] = None,
         **kwargs
     ) -> Any:

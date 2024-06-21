@@ -23,6 +23,7 @@ modstack-papers = { path = "libs/integrations/papers/", develop = true }
 
 modstack-redis = { path = "libs/integrations/redis/", develop = true }
 modstack-chroma = { path = "libs/integrations/chroma/", develop = true }
+modstack-neo4j = { path = "libs/integrations/neo4j/", develop = true }
 
 modstack-langdetect = { path = "libs/integrations/langdetect/", develop = true }
 
