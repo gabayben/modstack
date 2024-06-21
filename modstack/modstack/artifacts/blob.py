@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import base64
 from hashlib import sha256
-from typing import Any, Generic, Optional, TypeVar, override
+from typing import Any, Generic, Optional, TypeVar, Union, override
 
 from docarray.typing import Mesh3DUrl
 from docarray.utils._internal.misc import ProtocolType
@@ -63,6 +63,10 @@ class MediaArtifact(BlobArtifact, Generic[_Url, _Bytes], ABC):
     bytes_: Optional[_Bytes] = Field(default=None, kw_only=True)
 
     @property
+    def content_keys(self) -> set[str]:
+        return {'url', 'bytes_'}
+
+    @property
     def link(self) -> Optional[_Url]:
         return self.url
 
@@ -75,6 +79,9 @@ class MediaArtifact(BlobArtifact, Generic[_Url, _Bytes], ABC):
         if self.bytes_:
             return self.bytes_
         return super().to_bytes(protocol=protocol, compress=compress)
+
+    def set_content(self, content: Union[str, bytes], *args) -> None:
+        pass
 
 class ImageArtifact(MediaArtifact[ImageUrl, ImageBytes]):
     tensor: ImageTenser | None = Field(default=None, kw_only=True)

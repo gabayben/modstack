@@ -92,6 +92,11 @@ class Artifact(BaseDoc, ABC):
     relationships: ArtifactHierarchy = Field(default_factory=ArtifactHierarchy)
 
     @property
+    @abstractmethod
+    def content_keys(self) -> set[str]:
+        pass
+
+    @property
     def ref(self) -> Optional[ArtifactInfo]:
         return self.relationships.ref
 
@@ -173,6 +178,10 @@ class Artifact(BaseDoc, ABC):
             hash=self.hash,
             metadata=self.metadata
         )
+
+    @abstractmethod
+    def set_content(self, *args) -> None:
+        pass
 
     @abstractmethod
     def get_hash(self) -> str:

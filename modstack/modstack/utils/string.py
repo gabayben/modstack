@@ -20,3 +20,8 @@ def is_uuid(value: str) -> bool:
 
 def type_name(type_: Type) -> str:
     return f'{type_.__module__}.{type_.__name__}'
+
+def truncate_text(text: str, max_length: int) -> str:
+    if len(text) <= max_length:
+        return text
+    return text[: max_length - 3] + "..."

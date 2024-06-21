@@ -1,9 +1,13 @@
-from typing import Self
+from typing import Any, Self
 
 from modstack.artifacts import Utf8Artifact
 
 class TextArtifact(Utf8Artifact):
     content: str
+
+    @property
+    def content_keys(self) -> set[str]:
+        return {'content'}
 
     def __init__(self, content: str, **kwargs):
         super().__init__(**kwargs, content=content)
@@ -21,3 +25,6 @@ class TextArtifact(Utf8Artifact):
 
     def to_utf8(self) -> str:
         return self.content
+
+    def set_content(self, content: Any, *args) -> None:
+        self.content = str(content)

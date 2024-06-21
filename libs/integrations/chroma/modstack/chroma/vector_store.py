@@ -1,12 +1,19 @@
-from typing import Any, Optional
+import logging
+import math
+from typing import Any, Generator, Optional
 
 import chromadb
 from chromadb.api.models.Collection import Collection
 
-from modstack.artifacts import Artifact
+from modstack.artifacts import Artifact, artifact_registry
 from modstack.stores.vector import VectorStore, VectorStoreQuery, VectorStoreQueryResult
-from modstack.typing import MetadataFilters
+from modstack.typing import Embedding, FilterCondition, FilterOperator, MetadataFilter, MetadataFilters
+from modstack.utils.func import tzip
+from modstack.utils.string import truncate_text
 from modstack.utils.threading import run_async
+
+MAX_CHUNK_SIZE = 41665
+logger = logging.getLogger(__name__)
 
 class ChromaVectorStore(VectorStore):
     _collection: Collection
@@ -50,13 +57,108 @@ class ChromaVectorStore(VectorStore):
             self._collection = collection
 
     def retrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
-        pass
+        where = _to_chroma_filters(query.filters) if query.filters else {}
+        if not query.query_embedding:
+            return self._get(where, query.similarity_top_k, **kwargs)
+        return self._retrieve(query.query_embedding, where, query.similarity_top_k, **kwargs)
+
+    def _retrieve(
+        self,
+        query_embedding: Embedding,
+        where: dict,
+        n_results: int,
+        **kwargs
+    ) -> VectorStoreQueryResult:
+        result = self._collection.query(
+            query_embeddings=query_embedding,
+            where=where,
+            n_results=n_results,
+            **kwargs
+        )
+
+        logger.debug(f'> Top {len(result['documents'][0])} artifacts:')
+        artifacts: list[Artifact] = []
+        ids: list[str] = []
+        similarities: list[float] = []
+
+        for artifact_id, text, metadata, distance in tzip(
+            result['ids'][0],
+            result['documents'][0],
+            result['metadatas'][0],
+            result['distances'][0]
+        ):
+            artifact = artifact_registry.deserialize(metadata)
+            artifact.set_content(text)
+            similarity = math.exp(-distance)
+
+            artifacts.append(artifact)
+            ids.append(artifact_id)
+            similarities.append(similarity)
+            logger.debug(
+                f"> [Artifact {artifact_id}] [Similarity score: {similarity} - using query()] "
+                f"{truncate_text(str(text), 100)}"
+            )
+
+        return VectorStoreQueryResult(artifacts=artifacts, ids=ids, similarities=similarities)
+
+    def _get(
+        self,
+        where: dict,
+        limit: Optional[int],
+        **kwargs
+    ) -> VectorStoreQueryResult:
+        result = self._collection.get(where=where, limit=limit, **kwargs)
+
+        logger.debug(f'> Top {len(result['documents'])} artifacts:')
+        artifacts: list[Artifact] = []
+        ids: list[str] = []
+
+        if not result['ids']:
+            result['ids'] = []
+
+        for artifact_id, text, metadata in tzip(
+            result['ids'],
+            result['documents'],
+            result['metadatas']
+        ):
+            artifact = artifact_registry.deserialize(metadata)
+            artifact.set_content(text)
+
+            artifacts.append(artifact)
+            ids.append(artifact_id)
+            logger.debug(
+                f"> [Artifact {artifact_id}] [Similarity score: N/A - using get()] "
+                f"{truncate_text(str(text), 100)}"
+            )
+
+        return VectorStoreQueryResult(artifacts=artifacts, ids=ids)
 
     async def aretrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
         return await run_async(self.retrieve, query, **kwargs)
 
     def insert(self, artifacts: list[Artifact], **kwargs) -> list[str]:
-        pass
+        all_ids = []
+        chunks_list = _chunks_list(artifacts, MAX_CHUNK_SIZE)
+        for chunks in chunks_list:
+            texts = []
+            ids = []
+            embeddings = []
+            metadatas = []
+            for chunk in chunks:
+                if not chunk.embedding:
+                    raise ValueError(f'No embedding set for {chunk.name or chunk.id}.')
+                texts.append(str(chunk))
+                ids.append(chunk.id)
+                embeddings.append(chunk.embedding)
+                metadatas.append(chunk.model_dump(exclude={*chunk.content_keys, 'embedding'}))
+            self._collection.add(
+                documents=texts,
+                ids=ids,
+                embeddings=embeddings,
+                metadatas=metadatas
+            )
+            all_ids.extend(ids)
+        return all_ids
 
     async def ainsert(self, artifacts: list[Artifact], **kwargs) -> list[str]:
         return await run_async(self.insert, artifacts, **kwargs)
@@ -67,7 +169,10 @@ class ChromaVectorStore(VectorStore):
         filters: Optional[MetadataFilters] = None,
         **kwargs
     ) -> None:
-        pass
+        self._collection.delete(
+            ids=artifact_ids or [],
+            where=_to_chroma_filters(filters) if filters else {}
+        )
 
     async def adelete(
         self,
@@ -78,21 +183,62 @@ class ChromaVectorStore(VectorStore):
         await run_async(self.delete, artifact_ids, filters, **kwargs)
 
     def delete_ref(self, ref_artifact_id: str, **kwargs) -> None:
-        pass
+        self._collection.delete(where={'ref_id': ref_artifact_id})
 
     async def adelete_ref(self, ref_artifact_id: str, **kwargs) -> None:
         await run_async(self.delete_ref, ref_artifact_id, **kwargs)
 
     def clear(self, **kwargs) -> None:
-        pass
+        self._collection.delete(ids=self._collection.get()['ids'])
 
     async def aclear(self, **kwargs) -> None:
         await run_async(self.clear, **kwargs)
 
-    def _get(
-        self,
-        limit: Optional[int],
-        where: dict,
-        **kwargs
-    ) -> VectorStoreQueryResult:
-        pass
+def _filter_condition(condition: FilterCondition) -> str:
+    return {
+        FilterCondition.AND: '$and',
+        FilterCondition.OR: '$or'
+    }[condition]
+
+def _filter_operator(operator: FilterOperator) -> str:
+    supported_operators = {
+        FilterOperator.EQ: '$eq',
+        FilterOperator.NE: '$ne',
+        FilterOperator.GT: '$gt',
+        FilterOperator.GTE: '$gte',
+        FilterOperator.LT: '$lt',
+        FilterOperator.LTE: '$lte',
+        FilterOperator.IN: '$in',
+        FilterOperator.NIN: '$nin'
+    }
+    if operator not in supported_operators:
+        raise ValueError(f'Filter operator {operator} not supported.')
+    return supported_operators[operator]
+
+def _to_chroma_filters(standard_filters: MetadataFilters) -> dict:
+    filters = {}
+    filters_list = []
+    condition = standard_filters.condition or FilterCondition.AND
+    condition = _filter_condition(condition)
+    if standard_filters.filters:
+        for filter_ in standard_filters.filters:
+            if isinstance(filter_, MetadataFilter):
+                filters_list.append({
+                    filter_.key: {
+                        _filter_operator(filter_.operator): filter_.value
+                    }
+                })
+            else:
+                filters_list.append(_to_chroma_filters(filter_))
+    if len(filters_list) == 1:
+        return filters_list[0]
+    elif len(filters_list) > 1:
+        filters[condition] = filters_list
+    return filters
+
+def _chunks_list(
+    artifacts: list[Artifact],
+    max_chunk_size: int
+) -> Generator[list[Artifact], None, None]:
+    for i in range(0, len(artifacts), max_chunk_size):
+        yield artifacts[i : i + max_chunk_size]

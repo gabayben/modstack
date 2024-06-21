@@ -10,6 +10,10 @@ class LinkArtifact(Utf8Artifact):
     position: int | None = None
     description: str | None = None
 
+    @property
+    def content_keys(self) -> set[str]:
+        return {'link'}
+
     def __init__(
         self,
         link: str,
@@ -46,3 +50,6 @@ class LinkArtifact(Utf8Artifact):
                 **self.metadata
             }
         )
+
+    def set_content(self, link: str, *args) -> None:
+        self.link = TextUrl(link) # type: ignore[call-args]

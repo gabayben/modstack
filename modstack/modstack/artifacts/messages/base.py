@@ -3,7 +3,7 @@ Credit to LangChain - https://github.com/langchain-ai/langchain/blob/master/libs
 """
 
 from enum import StrEnum
-from typing import Literal, Optional, Union, override
+from typing import Any, Literal, Optional, Union, override
 
 from modstack.artifacts import Utf8Artifact
 from modstack.artifacts.messages.utils import merge_content
@@ -21,6 +21,10 @@ class MessageArtifact(Utf8Artifact):
     name: Optional[str] = None
     message_type: MessageType | str
     role: Optional[str] = None
+
+    @property
+    def content_keys(self) -> set[str]:
+        return {'content'}
 
     def __init__(
         self,
@@ -52,6 +56,9 @@ class MessageArtifact(Utf8Artifact):
         if self.name:
             msg['name'] = self.name
         return msg
+
+    def set_content(self, content: Any) -> None:
+        self.content = str(content)
 
     @override
     def pretty_repr(self, **kwargs) -> str:

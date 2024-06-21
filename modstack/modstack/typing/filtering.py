@@ -29,7 +29,7 @@ class MetadataFilter(Serializable):
     operator: FilterOperator = FilterOperator.EQ
 
 class MetadataFilters(Serializable):
-    filters: Union[MetadataFilter, 'MetadataFilters']
+    filters: list[Union[MetadataFilter, 'MetadataFilters']]
     condition: FilterCondition = FilterCondition.AND
 
 class MetadataFilterInfo(Serializable):
