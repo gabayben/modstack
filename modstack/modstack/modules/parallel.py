@@ -5,9 +5,10 @@ from pydantic import BaseModel
 from modstack.modules import Module, ModuleLike, SerializableModule, coerce_to_module
 from modstack.typing import Effect, Effects
 from modstack.typing.vars import In
+from modstack.utils.serialization import create_model
 
 class Parallel(SerializableModule[In, dict[str, Any]]):
-    modules: dict[str, Module]
+    modules: dict[str, Module[In, Any]]
     max_workers: Optional[int]
 
     @property
@@ -37,7 +38,7 @@ class Parallel(SerializableModule[In, dict[str, Any]]):
             max_workers=max_workers
         )
 
-    def forward(self, data: dict[str, Any], **kwargs) -> Effect[dict[str, Any]]:
+    def forward(self, data: In, **kwargs) -> Effect[dict[str, Any]]:
         return Effects.Parallel(
             {
                 name: module.forward(data, **kwargs)
@@ -57,8 +58,27 @@ class Parallel(SerializableModule[In, dict[str, Any]]):
     
     @override
     def input_schema(self) -> Type[BaseModel]:
-        pass
+        if all(
+            module.input_schema().model_json_schema().get('type', 'object') == 'object'
+            for module in self.modules.values()
+        ):
+            return create_model(
+                self.get_name('Input'),
+                **{
+                    k: (v.annotation, v.default)
+                    for module in self.modules.values()
+                    for k, v in module.input_schema().model_fields.items()
+                    if k != '__root__'
+                }
+            )
+        return super().input_schema()
 
     @override
     def output_schema(self) -> Type[BaseModel]:
-        pass
+        return create_model(
+            self.get_name('Output'),
+            **{
+                name: (module.OutputType, ...)
+                for name, module in self.modules.items()
+            }
+        )
