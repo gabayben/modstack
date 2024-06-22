@@ -41,7 +41,12 @@ class Branch(NamedTuple):
         if not isinstance(result, list):
             result = [result]
         if self.path_map:
-            destinations = [self.path_map[r] for r in result]
+            destinations = [
+                self.path_map[r]
+                if r in self.path_map
+                else result[i]
+                for i, r in enumerate(result)
+            ]
         else:
             destinations = result
         if any(dest is None for dest in destinations):
@@ -136,7 +141,7 @@ class Flow:
     def set_entry_point(self, key: str) -> None:
         self.add_edge(START, key)
 
-    def set_conditional_entry_poiny(
+    def set_conditional_entry_point(
         self,
         path: ModuleLike[Any, Union[str, list[str]]],
         path_map: Optional[Union[dict[str, str], list[str]]] = None,
