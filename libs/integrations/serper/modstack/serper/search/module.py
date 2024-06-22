@@ -6,7 +6,7 @@ import requests
 from modstack.artifacts import LinkArtifact, TextArtifact
 from modstack.auth import Secret
 from modstack.modules import Modules, SerializableModule
-from modstack.modules.fetchers import SearchEngineResponse
+from modstack.typing.modules import SearchEngineResponse
 from modstack.typing import Effect
 from modstack.utils.string import mapping_to_str
 from modstack.serper.constants import SERPER_SEARCH_URL

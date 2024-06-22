@@ -7,7 +7,7 @@ from modstack.auth import Secret
 from modstack.modules import Module, Modules
 
 from modstack.artifacts.messages import AiMessageChunk, MessageArtifact, MessageChunk, MessageType
-from modstack.modules.ai import LLMPrompt
+from modstack.ai import LLMPrompt
 
 class AnthropicTool(TypedDict):
     name: str
