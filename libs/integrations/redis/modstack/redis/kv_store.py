@@ -1,7 +1,7 @@
 from typing import Optional
 
-from modstack.stores.keyvalue import KVStore
-from modstack.stores.keyvalue.base import DEFAULT_COLLECTION
+from modstack.data.stores import KVStore
+from modstack.data.stores import DEFAULT_COLLECTION
 
 class RedisKVStore(KVStore):
     def get(self, key: str, collection: str = DEFAULT_COLLECTION, **kwargs) -> Optional[dict]:

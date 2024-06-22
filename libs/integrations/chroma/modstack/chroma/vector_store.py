@@ -6,7 +6,7 @@ import chromadb
 from chromadb.api.models.Collection import Collection
 
 from modstack.artifacts import Artifact, artifact_registry
-from modstack.stores.vector import VectorStore, VectorStoreQuery, VectorStoreQueryResult
+from modstack.data.stores.vector import VectorStore, VectorStoreQuery, VectorStoreQueryResult
 from modstack.typing import Embedding, FilterCondition, FilterOperator, MetadataFilter, MetadataFilters
 from modstack.utils.func import tzip
 from modstack.utils.string import truncate_text

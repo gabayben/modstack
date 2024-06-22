@@ -9,7 +9,6 @@ python = ">=3.12,<3.13"
 
 [tool.poetry.group.dev.dependencies]
 modstack = { path = "modstack/", develop = true }
-modflow = { path = "libs/modflow/", develop = true }
 jupyter = "^1.0.0"
 
 modstack-markdown = { path = "libs/integrations/markdown/", develop = true }

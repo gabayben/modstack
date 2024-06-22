@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from modstack.stores.artifact import ArtifactStore, InjestionCache, KVArtifactStore
-from modstack.stores.graph import GraphStore, SimpleGraphStore
-from modstack.stores.keyvalue import SimpleKVStore
-from modstack.stores.vector import SimpleVectorStore, VectorStore
+from modstack.data.stores import ArtifactStore, InjestionCache, KVArtifactStore
+from modstack.data.stores import GraphStore, SimpleGraphStore
+from modstack.data.stores import SimpleKVStore
+from modstack.data.stores.vector import SimpleVectorStore, VectorStore
 
 @dataclass
 class _Settings:
