@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
+import asyncio
 from typing import Any, AsyncIterator, Callable, Coroutine, Generic, Iterator, Optional, TypeVar, final
 
 from modstack.typing.protocols import Addable
 from modstack.typing.vars import Other, Out
-from modstack.utils.threading import run_async, run_async_iter, run_sync, run_sync_iter
+from modstack.utils.func import tzip
+from modstack.utils.threading import get_executor, run_async, run_async_iter, run_sync, run_sync_iter
 
 class Effect(Generic[Out], ABC):
     def map(
@@ -225,6 +227,43 @@ class Effects:
 
         def _aiter_forward(self) -> Effect[Out]:
             return Effects.AsyncIterator(self._aiter)
+
+    @final
+    class Parallel(Effect[dict[str, Any]]):
+        def __init__(
+            self,
+            effects: dict[str, Effect[Any]],
+            max_workers: Optional[int] = None
+        ):
+            self._effects = effects
+            self._max_workers = max_workers
+
+        def invoke(self) -> Out:
+            with get_executor(max_workers=self._max_workers) as executor:
+                futures = [
+                    executor.submit(effect.invoke)
+                    for effect in self._effects.values()
+                ]
+                return {
+                    k: future.result()
+                    for k, future in tzip(self._effects, futures)
+                }
+
+        async def ainvoke(self) -> Out:
+            generators = await asyncio.gather(*(
+                effect.ainvoke
+                for effect in self._effects.values()
+            ))
+            return {
+                k: v
+                for k, v in zip(self._effects, generators)
+            }
+
+        def iter(self) -> Iterator[Out]:
+            pass
+
+        async def aiter(self) -> AsyncIterator[Out]:
+            pass
 
     @final
     class Map(Generic[Other, Out], Effect[Out]):
