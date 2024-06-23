@@ -11,27 +11,23 @@ python = ">=3.12,<3.13"
 modstack = { path = "modstack/", develop = true }
 jupyter = "^1.0.0"
 
-modstack-markdown = { path = "libs/integrations/markdown/", develop = true }
-modstack-boilerpy3 = { path = "libs/integrations/boilerpy3/", develop = true }
-modstack-pypdf = { path = "libs/integrations/pypdf/", develop = true }
-#modstack-tika = { path = "libs/integrations/tika/", develop = true }
+modstack-markdown = { path = "libs/loaders/markdown/", develop = true }
+modstack-pypdf = { path = "libs/loaders/pypdf/", develop = true }
+#modstack-tika = { path = "libs/loaders/tika/", develop = true }
 
-modstack-serper = { path = "libs/integrations/serper/", develop = true }
-modstack-web = { path = "libs/integrations/web/", develop = true }
-modstack-papers = { path = "libs/integrations/papers/", develop = true }
+modstack-serper = { path = "libs/loaders/serper/", develop = true }
+modstack-web = { path = "libs/loaders/web/", develop = true }
 
-modstack-redis = { path = "libs/integrations/redis/", develop = true }
-modstack-chroma = { path = "libs/integrations/chroma/", develop = true }
-modstack-neo4j = { path = "libs/integrations/neo4j/", develop = true }
+modstack-redis = { path = "libs/stores/redis/", develop = true }
+modstack-chroma = { path = "libs/stores/chroma/", develop = true }
+modstack-neo4j = { path = "libs/stores/neo4j/", develop = true }
 
-modstack-langdetect = { path = "libs/integrations/langdetect/", develop = true }
-
-modstack-ollama = { path = "libs/integrations/ollama/", develop = true }
-#modstack-llamacpp = { path = "libs/integrations/llamacpp/", develop = true }
-#modstack-transformers = { path = "libs/integrations/transformers/", develop = true }
-#modstack-cohere = { path = "libs/integrations/llamacpp/", develop = true }
-#modstack-anthropic = { path = "libs/integrations/anthropic/", develop = true }
-#modstack-fireworks = { path = "libs/integrations/fireworks/", develop = true }
+modstack-ollama = { path = "libs/ai/ollama/", develop = true }
+#modstack-llamacpp = { path = "libs/ai/llamacpp/", develop = true }
+#modstack-transformers = { path = "libs/ai/transformers/", develop = true }
+#modstack-cohere = { path = "libs/ai/llamacpp/", develop = true }
+#modstack-anthropic = { path = "libs/ai/anthropic/", develop = true }
+#modstack-fireworks = { path = "libs/ai/fireworks/", develop = true }
 
 [tool.poetry.group.test]
 optional = true

@@ -9,7 +9,7 @@ class IngestFlowState(TypedDict):
 
 def ingest_flow(
     runner: Module[IngestConnector, Iterable[Artifact]],
-    partitioner: Module[list[Artifact], list[Artifact]],
+    partitioner: Module[Iterable[Artifact], list[Artifact]],
     reformatters: list[Module[list[Artifact], list[Artifact]]],
     writer: Module[list[Artifact], list[Artifact]]
 ) -> SerializableModule[IngestFlowState, IngestFlowState]:
