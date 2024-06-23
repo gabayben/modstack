@@ -1,0 +1,1 @@
+from .email import partition_email

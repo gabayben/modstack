@@ -8,7 +8,6 @@ packages = [{ include = "modstack/" }]
 [tool.poetry.dependencies]
 python = "^3.12"
 more-itertools = "^10.2.0"
-returns = "^0.22.0"
 jinja2 = "^3.1.4"
 dataclasses-json = "^0.6.6"
 pydantic = "^2.7.1"
@@ -16,6 +15,7 @@ docarray = { version = "^0.40.0", extras = ['proto'] }
 tenacity = "^8.3.0"
 unsync = "^1.4.0"
 uuid6 = "^2024.1.12"
+pyparsing = "^3.1.2"
 aiosqlite = "^0.20.0"
 
 
