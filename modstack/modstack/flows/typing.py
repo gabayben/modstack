@@ -45,7 +45,7 @@ class Send:
 
     The `Send` class is used within a `StateFlow`'s conditional edges to dynamically
     route states to different nodes based on certain conditions. This enables
-    creating "map-reduce" like flows, where a node can be invoked multiple times
+    creating "map-reduce" like core, where a node can be invoked multiple times
     in parallel on different states, and the results can be aggregated back into the
     main flow's state.
 

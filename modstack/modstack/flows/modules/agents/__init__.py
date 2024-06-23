@@ -1,1 +1,1 @@
-from .react import ReactAgentState, create_react_agent
+from .react import ReactAgentState, react_agent
