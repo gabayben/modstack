@@ -1,1 +1,1 @@
-from .email import partition_email
+from .email import EmailPartitioner
