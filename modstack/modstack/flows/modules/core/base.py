@@ -1088,6 +1088,9 @@ def _prepare_next_tasks(
 
     # Consume pending packets
     for packet in checkpoint['pending_sends']:
+        if not isinstance(packet, Send):
+            logger.warning(f'Ignoring invalid packet type {type(packet)} in pending sends.')
+            continue
         if for_execution:
             if node := processes[packet.node].get_node():
                 writes = deque()
