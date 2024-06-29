@@ -4,7 +4,7 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 
 from collections import defaultdict
 import logging
-from typing import Any, Literal, NamedTuple, Optional, Sequence, Union, cast, get_args, get_origin, get_type_hints
+from typing import Any, Hashable, Literal, NamedTuple, Optional, Sequence, Union, cast, get_args, get_origin, get_type_hints
 
 from modstack.flows import All
 from modstack.flows.channels import EphemeralValue
@@ -17,8 +17,8 @@ from modstack.modules import Functional, Module, ModuleFunction, ModuleLike, coe
 logger = logging.getLogger(__name__)
 
 class Branch(NamedTuple):
-    path: Module[Any, Union[str, list[str]]]
-    path_map: Optional[dict[str, str]] = None
+    path: Module[Any, Union[Hashable, list[Hashable]]]
+    path_map: Optional[dict[Hashable, str]] = None
     then: Optional[str] = None
 
     def run(
@@ -115,8 +115,8 @@ class Flow:
     def add_conditional_edges(
         self,
         source: str,
-        path: ModuleLike[Any, Union[str, list[str]]],
-        path_map: Optional[Union[dict[str, str], list[str]]] = None,
+        path: ModuleLike[Any, Union[Hashable, list[Hashable]]],
+        path_map: Optional[Union[dict[Hashable, str], list[str]]] = None,
         then: Optional[str] = None,
         name: Optional[str] = None
     ) -> None:
@@ -143,8 +143,8 @@ class Flow:
 
     def set_conditional_entry_point(
         self,
-        path: ModuleLike[Any, Union[str, list[str]]],
-        path_map: Optional[Union[dict[str, str], list[str]]] = None,
+        path: ModuleLike[Any, Union[Hashable, list[Hashable]]],
+        path_map: Optional[Union[dict[Hashable, str], list[str]]] = None,
         then: Optional[str] = None,
         name: Optional[str] = None
     ) -> None:
