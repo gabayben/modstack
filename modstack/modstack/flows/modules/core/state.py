@@ -9,7 +9,7 @@ from typing import Any, Optional, Sequence, Type, Union, get_origin, get_type_hi
 
 from pydantic import BaseModel
 
-from modstack.flows import All
+from modstack.flows import All, Send
 from modstack.flows.channels import BinaryOperatorAggregate, Channel, DynamicBarrierValue, EphemeralValue, LastValue, NamedBarrierValue, WaitForNames
 from modstack.flows.checkpoints import Checkpointer
 from modstack.flows.constants import END, HIDDEN, ROOT_KEY, START
@@ -227,21 +227,22 @@ class CompiledStateFlow(CompiledFlow):
         name: str,
         branch: Branch
     ) -> None:
-        def branch_writer(targets: list[str]) -> Optional[ChannelWrite]:
+        def branch_writer(targets: list[Union[str, Send]]) -> Optional[ChannelWrite]:
             if filtered_targets := [target for target in targets if target != END]:
                 writes = [
                     ChannelWriteEntry(Branch.key(source, name, target), source)
+                    if not isinstance(target, Send)
+                    else target
                     for target in filtered_targets
                 ]
                 if branch.then and branch.then != END:
                     writes.append(
                         ChannelWriteEntry(
                             Branch.key(source, name, 'then'),
-                            WaitForNames(set(filtered_targets))
+                            WaitForNames({p.node if isinstance(p, Send) else p for p in filtered_targets})
                         )
                     )
                 return ChannelWrite(writes, tags=[HIDDEN])
-            return None
 
         # attach branch writer
         self.nodes[source] |= branch.run(branch_writer, _get_state_reader(self.builder)) #type: ignore

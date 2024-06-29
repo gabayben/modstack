@@ -3,16 +3,18 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 """
 
 from collections import defaultdict
+from functools import partial
 import logging
-from typing import Any, Hashable, Literal, NamedTuple, Optional, Sequence, Union, cast, get_args, get_origin, get_type_hints
+from typing import Any, Callable, Hashable, Literal, NamedTuple, Optional, Sequence, Union, cast, get_args, get_origin, get_type_hints
 
-from modstack.flows import All
-from modstack.flows.channels import EphemeralValue
+from modstack.flows import All, Send
+from modstack.flows.channels import EphemeralValue, InvalidUpdateError
 from modstack.flows.checkpoints import Checkpointer
 from modstack.flows.constants import END, START, HIDDEN
 from modstack.flows.modules import ChannelWrite, ChannelWriteEntry, Pregel, PregelNode
 from modstack.flows.utils.channel_helper import ChannelHelper
-from modstack.modules import Functional, Module, ModuleFunction, ModuleLike, coerce_to_module
+from modstack.modules import Functional, Module, ModuleLike, coerce_to_module
+from modstack.typing import Effect, Effects
 
 logger = logging.getLogger(__name__)
 
@@ -23,34 +25,69 @@ class Branch(NamedTuple):
 
     def run(
         self,
-        writer: ModuleFunction[[list[str]], Optional[Module]],
-        reader: Optional[ModuleFunction[[dict[str, Any]], Any]] = None
-    ) -> Module:
-        def route(data: Any, **kwargs) -> Module:
-            return self._route(data, writer, reader, **kwargs)
-        return ChannelWrite.register_writer(Functional(route))
+        writer: Callable[[[list[str]]], Optional[Module]],
+        reader: Optional[Callable[..., Any]] = None
+    ) -> Module[Any, Module]:
+        def forward(data: Any, **kwargs) -> Effect[Module]:
+            return Effects.From(
+                invoke=partial(self._route, data, writer, reader, **kwargs),
+                ainvoke=partial(self._aroute, data, writer, reader, **kwargs)
+            )
+        return ChannelWrite.register_writer(Functional(forward))
 
     def _route(
         self,
         data: Any,
-        writer: ModuleFunction[[list[str]], Optional[Module]],
-        reader: Optional[ModuleFunction[[...], Any]],
+        writer: Callable[[list[str]], Optional[Module]],
+        reader: Optional[Callable[..., Any]],
         **kwargs
     ) -> Module:
-        result = self.path.invoke(reader(**kwargs) if reader else data)
+        if reader:
+            value = reader(**kwargs)
+            if isinstance(value, dict) and isinstance(data, dict):
+                value = {**value, **data}
+        else:
+            value = data
+        value = self.path.invoke(value, **kwargs)
+        return self._finish(data, value, writer)
+
+    async def _aroute(
+        self,
+        data: Any,
+        writer: Callable[[list[str]], Optional[Module]],
+        reader: Optional[Callable[..., Any]],
+        **kwargs
+    ) -> Module:
+        if reader:
+            value = reader(**kwargs)
+            if isinstance(value, dict) and isinstance(data, dict):
+                value = {**value, **data}
+        else:
+            value = data
+        value = await self.path.ainvoke(value, **kwargs)
+        return self._finish(data, value, writer)
+
+    def _finish(
+        self,
+        data: Any,
+        result: Any,
+        writer: Callable[[list[str]], Optional[Module]]
+    ) -> Module:
         if not isinstance(result, list):
             result = [result]
         if self.path_map:
             destinations = [
-                self.path_map[r]
-                if r in self.path_map
-                else result[i]
-                for i, r in enumerate(result)
+                r
+                if isinstance(r, Send) or r not in self.path_map
+                else self.path_map[r]
+                for r in result
             ]
         else:
             destinations = result
-        if any(dest is None for dest in destinations):
+        if any(dest is None or dest == START for dest in destinations):
             raise ValueError('Branch did not return a valid destination.')
+        if any(p.node == END for p in destinations if isinstance(p, Send)):
+            raise InvalidUpdateError(f'Cannot send a packet to the {END} node.')
         return writer(destinations) or data
 
     @staticmethod
