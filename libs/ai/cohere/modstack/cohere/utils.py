@@ -6,8 +6,8 @@ def build_cohore_metadata(metadata: dict[str, Any], response: cohere.StreamedCha
     if response:
         if response.meta:
             if response.meta.billed_units:
-                in_tokens = response.meta.billed_units.input_tokens or -1
-                out_tokens = response.meta.billed_units.output_tokens or -1
+                in_tokens = response.meta.billed_units.prompt_tokens or -1
+                out_tokens = response.meta.billed_units.completion_tokens or -1
                 metadata['in_tokens'] = in_tokens
                 metadata['out_tokens'] = out_tokens
                 metadata['usage'] = in_tokens + out_tokens

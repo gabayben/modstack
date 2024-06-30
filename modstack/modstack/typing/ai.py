@@ -18,6 +18,6 @@ class InvalidToolCall(TypedDict):
     error: NotRequired[Optional[str]]
 
 class UsageMetadata(TypedDict):
-    input_tokens: int
-    output_tokens: int
+    prompt_tokens: int
+    completion_tokens: int
     total_tokens: int
