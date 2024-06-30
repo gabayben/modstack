@@ -3,15 +3,15 @@ import re
 
 from modstack.artifacts import Artifact
 from modstack.artifacts.layout import Element
-from modstack.data.transform import PartitionOptions, extract_email_addresses
-from modstack.modules import Modules
+from modstack.data import extract_email_addresses
+from modstack.modules import module
 from modstack.utils.regex import EMAIL_ADDRESS_REGEX
 
-class EmailPartitioner(Modules.Sync[Artifact, list[Element], PartitionOptions]):
-    def _invoke(self, email: Artifact, **kwargs) -> list[Element]:
-        pass
+@module
+def email_partitioner(email: Artifact, **kwargs) -> list[Element]:
+    pass
 
-def _partition_email_header(artifact: EmailMessage) -> list[Element]:
+def _partition_email_header(message: EmailMessage) -> list[Element]:
     pass
 
 def _parse_email_address(data: str) -> tuple[str, str]:

@@ -1,6 +1,6 @@
 from typing import Union
 
-from modstack.artifacts import Utf8Artifact
+from modstack.artifacts import Artifact
 from modstack.artifacts.messages import HumanMessage, MessageArtifact, SystemMessage
 
 class LLMPrompt:
@@ -8,12 +8,12 @@ class LLMPrompt:
 
     def __init__(
         self,
-        prompt: Union[str, Utf8Artifact, list[MessageArtifact]],
+        prompt: Union[str, Artifact, list[MessageArtifact]],
         **kwargs
     ):
         if isinstance(prompt, str):
             self.messages = [HumanMessage(prompt, **kwargs)]
-        elif isinstance(prompt, Utf8Artifact):
+        elif isinstance(prompt, Artifact):
             self.messages = [HumanMessage(str(prompt), **kwargs)]
         else:
             self.messages = prompt
