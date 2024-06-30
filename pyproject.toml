@@ -11,12 +11,7 @@ python = ">=3.12,<3.13"
 modstack = { path = "modstack/", develop = true }
 jupyter = "^1.0.0"
 
-modstack-markdown = { path = "libs/loaders/markdown/", develop = true }
-modstack-pypdf = { path = "libs/loaders/pypdf/", develop = true }
-#modstack-tika = { path = "libs/loaders/tika/", develop = true }
-
-modstack-serper = { path = "libs/loaders/serper/", develop = true }
-modstack-web = { path = "libs/loaders/web/", develop = true }
+modstack-reddit = { path = "libs/loaders/reddit/", develop = true }
 
 modstack-redis = { path = "libs/stores/redis/", develop = true }
 modstack-chroma = { path = "libs/stores/chroma/", develop = true }

@@ -3,6 +3,7 @@ from typing import Optional
 
 from modstack.artifacts import Artifact
 from modstack.artifacts.layout import ElementSourceMetadata
+from modstack.utils.threading import run_async
 
 class IngestDocument(ABC):
     _source_metadata: Optional[ElementSourceMetadata] = None
@@ -24,11 +25,12 @@ class IngestDocument(ABC):
     def load(self, **kwargs) -> None:
         pass
 
+    async def aload(self, **kwargs) -> None:
+        await run_async(self.load, **kwargs)
+
     @abstractmethod
     def get_artifact(self, **kwargs) -> Artifact:
         pass
 
-class IngestConnector(ABC):
-    @abstractmethod
-    def connect(self, **kwargs) -> list[IngestDocument]:
-        pass
+    async def aget_artifact(self, **kwargs) -> Artifact:
+        return await run_async(self.get_artifact, **kwargs)

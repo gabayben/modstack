@@ -1,2 +1,2 @@
-from .base import IngestDocument, IngestConnector
+from .base import IngestDocument
 from .runner import IngestRunner

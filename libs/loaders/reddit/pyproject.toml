@@ -1,15 +1,14 @@
 [tool.poetry]
-name = "modstack-markdown"
+name = "modstack-reddit"
 version = "0.1.0"
 description = ""
 authors = ["bengabay <ben@netop.cloud>"]
-packages = [{ include = "modstack/" }]
+packages = [{ include = "modstack" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
 modstack = { path = "../../../modstack/" }
-markdown-it-py = "^3.0.0"
-mdit-plain = "^1.0.1"
+praw = "^7.7.1"
 
 
 [build-system]
