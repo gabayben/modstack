@@ -18,12 +18,10 @@ _MessageModifier = Union[
 
 class ReactAgentState(TypedDict):
     messages: list[MessageArtifact]
-    sender: str
     is_last_step: NotRequired[ManagedValue[bool]]
 
 def react_agent(
     model: Module[LLMPrompt, MessageArtifact],
-    name: str,
     tools: list[ModuleLike],
     message_modifier: Optional[_MessageModifier] = None,
     checkpointer: Optional[Checkpointer] = None,
@@ -70,12 +68,11 @@ def react_agent(
                     'messages': [AiMessage(
                         content='Sorry, need more steps to process this request.',
                         id=response.id
-                    )],
-                    'sender': name
+                    )]
                 }
 
             # We return a list, because this will get added to the existing list
-            return {'messages': [response], 'sender': name}
+            return {'messages': [response]}
 
         return Effects.From(invoke=invoke, ainvoke=ainvoke)
 
