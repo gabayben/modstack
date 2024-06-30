@@ -23,6 +23,7 @@ class ReactAgentState(TypedDict):
 
 def react_agent(
     model: Module[LLMPrompt, MessageArtifact],
+    name: str,
     tools: list[ModuleLike],
     message_modifier: Optional[_MessageModifier] = None,
     checkpointer: Optional[Checkpointer] = None,
@@ -70,14 +71,11 @@ def react_agent(
                         content='Sorry, need more steps to process this request.',
                         id=response.id
                     )],
-                    'sender': response.name or response.id or state['sender'] # type: ignore
+                    'sender': name
                 }
 
             # We return a list, because this will get added to the existing list
-            return {
-                'messages': [response],
-                'sender': response.name or response.id or state['sender'] # type: ignore
-            }
+            return {'messages': [response], 'sender': name}
 
         return Effects.From(invoke=invoke, ainvoke=ainvoke)
 
