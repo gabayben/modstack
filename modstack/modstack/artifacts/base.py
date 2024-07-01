@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from modstack.artifacts.link import Link
 
 class ArtifactType(StrEnum):
+    UNCATEGORIZED = 'Uncategorized'
     TEXT = 'Text'
     FORMULA = 'Formula'
     COMPOSITE_TEXT = 'CompositeText'
@@ -37,6 +38,11 @@ class ArtifactType(StrEnum):
     LINK = 'Link'
     CHECKBOX = 'Checkbox'
     IMAGE = 'Image'
+    AUDIO = 'Audio'
+    VIDEO = 'Video'
+    MESH_3D = 'Mesh3D'
+    POINT_CLOUD_3D = 'PointCloud3D'
+    MESSAGE = 'Message'
 
 class DataSourceMetadata(TypedDict, total=False):
     """
@@ -96,9 +102,8 @@ class Artifact(BaseDoc, ABC):
     score: Optional[float] = Field(default=None, exclude=True, kw_only=True)
 
     @property
-    @abstractmethod
     def category(self) -> str:
-        pass
+        return ArtifactType.UNCATEGORIZED
 
     @classmethod
     def from_source(cls, source: 'ArtifactSource', metadata: dict[str, Any] = {}) -> Self:

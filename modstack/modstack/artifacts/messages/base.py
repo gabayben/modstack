@@ -5,7 +5,7 @@ Credit to LangChain - https://github.com/langchain-ai/langchain/blob/master/libs
 from enum import StrEnum
 from typing import Any, Literal, Optional, Union, override
 
-from modstack.artifacts import Utf8Artifact
+from modstack.artifacts import ArtifactType, Utf8Artifact
 from modstack.artifacts.messages.utils import merge_content
 from modstack.utils.merge import merge_dicts
 
@@ -21,6 +21,11 @@ class MessageArtifact(Utf8Artifact):
     name: Optional[str] = None
     message_type: MessageType | str
     role: Optional[str] = None
+
+    @property
+    @override
+    def category(self) -> str:
+        return ArtifactType.MESSAGE
 
     @property
     def _content_keys(self) -> set[str]:

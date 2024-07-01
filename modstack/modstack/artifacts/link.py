@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, override
 
 from modstack.artifacts import ArtifactMetadata, ArtifactType, Text, Utf8Artifact
 from modstack.typing import TextUrl
@@ -11,6 +11,7 @@ class Link(Utf8Artifact):
     text: str | None = None
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.LINK
 

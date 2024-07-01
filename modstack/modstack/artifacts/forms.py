@@ -1,9 +1,12 @@
+from typing import override
+
 from modstack.artifacts import ArtifactMetadata, ArtifactType, Utf8Artifact
 
 class Checkbox(Utf8Artifact):
     checked: bool = False
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.CHECKBOX
 

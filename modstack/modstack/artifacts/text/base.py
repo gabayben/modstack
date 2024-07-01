@@ -39,6 +39,7 @@ class Text(TextBase):
     """Artifact for capturing free text from within document."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.TEXT
 
@@ -46,6 +47,7 @@ class Formula(TextBase):
     """An artifact containing formulas in a document."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.FORMULA
 
@@ -59,6 +61,7 @@ class CompositeText(TextBase):
     """
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.COMPOSITE_TEXT
 
@@ -66,6 +69,7 @@ class FigureCaption(TextBase):
     """An artifact for capturing text associated with figure captions."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.FIGURE_CAPTION
 
@@ -76,6 +80,7 @@ class NarrativeText(TextBase):
     """
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.NARRATIVE_TEXT
 
@@ -95,6 +100,7 @@ class ListItem(Text):
     """ListItem is a NarrativeText artifact that is part of a list."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.LIST_ITEM
 
@@ -102,6 +108,7 @@ class Title(Text):
     """A text artifact for capturing titles."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.TITLE
 
@@ -109,5 +116,6 @@ class Address(Text):
     """A text artifact for capturing addresses."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.ADDRESS

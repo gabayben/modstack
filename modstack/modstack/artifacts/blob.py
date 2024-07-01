@@ -7,7 +7,7 @@ from docarray.typing import Mesh3DUrl
 from docarray.utils._internal.misc import ProtocolType
 from pydantic import Field
 
-from modstack.artifacts import Artifact
+from modstack.artifacts import Artifact, ArtifactType
 from modstack.typing import (
     AudioBytes,
     AudioTensor,
@@ -86,9 +86,19 @@ class MediaArtifact(BlobArtifact, Generic[_Url, _Bytes], ABC):
 class Image(MediaArtifact[ImageUrl, ImageBytes]):
     tensor: ImageTenser | None = Field(default=None, kw_only=True)
 
+    @property
+    @override
+    def category(self) -> str:
+        return ArtifactType.IMAGE
+
 class Audio(MediaArtifact[AudioUrl, AudioBytes]):
     tensor: AudioTensor | None = Field(default=None, kw_only=True)
     frame_rate: int | None = Field(default=None, kw_only=True)
+
+    @property
+    @override
+    def category(self) -> str:
+        return ArtifactType.AUDIO
 
     def __init__(
         self,
@@ -105,8 +115,23 @@ class Video(MediaArtifact[VideoUrl, VideoBytes]):
     key_frame_indices: BaseTensor | None = Field(default=None, kw_only=True)
     audio: Audio | None = Field(default=None, kw_only=True)
 
+    @property
+    @override
+    def category(self) -> str:
+        return ArtifactType.VIDEO
+
 class Mesh3D(MediaArtifact[Mesh3DUrl, bytes]):
     tensor: VerticesAndFaces | None = Field(default=None, kw_only=True)
 
+    @property
+    @override
+    def category(self) -> str:
+        return ArtifactType.MESH_3D
+
 class PointCloud3D(MediaArtifact[PointCloud3DUrl, bytes]):
     tensor: PointsAndColors | None = Field(default=None, kw_only=True)
+
+    @property
+    @override
+    def category(self) -> str:
+        return ArtifactType.POINT_CLOUD_3D

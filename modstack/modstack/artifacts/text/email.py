@@ -11,6 +11,7 @@ class EmailAddress(TextBase):
     """A text artifact for capturing email addresses."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.EMAIL_ADDRESS
 
@@ -63,6 +64,7 @@ class EmailSender(EmailName):
     """A text artifact for capturing the sender information of an email."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.EMAIL_SENDER
 
@@ -70,6 +72,7 @@ class EmailRecipient(EmailName):
     """A text artifact for capturing the recipient information of an email."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.EMAIL_RECIPIENT
 
@@ -77,6 +80,7 @@ class EmailSubject(EmailPart):
     """A text artifact for capturing the subject information of an email."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.EMAIL_SUBJECT
 
@@ -88,6 +92,7 @@ class BodyText(EmailPart):
     """
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.BODY_TEXT
 
@@ -95,6 +100,7 @@ class EmailMetadata(EmailName):
     """A text artifact for capturing header metadata of an email."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.EMAIL_METADATA
 
@@ -102,6 +108,7 @@ class ReceivedInfo(EmailName):
     """A text artifact for capturing header information of an email."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.RECEIVED_INFO
 
@@ -109,5 +116,6 @@ class EmailAttachment(EmailName):
     """A text artifact for capturing the attachment name in an email."""
 
     @property
+    @override
     def category(self) -> str:
         return ArtifactType.EMAIL_ATTACHMENT
