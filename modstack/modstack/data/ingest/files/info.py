@@ -6,7 +6,7 @@ from modstack.utils.paths import last_modified_date
 
 def last_modified_date_from_source(
     source: ArtifactSource,
-    date_from_artifact: bool = True
+    date_from_artifact: bool = False
 ) -> Optional[str]:
     if isinstance(source, (str, Path)):
         return last_modified_date(source)
