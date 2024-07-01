@@ -1,5 +1,9 @@
 from .base import (
     ArtifactType,
+    ArtifactRelationship,
+    ArtifactInfo,
+    RelatedArtifact,
+    ArtifactHierarchy,
     DataSourceMetadata,
     CoordinatesMetadata,
     RegexMetadata,

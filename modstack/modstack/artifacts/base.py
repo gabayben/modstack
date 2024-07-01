@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 import datetime as dt
-from enum import StrEnum
+from enum import StrEnum, auto
 from hashlib import sha256
 from pathlib import Path
 from typing import Any, Literal, Optional, Self, TYPE_CHECKING, TypedDict, Union, override
@@ -10,7 +10,7 @@ from typing import Any, Literal, Optional, Self, TYPE_CHECKING, TypedDict, Union
 from docarray.base_doc.doc import IncEx
 from pydantic import Field
 
-from modstack.typing import BaseDoc, BaseUrl, CoordinateSystem, ModelDict, Embedding, Points, PydanticRegistry
+from modstack.typing import BaseDoc, BaseUrl, CoordinateSystem, ModelDict, Embedding, Points, PydanticRegistry, Serializable
 from modstack.utils.constants import DATETIMETZ_FORMAT, SCHEMA_TYPE
 from modstack.utils.paths import get_mime_type, last_modified_date
 from modstack.utils.string import type_name
@@ -45,6 +45,71 @@ class ArtifactType(StrEnum):
     POINT_CLOUD_3D = 'PointCloud3D'
     MESSAGE = 'Message'
 
+##### Hierarchy
+
+class ArtifactRelationship(StrEnum):
+    REF = auto()
+    PREVIOUS = auto()
+    NEXT = auto()
+    PARENT = auto()
+    CHILDREN = auto()
+
+class ArtifactInfo(Serializable):
+    id: str
+    type: str
+    hash: Optional[str] = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+RelatedArtifact = Union[ArtifactInfo, list[ArtifactInfo]]
+
+class ArtifactHierarchy(dict[ArtifactRelationship, RelatedArtifact]):
+    @property
+    def ref(self) -> Optional[ArtifactInfo]:
+        if ArtifactRelationship.REF not in self:
+            return None
+        related = self[ArtifactRelationship.REF]
+        if not isinstance(related, ArtifactInfo):
+            raise ValueError('Ref object must be a single ArtifactInfo object.')
+        return related
+
+    @property
+    def previous(self) -> Optional[ArtifactInfo]:
+        if ArtifactRelationship.PREVIOUS not in self:
+            return None
+        related = self[ArtifactRelationship.PREVIOUS]
+        if not isinstance(related, ArtifactInfo):
+            raise ValueError('Previous object must be a single ArtifactInfo object.')
+        return related
+
+    @property
+    def next(self) -> Optional[ArtifactInfo]:
+        if ArtifactRelationship.NEXT not in self:
+            return None
+        related = self[ArtifactRelationship.NEXT]
+        if not isinstance(related, ArtifactInfo):
+            raise ValueError('Next object must be a single ArtifactInfo object.')
+        return related
+
+    @property
+    def parent(self) -> Optional[ArtifactInfo]:
+        if ArtifactRelationship.PARENT not in self:
+            return None
+        related = self[ArtifactRelationship.PARENT]
+        if not isinstance(related, ArtifactInfo):
+            raise ValueError('Parent object must be a single ArtifactInfo object.')
+        return related
+
+    @property
+    def children(self) -> Optional[list[ArtifactInfo]]:
+        if ArtifactRelationship.CHILDREN not in self:
+            return None
+        children = self[ArtifactRelationship.CHILDREN]
+        if not isinstance(children, list):
+            raise ValueError('Children objects must be a list of ArtifactInfo objects.')
+        return children
+
+#### Metadata
+
 class DataSourceMetadata(TypedDict, total=False):
     """
     Metadata fields that pertain to the data source of the document.
@@ -78,6 +143,7 @@ class RegexMetadata(TypedDict):
 class ArtifactMetadata(ModelDict):
     parent_id: Optional[str]
     datestamp: Optional[datetime]
+    hierarchy: ArtifactHierarchy
     filename: Optional[str]
     filetype: Optional[str]
     url: Optional[str]
@@ -95,6 +161,11 @@ class ArtifactMetadata(ModelDict):
     source: Optional[DataSourceMetadata]
     coordinates: Optional[CoordinatesMetadata]
     regex: Optional[RegexMetadata]
+
+    def __init__(self):
+        self.hierarchy = ArtifactHierarchy()
+
+#### Artifacts
 
 class Artifact(BaseDoc, ABC):
     name: Optional[str] = None
@@ -128,6 +199,26 @@ class Artifact(BaseDoc, ABC):
                 or self.metadata.source.get('date_created')
             )
         return modified_date
+
+    @property
+    def ref(self) -> Optional[ArtifactInfo]:
+        return self.metadata.hierarchy.ref
+
+    @property
+    def previous(self) -> Optional[ArtifactInfo]:
+        return self.metadata.hierarchy.previous
+
+    @property
+    def next(self) -> Optional[ArtifactInfo]:
+        return self.metadata.hierarchy.next
+
+    @property
+    def parent(self) -> Optional[ArtifactInfo]:
+        return self.metadata.hierarchy.parent
+
+    @property
+    def children(self) -> Optional[list[ArtifactInfo]]:
+        return self.metadata.hierarchy.children
 
     @classmethod
     def from_source(cls, source: 'ArtifactSource', metadata: dict[str, Any] = {}) -> Self:
@@ -258,10 +349,14 @@ class Utf8Artifact(Artifact, ABC):
     def _get_string_for_regex_filter(self) -> str:
         return str(self)
 
+#### Types
+
 @dataclass
 class ArtifactQuery:
     value: Artifact
     metadata: dict[str, Any] = field(default_factory=dict)
+
+#### Registry
 
 class _ArtifactRegistry(PydanticRegistry[Artifact]):
     pass
