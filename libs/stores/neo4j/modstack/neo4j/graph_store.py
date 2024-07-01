@@ -1,5 +1,6 @@
 from typing import Any, Optional, override
 
+import fsspec
 import neo4j
 
 from modstack.data.stores import GraphNode, GraphNodeQuery, GraphRelation, GraphStore, GraphTriplet, GraphTripletQuery
@@ -48,6 +49,14 @@ class Neo4jGraphStore(GraphStore):
             self.refresh_schema()
 
     def refresh_schema(self) -> None:
+        pass
+
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> None:
         pass
 
     def structured_query(

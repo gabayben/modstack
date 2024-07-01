@@ -1,9 +1,33 @@
+import os.path
 from typing import Any, Optional
 
-from modstack.data.stores import GraphNode, GraphNodeQuery, GraphRelation, GraphStore, GraphTriplet, GraphTripletQuery, VectorStoreQuery
+import fsspec
+
+from modstack.data.stores import Graph, GraphNode, GraphNodeQuery, GraphRelation, GraphStore, GraphTriplet, GraphTripletQuery, VectorStoreQuery
 from modstack.typing import Embedding
 
 class SimpleGraphStore(GraphStore):
+    def __init__(
+        self,
+        graph: Optional[Graph] = None,
+        fs: Optional[fsspec.AbstractFileSystem] = None
+    ):
+        self._graph: Graph = graph or Graph()
+        self._fs: fsspec.AbstractFileSystem = fs or fsspec.filesystem('file')
+
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> None:
+        fs = fs or self._fs
+        dirname = os.path.dirname(path)
+        if not fs.exists(dirname):
+            fs.makedirs(dirname)
+        with fs.open(path, 'w') as f:
+            f.write(self._graph.model_dump_json())
+
     def structured_query(
         self,
         query: str,

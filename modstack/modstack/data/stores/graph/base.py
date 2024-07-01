@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
+import fsspec
+
 from modstack.artifacts import Artifact, ArtifactRelationship
 from modstack.data.stores import ChunkNode, GraphNode, GraphNodeQuery, GraphRelation, GraphTriplet, GraphTripletQuery, VectorStoreQuery
 from modstack.typing import Embedding
@@ -14,6 +16,15 @@ class GraphStore(ABC):
     @property
     def supports_vector_query(self) -> bool:
         return False
+
+    @abstractmethod
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> None:
+        pass
 
     @abstractmethod
     def structured_query(
