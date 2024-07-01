@@ -2,7 +2,7 @@ from hashlib import sha256
 import re
 from typing import Optional
 
-from modstack.artifacts import Artifact, TextArtifact
+from modstack.artifacts import Artifact, ArtifactMetadata, Text
 from modstack.modules import ArtifactTransform, Module, coerce_to_module, module
 from modstack.data.stores import InjestionCache
 from modstack.typing import MetadataType
@@ -71,9 +71,9 @@ def to_text_artifacts(
     content: list[str],
     metadata: Optional[MetadataType] = None,
     **kwargs
-) -> list[TextArtifact]:
+) -> list[Text]:
     metadata = normalize_metadata(metadata, len(content))
-    artifacts: list[TextArtifact] = []
+    artifacts: list[Text] = []
     for text, md in tzip(content, metadata):
-        artifacts.append(TextArtifact(text, metadata=md))
+        artifacts.append(Text(text, metadata=ArtifactMetadata(md)))
     return artifacts

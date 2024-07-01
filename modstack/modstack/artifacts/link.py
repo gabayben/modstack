@@ -1,17 +1,21 @@
 from typing import Any
 
-from modstack.artifacts import TextArtifact, Utf8Artifact
+from modstack.artifacts import ArtifactMetadata, ArtifactType, Text, Utf8Artifact
 from modstack.typing import TextUrl
 from modstack.utils.string import mapping_to_str
 
-class LinkArtifact(Utf8Artifact):
+class Link(Utf8Artifact):
     link: TextUrl
     title: str
     position: int | None = None
-    description: str | None = None
+    text: str | None = None
 
     @property
-    def content_keys(self) -> set[str]:
+    def category(self) -> str:
+        return ArtifactType.LINK
+
+    @property
+    def _content_keys(self) -> set[str]:
         return {'link'}
 
     def __init__(
@@ -19,7 +23,7 @@ class LinkArtifact(Utf8Artifact):
         link: str,
         title: str,
         position: int | None = None,
-        description: str | None = None,
+        text: str | None = None,
         metadata: dict[str, Any] = {},
         **kwargs
     ):
@@ -27,7 +31,7 @@ class LinkArtifact(Utf8Artifact):
             link=TextUrl(link), # type: ignore[call-args]
             title=title,
             position=position,
-            description=description,
+            text=text,
             metadata=metadata,
             **kwargs
         )
@@ -38,17 +42,17 @@ class LinkArtifact(Utf8Artifact):
     def to_utf8(self) -> str:
         return mapping_to_str(dict(self))
 
-    def to_text_artifact(self) -> TextArtifact:
-        return TextArtifact(
+    def to_text_artifact(self) -> Text:
+        return Text(
             self.link.load(),
             **self.model_dump(exclude={'link', 'title', 'position', 'description', 'metadata'}),
-            metadata={
+            metadata=ArtifactMetadata({
                 'link': str(self.link),
                 'title': self.title,
                 'position': self.position,
-                'description': self.description,
+                'description': self.text,
                 **self.metadata
-            }
+            })
         )
 
     def set_content(self, link: str, *args) -> None:

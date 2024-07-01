@@ -3,7 +3,7 @@ from typing import Any, Optional, Self, Union, override
 
 from pydantic import Field
 
-from modstack.artifacts import Artifact, TextArtifact
+from modstack.artifacts import Artifact, Text
 from modstack.typing import Embedding, Serializable
 
 class GraphElement(Serializable, ABC):
@@ -20,7 +20,7 @@ class GraphElement(Serializable, ABC):
         pass
 
     def to_artifact(self) -> Artifact:
-        return TextArtifact(
+        return Text(
             str(self),
             id=self.id,
             name=self.label,
@@ -32,7 +32,7 @@ class GraphNode(GraphElement, ABC):
 
     @override
     def to_artifact(self) -> Artifact:
-        return TextArtifact(
+        return Text(
             str(self),
             id=self.id,
             name=self.label,
@@ -52,7 +52,7 @@ class EntityNode(GraphNode):
 
     @override
     def to_artifact(self) -> Artifact:
-        return TextArtifact(
+        return Text(
             str(self),
             id=self.id,
             name=self.name,

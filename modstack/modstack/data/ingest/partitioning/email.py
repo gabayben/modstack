@@ -1,17 +1,16 @@
 from email.message import Message as EmailMessage
 import re
 
-from modstack.artifacts import Artifact
-from modstack.artifacts.layout import Element
+from modstack.artifacts import Artifact, ArtifactSource
 from modstack.data import extract_email_addresses
 from modstack.modules import module
 from modstack.utils.regex import EMAIL_ADDRESS_REGEX
 
 @module
-def email_partitioner(email: Artifact, **kwargs) -> list[Element]:
+def email_partitioner(source: ArtifactSource, **kwargs) -> list[Artifact]:
     pass
 
-def _partition_email_header(message: EmailMessage) -> list[Element]:
+def _partition_email_header(message: EmailMessage) -> list[Artifact]:
     pass
 
 def _parse_email_address(data: str) -> tuple[str, str]:

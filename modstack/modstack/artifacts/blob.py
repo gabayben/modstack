@@ -7,7 +7,7 @@ from docarray.typing import Mesh3DUrl
 from docarray.utils._internal.misc import ProtocolType
 from pydantic import Field
 
-from modstack.artifacts import Artifact, Modality
+from modstack.artifacts import Artifact
 from modstack.typing import (
     AudioBytes,
     AudioTensor,
@@ -63,7 +63,7 @@ class MediaArtifact(BlobArtifact, Generic[_Url, _Bytes], ABC):
     bytes_: Optional[_Bytes] = Field(default=None, kw_only=True)
 
     @property
-    def content_keys(self) -> set[str]:
+    def _content_keys(self) -> set[str]:
         return {'url', 'bytes_'}
 
     @property
@@ -83,14 +83,10 @@ class MediaArtifact(BlobArtifact, Generic[_Url, _Bytes], ABC):
     def set_content(self, content: Union[str, bytes], *args) -> None:
         pass
 
-class ImageArtifact(MediaArtifact[ImageUrl, ImageBytes]):
+class Image(MediaArtifact[ImageUrl, ImageBytes]):
     tensor: ImageTenser | None = Field(default=None, kw_only=True)
 
-    @classmethod
-    def modality(cls) -> str:
-        return Modality.IMAGE
-
-class AudioArtifact(MediaArtifact[AudioUrl, AudioBytes]):
+class Audio(MediaArtifact[AudioUrl, AudioBytes]):
     tensor: AudioTensor | None = Field(default=None, kw_only=True)
     frame_rate: int | None = Field(default=None, kw_only=True)
 
@@ -104,29 +100,13 @@ class AudioArtifact(MediaArtifact[AudioUrl, AudioBytes]):
         frame_rate = frame_rate or metadata.pop('frame_rate', None)
         super().__init__(metadata=metadata, frame_rate=frame_rate, **kwargs)
 
-    @classmethod
-    def modality(cls) -> str:
-        return Modality.AUDIO
-
-class VideoArtifact(MediaArtifact[VideoUrl, VideoBytes]):
+class Video(MediaArtifact[VideoUrl, VideoBytes]):
     tensor: VideoTensor | None = Field(default=None, kw_only=True)
     key_frame_indices: BaseTensor | None = Field(default=None, kw_only=True)
-    audio: AudioArtifact | None = Field(default=None, kw_only=True)
-
-    @classmethod
-    def modality(cls) -> str:
-        return Modality.VIDEO
+    audio: Audio | None = Field(default=None, kw_only=True)
 
 class Mesh3D(MediaArtifact[Mesh3DUrl, bytes]):
     tensor: VerticesAndFaces | None = Field(default=None, kw_only=True)
 
-    @classmethod
-    def modality(cls) -> str:
-        return Modality.MESH_3D
-
 class PointCloud3D(MediaArtifact[PointCloud3DUrl, bytes]):
     tensor: PointsAndColors | None = Field(default=None, kw_only=True)
-
-    @classmethod
-    def modality(cls) -> str:
-        return Modality.POINT_CLOUD_3D

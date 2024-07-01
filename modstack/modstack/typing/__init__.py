@@ -33,7 +33,7 @@ from .types import (
 )
 
 from .protocols import Addable
-from .addable_dict import AddableDict
+from .dicts import ModelDict, AddableDict
 from .models import Serializable, Schema
 from .effect import Effect, Effects, ReturnType
 from .registry import PydanticRegistry
@@ -45,4 +45,15 @@ from .filtering import (
     MetadataFilters,
     MetadataFilterInfo
 )
+
+from .coordinates import (
+    Point,
+    Points,
+    Orientation,
+    CoordinateSystem,
+    RelativeSpace,
+    PointSpace,
+    PixelSpace
+)
+
 from .ai import ToolCall, ToolCallChunk, InvalidToolCall, UsageMetadata

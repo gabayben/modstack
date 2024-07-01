@@ -2,9 +2,16 @@
 Credit to LangChain - https://github.com/langchain-ai/langchain/tree/main/libs/core/langchain_core/runnables/utils.py
 """
 
-from typing import Any, Dict
+from typing import Any, Optional
 
-class AddableDict(Dict[str, Any]):
+class ModelDict(dict[str, Any]):
+    def __getattr__(self, name: str) -> Optional[Any]:
+        return self.get(name)
+
+    def __setattr__(self, name: str, value: Optional[Any]) -> None:
+        self[name] = value
+
+class AddableDict(dict[str, Any]):
     """
     Dictionary that can be added to another dictionary.
     """

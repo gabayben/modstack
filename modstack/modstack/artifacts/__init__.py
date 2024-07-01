@@ -1,9 +1,9 @@
 from .base import (
-    Modality,
-    ArtifactRelationship,
-    ArtifactInfo,
-    RelatedArtifact,
-    ArtifactHierarchy,
+    ArtifactType,
+    DataSourceMetadata,
+    CoordinatesMetadata,
+    RegexMetadata,
+    ArtifactMetadata,
     Artifact,
     ArtifactSource,
     StrictArtifactSource,
@@ -11,15 +11,23 @@ from .base import (
     ArtifactQuery,
     artifact_registry
 )
+
 from .blob import (
     BlobArtifact,
     MediaArtifact,
-    ImageArtifact,
-    AudioArtifact,
-    VideoArtifact,
+    Image,
+    Audio,
+    Video,
     Mesh3D,
     PointCloud3D
 )
+
 from .byte_stream import ByteStream
-from .text import TextArtifact
-from .link import LinkArtifact
+
+from .text import *
+
+from .forms import (
+    Checkbox
+)
+
+from .link import Link

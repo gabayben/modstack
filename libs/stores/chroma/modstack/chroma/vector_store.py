@@ -150,7 +150,7 @@ class ChromaVectorStore(VectorStore):
                 texts.append(str(chunk))
                 ids.append(chunk.id)
                 embeddings.append(chunk.embedding)
-                metadatas.append(chunk.model_dump(exclude={*chunk.content_keys, 'embedding'}))
+                metadatas.append(chunk.model_dump(exclude={*chunk._content_keys, 'embedding'}))
             self._collection.add(
                 documents=texts,
                 ids=ids,

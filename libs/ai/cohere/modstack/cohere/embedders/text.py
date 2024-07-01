@@ -3,7 +3,7 @@ from typing import Any, Sequence
 import cohere
 import numpy as np
 
-from modstack.artifacts import Utf8Artifact
+from modstack.artifacts import Artifact
 from modstack.cohere.typing import OMIT
 from modstack.auth import Secret
 from modstack.modules import Modules
@@ -11,7 +11,7 @@ from modstack.utils.func import tzip
 
 _EMBED_RESPONSE = cohere.EmbedResponse_EmbeddingsFloats | cohere.EmbedResponse_EmbeddingsByType
 
-class CohereTextEmbedder(Modules.Async[list[Utf8Artifact], list[Utf8Artifact]]):
+class CohereTextEmbedder(Modules.Async[list[Artifact], list[Artifact]]):
     def __init__(
         self,
         token: Secret = Secret.from_env_var(['COHERE_API_KEY', 'CO_API_KEY']),
@@ -55,7 +55,7 @@ class CohereTextEmbedder(Modules.Async[list[Utf8Artifact], list[Utf8Artifact]]):
 
     async def _ainvoke(
         self,
-        artifacts: list[Utf8Artifact],
+        artifacts: list[Artifact],
         input_type: cohere.EmbedInputType | None = None,
         embedding_types: Sequence[cohere.EmbeddingType] | None = None,
         truncate: cohere.EmbedRequestTruncate | Any | None = None,
@@ -64,7 +64,7 @@ class CohereTextEmbedder(Modules.Async[list[Utf8Artifact], list[Utf8Artifact]]):
         embedding_seperator: str | None = None,
         batch_size: int | None = None,
         **kwargs
-    ) -> list[Utf8Artifact]:
+    ) -> list[Artifact]:
         if not artifacts:
             return []
 

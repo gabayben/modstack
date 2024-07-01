@@ -3,15 +3,15 @@ from typing import ClassVar
 
 import cohere
 
+from modstack.artifacts import Artifact
 from modstack.cohere.rankers import CohereRankRequest
-from modstack.artifacts import Utf8Artifact
 from modstack.auth import Secret
 from modstack.modules import Modules
 from modstack.utils.func import tzip
 
 logger = logging.getLogger(__name__)
 
-class CohereRanker(Modules.Async[CohereRankRequest, list[Utf8Artifact]]):
+class CohereRanker(Modules.Async[CohereRankRequest, list[Artifact]]):
     MAX_NUM_DOCS_FOR_COHERE_RANKER: ClassVar[int] = 1000
 
     def __init__(
@@ -44,7 +44,7 @@ class CohereRanker(Modules.Async[CohereRankRequest, list[Utf8Artifact]]):
         meta_fields_to_embed: list[str] | None = None,
         metadata_seperator: str | None = None,
         **kwargs
-    ) -> list[Utf8Artifact]:
+    ) -> list[Artifact]:
         if not data.query or not data.artifacts:
             return []
 
@@ -87,7 +87,7 @@ class CohereRanker(Modules.Async[CohereRankRequest, list[Utf8Artifact]]):
             indices.append(result.index)
             scores.append(result.relevance_score)
 
-        sorted_artifacts: list[Utf8Artifact] = []
+        sorted_artifacts: list[Artifact] = []
         for index, score in tzip(indices, scores):
             artifact = data.artifacts[index]
             artifact.score = score

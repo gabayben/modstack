@@ -1,21 +1,20 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from modstack.artifacts import Artifact
-from modstack.artifacts.layout import ElementSourceMetadata
+from modstack.artifacts import Artifact, DataSourceMetadata
 from modstack.utils.threading import run_async
 
 class IngestDocument(ABC):
-    _source_metadata: Optional[ElementSourceMetadata] = None
+    _source_metadata: Optional[DataSourceMetadata] = None
 
     @property
-    def source_metadata(self) -> ElementSourceMetadata:
+    def source_metadata(self) -> DataSourceMetadata:
         if not self._source_metadata:
             raise ValueError('Source metadata not set.')
         return self._source_metadata
 
     @source_metadata.setter
-    def source_metadata(self, source_metadata: ElementSourceMetadata) -> None:
+    def source_metadata(self, source_metadata: DataSourceMetadata) -> None:
         self._source_metadata = source_metadata
 
     def update_source_metadata(self, **kwargs) -> None:

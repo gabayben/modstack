@@ -23,7 +23,7 @@ class MessageArtifact(Utf8Artifact):
     role: Optional[str] = None
 
     @property
-    def content_keys(self) -> set[str]:
+    def _content_keys(self) -> set[str]:
         return {'content'}
 
     def __init__(

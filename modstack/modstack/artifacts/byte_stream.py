@@ -1,21 +1,17 @@
 from hashlib import sha256
 from typing import Any, Self, override
 
-from modstack.artifacts import Artifact, Modality
+from modstack.artifacts import Artifact
 
 class ByteStream(Artifact):
     bytes_: bytes
 
     @property
-    def content_keys(self) -> set[str]:
+    def _content_keys(self) -> set[str]:
         return {'bytes_'}
 
     def __init__(self, bytes_: bytes, mime_type: str | None = None, **kwargs):
         super().__init__(**kwargs, bytes_=bytes_, _mime_type=mime_type)
-
-    @classmethod
-    def modality(cls) -> str:
-        return Modality.BYTE_STREAM
 
     @classmethod
     def from_text(cls, text: str, mime_type: str | None = 'llm/plain', **kwargs) -> Self:

@@ -122,11 +122,11 @@ class AiMessageChunk(AiMessage, MessageChunk):
 
             # Token usage
             if self.usage_metadata or other.usage_metadata:
-                left = self.usage_metadata or UsageMetadata(input_tokens=0, output_tokens=0, total_tokens=0)
-                right = other.usage_metadata or UsageMetadata(input_tokens=0, output_tokens=0, total_tokens=0)
+                left = self.usage_metadata or UsageMetadata(prompt_tokens=0, completion_tokens=0, total_tokens=0)
+                right = other.usage_metadata or UsageMetadata(prompt_tokens=0, completion_tokens=0, total_tokens=0)
                 usage_metadata = UsageMetadata(
-                    input_tokens=left['input_tokens'] + right['input_tokens'],
-                    output_tokens=left['output_tokens'] + right['output_tokens'],
+                    prompt_tokens=left['prompt_tokens'] + right['prompt_tokens'],
+                    completion_tokens=left['completion_tokens'] + right['completion_tokens'],
                     total_tokens=left['total_tokens'] + right['total_tokens']
                 )
             else:
