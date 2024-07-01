@@ -141,9 +141,8 @@ class RegexMetadata(TypedDict):
     end: int
 
 class ArtifactMetadata(ModelDict):
-    parent_id: Optional[str]
-    datestamp: Optional[datetime]
     hierarchy: ArtifactHierarchy
+    datestamp: Optional[datetime]
     filename: Optional[str]
     filetype: Optional[str]
     url: Optional[str]
@@ -201,24 +200,28 @@ class Artifact(BaseDoc, ABC):
         return modified_date
 
     @property
+    def hierarchy(self) -> ArtifactHierarchy:
+        return self.metadata.hierarchy
+
+    @property
     def ref(self) -> Optional[ArtifactInfo]:
-        return self.metadata.hierarchy.ref
+        return self.hierarchy.ref
 
     @property
     def previous(self) -> Optional[ArtifactInfo]:
-        return self.metadata.hierarchy.previous
+        return self.hierarchy.previous
 
     @property
     def next(self) -> Optional[ArtifactInfo]:
-        return self.metadata.hierarchy.next
+        return self.hierarchy.next
 
     @property
     def parent(self) -> Optional[ArtifactInfo]:
-        return self.metadata.hierarchy.parent
+        return self.hierarchy.parent
 
     @property
     def children(self) -> Optional[list[ArtifactInfo]]:
-        return self.metadata.hierarchy.children
+        return self.hierarchy.children
 
     @classmethod
     def from_source(cls, source: 'ArtifactSource', metadata: dict[str, Any] = {}) -> Self:
