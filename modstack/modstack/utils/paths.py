@@ -1,6 +1,11 @@
+import datetime as dt
 import mimetypes
+import os
 from pathlib import Path
+from typing import Optional, Union
 from urllib.parse import urlparse
+
+from modstack.utils.constants import DATETIMETZ_FORMAT
 
 CUSTOM_MIME_TYPE_MAPPINGS: dict[str, str] = {
     '.markdown': 'llm/markdown',
@@ -19,3 +24,9 @@ def is_valid_url(url: str) -> bool:
 def validate_url(url: str) -> None:
     if not is_valid_url(url):
         raise ValueError(f'Invalid URL: {url}.')
+
+def last_modified_date(path: Union[str, Path]) -> Optional[str]:
+    if not os.path.isfile(path):
+        return None
+    modified_date = dt.datetime.fromtimestamp(os.path.getmtime(path))
+    return dt.datetime.strftime(modified_date, DATETIMETZ_FORMAT)

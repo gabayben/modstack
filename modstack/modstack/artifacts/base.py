@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
+import datetime as dt
 from enum import StrEnum
 from hashlib import sha256
 from pathlib import Path
@@ -10,8 +11,8 @@ from docarray.base_doc.doc import IncEx
 from pydantic import Field
 
 from modstack.typing import BaseDoc, BaseUrl, CoordinateSystem, ModelDict, Embedding, Points, PydanticRegistry
-from modstack.utils.constants import SCHEMA_TYPE
-from modstack.utils.paths import get_mime_type
+from modstack.utils.constants import DATETIMETZ_FORMAT, SCHEMA_TYPE
+from modstack.utils.paths import get_mime_type, last_modified_date
 from modstack.utils.string import type_name
 
 if TYPE_CHECKING:
@@ -104,6 +105,29 @@ class Artifact(BaseDoc, ABC):
     @property
     def category(self) -> str:
         return ArtifactType.UNCATEGORIZED
+
+    @property
+    def datestamp(self) -> Optional[str]:
+        return (
+            dt.datetime.strftime(self.metadata.datestamp, DATETIMETZ_FORMAT)
+            if self.metadata.datestamp
+            else None
+        )
+
+    @property
+    def last_modified(self) -> Optional[str]:
+        filename = self.metadata.filename
+        modified_date: Optional[str] = None
+        if filename:
+            modified_date = last_modified_date(filename)
+        if not modified_date:
+            modified_date = (
+                self.datestamp
+                or self.metadata.source.get('date_modified')
+                or self.metadata.source.get('date_processed')
+                or self.metadata.source.get('date_created')
+            )
+        return modified_date
 
     @classmethod
     def from_source(cls, source: 'ArtifactSource', metadata: dict[str, Any] = {}) -> Self:
