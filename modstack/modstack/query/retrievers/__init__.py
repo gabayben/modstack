@@ -1,1 +1,2 @@
+from .keyword_table import KeywordTableRetriever
 from .list_index import ListIndexSimpleRetriever, ListIndexEmbeddingRetriever

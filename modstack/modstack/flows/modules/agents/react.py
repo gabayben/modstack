@@ -20,7 +20,7 @@ class ReactAgentState(TypedDict):
     messages: list[MessageArtifact]
     is_last_step: NotRequired[ManagedValue[bool]]
 
-def react_agent(
+def create_react_agent(
     model: Module[LLMPrompt, MessageArtifact],
     tools: list[ModuleLike],
     message_modifier: Optional[_MessageModifier] = None,

@@ -2,13 +2,14 @@ from abc import ABC, abstractmethod
 from functools import partial
 from typing import Optional
 
-from modstack.artifacts import Artifact, ArtifactQuery
-from modstack.query.indices import ListIndex, ListStruct
+from modstack.artifacts import Artifact
+from modstack.query.indices import ListIndex
 from modstack.core import Module, SerializableModule
 from modstack.data.stores import ArtifactStore
+from modstack.query.structs import ListStruct
 from modstack.typing import Effect, Effects
 
-class _ListIndexRetriever(SerializableModule[ArtifactQuery, list[Artifact]], ABC):
+class _ListIndexRetriever(SerializableModule[Artifact, list[Artifact]], ABC):
     @property
     def index(self) -> ListIndex:
         return self._index
@@ -25,27 +26,27 @@ class _ListIndexRetriever(SerializableModule[ArtifactQuery, list[Artifact]], ABC
         super().__init__(**kwargs)
         self._index = index
 
-    def forward(self, data: ArtifactQuery, **kwargs) -> Effect[list[Artifact]]:
+    def forward(self, artifact: Artifact, **kwargs) -> Effect[list[Artifact]]:
         return Effects.From(
-            invoke=partial(self._invoke, data, **kwargs),
-            ainvoke=partial(self._ainvoke, data, **kwargs)
+            invoke=partial(self._invoke, artifact, **kwargs),
+            ainvoke=partial(self._ainvoke, artifact, **kwargs)
         )
 
     @abstractmethod
-    def _invoke(self, data: ArtifactQuery, **kwargs) -> list[Artifact]:
+    def _invoke(self, artifact: Artifact, **kwargs) -> list[Artifact]:
         pass
 
     @abstractmethod
-    async def _ainvoke(self, data: ArtifactQuery, **kwargs) -> list[Artifact]:
+    async def _ainvoke(self, artifact: Artifact, **kwargs) -> list[Artifact]:
         pass
 
 # Simple
 
 class ListIndexSimpleRetriever(_ListIndexRetriever):
-    def _invoke(self, _: ArtifactQuery, **kwargs) -> list[Artifact]:
+    def _invoke(self, _: Artifact, **kwargs) -> list[Artifact]:
         return self.artifact_store.get_many(self.struct.artifact_ids, **kwargs)
 
-    async def _ainvoke(self, _: ArtifactQuery, **kwargs) -> list[Artifact]:
+    async def _ainvoke(self, _: Artifact, **kwargs) -> list[Artifact]:
         return await self.artifact_store.aget_many(self.struct.artifact_ids, **kwargs)
 
 # Embedding
@@ -64,9 +65,9 @@ class ListIndexEmbeddingRetriever(_ListIndexRetriever):
         self._ranker = ranker
         self._top_k = top_k
 
-    def _invoke(self, data: ArtifactQuery, **kwargs) -> list[Artifact]:
+    def _invoke(self, artifact: Artifact, **kwargs) -> list[Artifact]:
         artifacts = self.artifact_store.get_many(self.struct.artifact_ids)
-        query, artifacts = self._get_embeddings(data.value, artifacts, **kwargs)
+        query, artifacts = self._get_embeddings(artifact.value, artifacts, **kwargs)
         return self._ranker.invoke(artifacts, top_k=self._top_k, **kwargs)
 
     def _get_embeddings(
@@ -80,9 +81,9 @@ class ListIndexEmbeddingRetriever(_ListIndexRetriever):
         artifacts = self._embed_model.invoke(artifacts, **kwargs)
         return query, artifacts
 
-    async def _ainvoke(self, data: ArtifactQuery, **kwargs) -> list[Artifact]:
+    async def _ainvoke(self, artifact: Artifact, **kwargs) -> list[Artifact]:
         artifacts = await self.artifact_store.aget_many(self.struct.artifact_ids)
-        query, artifacts = await self._aget_embeddings(data.value, artifacts, **kwargs)
+        query, artifacts = await self._aget_embeddings(artifact.value, artifacts, **kwargs)
         return await self._ranker.ainvoke(artifacts, top_k=self._top_k, **kwargs)
 
     async def _aget_embeddings(

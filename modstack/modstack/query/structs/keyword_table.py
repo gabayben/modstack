@@ -1,7 +1,7 @@
 from pydantic import Field
 
 from modstack.artifacts import Artifact
-from modstack.query.indices import IndexStruct
+from modstack.query.structs import IndexStruct
 
 class KeywordTable(IndexStruct):
     """A table mapping keywords to artifact ids."""

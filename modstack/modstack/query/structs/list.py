@@ -3,7 +3,7 @@ from typing import overload
 from pydantic import PrivateAttr
 
 from modstack.artifacts import Artifact
-from modstack.query.indices import IndexStruct
+from modstack.query.structs import IndexStruct
 
 class ListStruct(IndexStruct):
     _artifact_ids: list[str] = PrivateAttr(default_factory=list)

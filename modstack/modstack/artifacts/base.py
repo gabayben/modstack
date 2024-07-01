@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from datetime import datetime
 import datetime as dt
 from enum import StrEnum, auto
@@ -8,10 +7,11 @@ import os
 from pathlib import Path
 from typing import Any, Literal, Optional, Self, TYPE_CHECKING, TypedDict, Union, override
 
-from docarray.base_doc.doc import IncEx
+from docarray.base_doc.doc import BaseDocWithoutId, IncEx
+from docarray.typing import ID
 from pydantic import Field
 
-from modstack.typing import BaseDoc, BaseUrl, CoordinateSystem, DocId, ModelDict, Embedding, Points, PydanticRegistry, Serializable
+from modstack.typing import BaseUrl, CoordinateSystem, ModelDict, Embedding, Points, PydanticRegistry, Serializable
 from modstack.utils.constants import DATETIMETZ_FORMAT, SCHEMA_TYPE
 from modstack.utils.paths import get_mime_type, last_modified_date
 from modstack.utils.string import type_name
@@ -167,9 +167,9 @@ class ArtifactMetadata(ModelDict):
 
 #### Artifacts
 
-class Artifact(BaseDoc, ABC):
-    id: DocId = Field(
-        default_factory=lambda: DocId(os.urandom(16).hex()),
+class Artifact(BaseDocWithoutId, ABC):
+    id: ID = Field(
+        default_factory=lambda: ID(os.urandom(16).hex()),
         examples=[os.urandom(16).hex()],
         description=(
             'The ID of the BaseDoc. This is useful for indexing in vector stores. '
@@ -360,13 +360,6 @@ class Utf8Artifact(Artifact, ABC):
 
     def _get_string_for_regex_filter(self) -> str:
         return str(self)
-
-#### Types
-
-@dataclass
-class ArtifactQuery:
-    value: Artifact
-    metadata: dict[str, Any] = field(default_factory=dict)
 
 #### Registry
 

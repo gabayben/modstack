@@ -8,8 +8,6 @@ from .types import (
     AudioBytes,
     AudioUrl,
     BaseBytes,
-    DocId,
-    BaseDoc,
     BaseUrl,
     DocList,
     DocVec,
