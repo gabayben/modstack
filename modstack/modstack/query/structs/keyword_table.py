@@ -23,9 +23,9 @@ class KeywordTable(IndexStruct):
         """Get the size of the table."""
         return len(self.table)
 
-    def add_artifact(self, keywords: list[str], artifact: Artifact) -> None:
+    def add_artifact(self, artifact: Artifact, keywords: set[str]) -> None:
         """Add artifact to table."""
-        for keyword in set(keywords):
+        for keyword in keywords:
             if keyword not in self.table:
                 self.table[keyword] = set()
             self.table[keyword].add(artifact.id)
