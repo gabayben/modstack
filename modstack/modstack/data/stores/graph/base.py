@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
-from modstack.artifacts import Artifact, ArtifactRelationship
+from modstack.artifacts import Artifact
 from modstack.data.stores import ChunkNode, GraphNode, GraphNodeQuery, GraphRelation, GraphTriplet, GraphTripletQuery, VectorStoreQuery
 from modstack.typing import Embedding
 from modstack.utils.constants import GRAPH_TRIPLET_SOURCE_KEY
@@ -144,9 +144,7 @@ class GraphStore(ABC):
         ref_artifact_ids = ref_artifact_ids or []
         for ref_artifact_id in artifact_ids:
             nodes.extend(self.get(
-                GraphNodeQuery(properties={
-                    'relationships': {ArtifactRelationship.REF: ref_artifact_id}
-                })
+                GraphNodeQuery(properties={})
             ))
 
         if len(ref_artifact_ids) > 0:
@@ -180,9 +178,7 @@ class GraphStore(ABC):
         ref_artifact_ids = ref_artifact_ids or []
         for ref_artifact_id in artifact_ids:
             nodes.extend(await self.aget(
-                GraphNodeQuery(properties={
-                    'relationships': {ArtifactRelationship.REF: ref_artifact_id}
-                })
+                GraphNodeQuery(properties={})
             ))
 
         if len(ref_artifact_ids) > 0:
