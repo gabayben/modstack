@@ -1,6 +1,8 @@
 import asyncio
 from typing import Any, Optional, Sequence
 
+import fsspec
+
 from modstack.artifacts import Artifact, artifact_registry
 from modstack.data.stores import ArtifactStore, RefArtifactInfo, KVStore
 from modstack.utils.constants import DEFAULT_STORAGE_BATCH_SIZE
@@ -32,6 +34,14 @@ class KVArtifactStore(ArtifactStore):
         self._metadata_collection = f'{namespace}/{metadata_collection}'
         self._ref_collection = f'{namespace}/{ref_collection}'
         self._batch_size = batch_size
+
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> None:
+        self._kvstore.persist(path, fs=fs, **kwargs)
 
     #### Artifacts
 

@@ -1,11 +1,22 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Sequence
 
+import fsspec
+
 from modstack.artifacts import Artifact
 from modstack.data.stores import RefArtifactInfo
 from modstack.utils.constants import DEFAULT_STORAGE_BATCH_SIZE
 
 class ArtifactStore(ABC):
+
+    @abstractmethod
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> None:
+        pass
 
     #### Artifacts
 
