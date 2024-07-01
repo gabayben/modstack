@@ -1,9 +1,19 @@
 from typing import Optional
 
+import fsspec
+
 from modstack.data.stores import KVStore
 from modstack.data.stores.keyvalue.base import DEFAULT_COLLECTION
 
 class RedisKVStore(KVStore):
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> None:
+        pass
+
     def get(self, key: str, collection: str = DEFAULT_COLLECTION, **kwargs) -> Optional[dict]:
         pass
 

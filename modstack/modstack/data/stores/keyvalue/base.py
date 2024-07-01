@@ -1,11 +1,22 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+import fsspec
+
 from modstack.utils.constants import DEFAULT_STORAGE_BATCH_SIZE
 
 DEFAULT_COLLECTION = 'data'
 
 class KVStore(ABC):
+    @abstractmethod
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> None:
+        pass
+
     @abstractmethod
     def get(
         self,

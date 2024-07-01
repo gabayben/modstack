@@ -1,13 +1,45 @@
-from typing import Optional
+import json
+import logging
+import os.path
+from typing import Optional, Self
+
+import fsspec
 
 from modstack.data.stores import KVStore
 from modstack.data.stores.keyvalue.base import DEFAULT_COLLECTION
 
+logger = logging.getLogger(__name__)
 _DATA_TYPE = dict[str, dict[str, dict]]
 
 class SimpleKVStore(KVStore):
     def __init__(self, data: Optional[_DATA_TYPE] = None):
         self._data: _DATA_TYPE = data or {}
+
+    @classmethod
+    def from_persist_path(
+        cls,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> Self:
+        fs = fs or fsspec.filesystem('file')
+        logger.debug(f'Loading {__name__} from {path}.')
+        with fs.open(path, 'rb') as f:
+            data = json.load(f)
+        return cls(data)
+
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> None:
+        fs = fs or fsspec.filesystem('file', **kwargs)
+        dirpath = os.path.dirname(path)
+        if fs.exists(dirpath):
+            fs.makedirs(dirpath)
+        with fs.open(path, 'w') as f:
+            f.write(json.dumps(self._data))
 
     def get(
         self,
