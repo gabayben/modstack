@@ -25,7 +25,8 @@ StreamingChunk = tuple[str, dict[str, typing.Any]]
 StreamingCallback = typing.Callable[[str, dict[str, typing.Any]], None]
 MetadataType = Union[dict[str, typing.Any], list[dict[str, typing.Any]]]
 
-BaseDoc = docarray.BaseDoc
+DocId = docarray.typing.ID
+BaseDoc = docarray.base_doc.doc.BaseDocWithoutId
 DocList = docarray.DocList
 DocVec = docarray.DocVec
 

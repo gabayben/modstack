@@ -4,13 +4,14 @@ from datetime import datetime
 import datetime as dt
 from enum import StrEnum, auto
 from hashlib import sha256
+import os
 from pathlib import Path
 from typing import Any, Literal, Optional, Self, TYPE_CHECKING, TypedDict, Union, override
 
 from docarray.base_doc.doc import IncEx
 from pydantic import Field
 
-from modstack.typing import BaseDoc, BaseUrl, CoordinateSystem, ModelDict, Embedding, Points, PydanticRegistry, Serializable
+from modstack.typing import BaseDoc, BaseUrl, CoordinateSystem, DocId, ModelDict, Embedding, Points, PydanticRegistry, Serializable
 from modstack.utils.constants import DATETIMETZ_FORMAT, SCHEMA_TYPE
 from modstack.utils.paths import get_mime_type, last_modified_date
 from modstack.utils.string import type_name
@@ -167,6 +168,14 @@ class ArtifactMetadata(ModelDict):
 #### Artifacts
 
 class Artifact(BaseDoc, ABC):
+    id: DocId = Field(
+        default_factory=lambda: DocId(os.urandom(16).hex()),
+        examples=[os.urandom(16).hex()],
+        description=(
+            'The ID of the BaseDoc. This is useful for indexing in vector stores. '
+            'If not set by user, it will automatically be assigned a random value.'
+        )
+    )
     name: Optional[str] = None
     metadata: ArtifactMetadata = Field(default_factory=ArtifactMetadata)
     embedding: Optional[Embedding] = Field(default=None, exclude=True, kw_only=True)
