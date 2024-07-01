@@ -1,11 +1,22 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+import fsspec
+
 from modstack.artifacts import Artifact
 from modstack.data.stores import VectorStoreQuery, VectorStoreQueryResult
 from modstack.typing import MetadataFilters
 
 class VectorStore(ABC):
+    @abstractmethod
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> None:
+        pass
+
     @abstractmethod
     def retrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
         pass

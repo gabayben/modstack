@@ -1,7 +1,10 @@
 from dataclasses import dataclass, field
+import json
+import os.path
 from typing import Any, Optional
 
 from dataclasses_json import DataClassJsonMixin
+import fsspec
 
 from modstack.artifacts import Artifact
 from modstack.data.stores import VectorStore, VectorStoreQuery, VectorStoreQueryResult
@@ -14,8 +17,26 @@ class SimpleVectorStoreData(DataClassJsonMixin):
     metadata: dict[str, Any] = field(default_factory=dict)
 
 class SimpleVectorStore(VectorStore):
-    def __init__(self, data: Optional[SimpleVectorStoreData] = None):
+    def __init__(
+        self,
+        data: Optional[SimpleVectorStoreData] = None,
+        fs: Optional[fsspec.AbstractFileSystem] = None
+    ):
         self._data: SimpleVectorStoreData = data or SimpleVectorStoreData()
+        self._fs: fsspec.AbstractFileSystem = fs or fsspec.filesystem('file')
+
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> None:
+        fs = fs or self._fs
+        dirname = os.path.dirname(path)
+        if not fs.exists(dirname):
+            fs.makedirs(dirname)
+        with fs.open(path, 'w') as f:
+            json.dump(self._data.to_dict(), f)
 
     def retrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
         pass

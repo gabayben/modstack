@@ -1,9 +1,12 @@
+import json
 import logging
 import math
+import os.path
 from typing import Any, Generator, Optional
 
 import chromadb
 from chromadb.api.models.Collection import Collection
+import fsspec
 
 from modstack.artifacts import Artifact, artifact_registry
 from modstack.data.stores.vector import VectorStore, VectorStoreQuery, VectorStoreQueryResult
@@ -34,7 +37,8 @@ class ChromaVectorStore(VectorStore):
         host: Optional[str] = None,
         port: Optional[int] = None,
         headers: Optional[dict[str, str]] = None,
-        ssl: bool = False
+        ssl: bool = False,
+        fs: Optional[fsspec.AbstractFileSystem] = None
     ):
         self.collection_name = collection_name
         self.collection_kwargs = collection_kwargs or {}
@@ -55,6 +59,23 @@ class ChromaVectorStore(VectorStore):
             )
         else:
             self._collection = collection
+        self._fs: fsspec.AbstractFileSystem = fs or fsspec.filesystem('file')
+
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        **kwargs
+    ) -> None:
+        data = self._collection.get(offset=offset, limit=limit)
+        fs = fs or self._fs
+        dirname = os.path.dirname(path)
+        if not fs.exists(dirname):
+            fs.makedirs(dirname)
+        with fs.open(path, 'w') as f:
+            json.dump(data, f)
 
     def retrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
         where = _to_chroma_filters(query.filters) if query.filters else {}
