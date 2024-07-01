@@ -2,7 +2,7 @@ from typing import Any, Mapping, Optional, Type, Union, override
 
 from pydantic import BaseModel
 
-from modstack.modules import Module, ModuleLike, SerializableModule, coerce_to_module
+from modstack.core import Module, ModuleLike, SerializableModule, coerce_to_module
 from modstack.typing import Effect, Effects
 from modstack.typing.vars import In
 from modstack.utils.serialization import create_model

@@ -2,7 +2,7 @@ from typing import Any, Type, final, override
 
 from pydantic import BaseModel
 
-from modstack.modules import Module, ModuleLike, SerializableModule, coerce_to_module
+from modstack.core import Module, ModuleLike, SerializableModule, coerce_to_module
 from modstack.typing import Effect
 
 @final

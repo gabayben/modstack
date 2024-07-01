@@ -36,11 +36,11 @@ class Module(Generic[In, Out], ABC):
         )
 
     def __or__(self, other: Union['ModuleLike[Out, Other]', 'ModuleMapping[Out]']) -> 'Module[In, Other]':
-        from modstack.modules.sequential import Sequential
+        from modstack.core.sequential import Sequential
         return Sequential(self, coerce_to_module(other))
 
     def __ror__(self, other: 'ModuleLike[Other, In]') -> 'Module[Other, Out]':
-        from modstack.modules.sequential import Sequential
+        from modstack.core.sequential import Sequential
         return Sequential(coerce_to_module(other), self)
 
     def __str__(self) -> str:
@@ -50,7 +50,7 @@ class Module(Generic[In, Out], ABC):
         return self | mapper
 
     def bind(self, **kwargs) -> 'Module[In, Out]':
-        from modstack.modules.decorator import Decorator
+        from modstack.core.decorator import Decorator
         return Decorator(bound=self, kwargs=kwargs)
 
     def with_types(
@@ -58,7 +58,7 @@ class Module(Generic[In, Out], ABC):
         custom_input_type: Type[In] | BaseModel | None = None,
         custom_output_type: Type[Out] | BaseModel | None = None
     ) -> 'Module[In, Out]':
-        from modstack.modules.decorator import Decorator
+        from modstack.core.decorator import Decorator
         return Decorator(
             bound=self,
             custom_input_type=custom_input_type,
@@ -72,7 +72,7 @@ class Module(Generic[In, Out], ABC):
         wait: WaitStrategy | None = None,
         after: AfterRetryFailure | None = None
     ) -> 'Module[In, Out]':
-        from modstack.modules.fault_handling.retry import Retry
+        from modstack.core.fault_handling.retry import Retry
         return Retry(
             bound=self,
             retry=retry,
@@ -86,7 +86,7 @@ class Module(Generic[In, Out], ABC):
         fallbacks: Sequence['Module[In, Out]'],
         exceptions_to_handle: tuple[BaseException, ...] | None = None
     ) -> 'Module[In, Out]':
-        from modstack.modules.fault_handling.fallbacks import Fallbacks
+        from modstack.core.fault_handling.fallbacks import Fallbacks
         return Fallbacks(
             bound=self,
             fallbacks=fallbacks,
@@ -222,7 +222,7 @@ ModuleMapping = ModuleMapping
 ArtifactTransform = ModuleLike[list[Artifact], list[Artifact]]
 
 def coerce_to_module(thing: ModuleLike[In, Out]) -> Module[In, Out]:
-    from modstack.modules.functional import Functional
+    from modstack.core.functional import Functional
     if isinstance(thing, Module):
         return thing
     return Functional(thing)
@@ -234,7 +234,7 @@ def module(
     input_schema: Type[BaseModel] | None = None,
     output_schema: Type[BaseModel] | None = None
 ) -> Module[In, Out]:
-    from modstack.modules.functional import Functional
+    from modstack.core.functional import Functional
     def wrapper(fn: ModuleFunction[In, Out]) -> Module[In, Out]:
         return Functional(
             fn,

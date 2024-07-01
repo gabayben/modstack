@@ -2,7 +2,7 @@ from collections import deque
 from typing import Any, Literal, NamedTuple, NotRequired, Optional, Sequence, TypedDict, Union
 
 from modstack.flows.checkpoints import CheckpointMetadata
-from modstack.modules import Module
+from modstack.core import Module
 
 FlowInput = Union[dict[str, Any], Any]
 FlowOutputChunk = Union[dict[str, Any], Any]

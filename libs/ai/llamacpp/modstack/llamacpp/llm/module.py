@@ -2,7 +2,7 @@ from typing import Optional
 
 from llama_cpp import ChatCompletionRequestMessage, Llama
 
-from modstack.modules import Modules
+from modstack.core import Modules
 from modstack.artifacts.messages import MessageArtifact, MessageChunk, MessageType
 from modstack.ai import LLMPrompt
 

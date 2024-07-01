@@ -5,7 +5,7 @@ import cohere
 from modstack.cohere.utils import build_cohore_metadata
 from modstack.artifacts.messages import AiMessageChunk, MessageArtifact, MessageChunk, MessageType
 from modstack.auth import Secret
-from modstack.modules import Modules
+from modstack.core import Modules
 from modstack.ai import LLMPrompt
 
 class CohereLLM(Modules.Stream[LLMPrompt, MessageChunk]):

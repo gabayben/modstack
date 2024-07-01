@@ -2,7 +2,7 @@ from typing import Any, override
 
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_none
 
-from modstack.modules import DecoratorBase, Module
+from modstack.core import DecoratorBase, Module
 from modstack.typing import AfterRetryFailure, Effect, Effects, RetryStrategy, StopStrategy, WaitStrategy
 from modstack.typing.vars import In, Out
 

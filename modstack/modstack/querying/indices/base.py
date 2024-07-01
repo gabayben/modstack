@@ -6,8 +6,8 @@ from typing import Any, Generic, Optional, Sequence, TypeVar
 
 from modstack.artifacts import Artifact
 from modstack.querying.indices.structs import IndexStruct
-from modstack.modules import ArtifactTransform
-from modstack.modules.utils import arun_transformations, run_transformations
+from modstack.core import ArtifactTransform
+from modstack.core.utils import arun_transformations, run_transformations
 from modstack.settings import Settings
 from modstack.data.stores import ArtifactStore, InjestionCache, RefArtifactInfo, IndexStore
 

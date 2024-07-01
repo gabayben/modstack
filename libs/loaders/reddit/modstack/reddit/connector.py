@@ -1,4 +1,4 @@
-from modstack.modules import Modules
+from modstack.core import Modules
 from modstack.reddit import RedditDocument, RedditQuery
 
 class RedditConnector(Modules.Sync[RedditQuery, list[RedditDocument]]):

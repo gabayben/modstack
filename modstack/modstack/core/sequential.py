@@ -2,9 +2,9 @@ from typing import Any, Type, cast, override
 
 from pydantic import BaseModel, Field
 
-from modstack.modules import Module, ModuleLike, SerializableModule, coerce_to_module
-from modstack.modules.base import ModuleMapping
-from modstack.modules.traits import HasSequentialSchema
+from modstack.core import Module, ModuleLike, SerializableModule, coerce_to_module
+from modstack.core.base import ModuleMapping
+from modstack.core.traits import HasSequentialSchema
 from modstack.typing import Effect
 from modstack.typing.vars import In, Other, Out
 

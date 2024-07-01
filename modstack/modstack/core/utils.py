@@ -3,7 +3,7 @@ import re
 from typing import Optional
 
 from modstack.artifacts import Artifact, ArtifactMetadata, Text
-from modstack.modules import ArtifactTransform, Module, coerce_to_module, module
+from modstack.core import ArtifactTransform, Module, coerce_to_module, module
 from modstack.data.stores import InjestionCache
 from modstack.typing import MetadataType
 from modstack.utils.dicts import normalize_metadata

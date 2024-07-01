@@ -5,7 +5,7 @@ from typing import Optional
 from modstack.artifacts import Artifact, ArtifactQuery
 from modstack.querying.indices import ListIndex
 from modstack.querying.indices.structs import ListStruct
-from modstack.modules import Module, SerializableModule
+from modstack.core import Module, SerializableModule
 from modstack.data.stores import ArtifactStore
 from modstack.typing import Effect, Effects
 

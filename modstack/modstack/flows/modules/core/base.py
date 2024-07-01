@@ -21,7 +21,7 @@ from modstack.flows.utils.checkpoints import copy_checkpoint, create_checkpoint,
 from modstack.flows.utils.debug import map_debug_checkpoint, map_debug_task_results, map_debug_tasks, print_step_checkpoint, print_step_tasks, print_step_writes
 from modstack.flows.utils.io import map_input, map_output_updates, map_output_values, read_channel, read_channels
 from modstack.flows.utils.validation import validate_flow, validate_keys
-from modstack.modules import Sequential, SerializableModule
+from modstack.core import Sequential, SerializableModule
 from modstack.typing import Effect, Effects
 from modstack.utils.serialization import create_model
 from modstack.utils.threading import get_executor

@@ -1,6 +1,6 @@
 from typing import Iterator, Sequence, Type, override
 
-from modstack.modules import DecoratorBase, Module
+from modstack.core import DecoratorBase, Module
 from modstack.typing import Effect, Effects
 from modstack.typing.vars import In, Out
 

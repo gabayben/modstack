@@ -6,7 +6,7 @@ import numpy as np
 from modstack.artifacts import Artifact
 from modstack.cohere.typing import OMIT
 from modstack.auth import Secret
-from modstack.modules import Modules
+from modstack.core import Modules
 from modstack.utils.func import tzip
 
 _EMBED_RESPONSE = cohere.EmbedResponse_EmbeddingsFloats | cohere.EmbedResponse_EmbeddingsByType

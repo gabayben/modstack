@@ -5,7 +5,7 @@ from modstack.flows.constants import END
 from modstack.flows.managed import ManagedValue
 from modstack.flows.modules import StateFlow
 from modstack.artifacts.messages import AiMessage, MessageArtifact, SystemMessage
-from modstack.modules import Module, ModuleLike, SerializableModule, coerce_to_module
+from modstack.core import Module, ModuleLike, SerializableModule, coerce_to_module
 from modstack.ai import LLMPrompt
 from modstack.ai.tools import ToolExecutor
 from modstack.typing import Effect, Effects

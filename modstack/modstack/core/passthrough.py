@@ -1,4 +1,4 @@
-from modstack.modules import SerializableModule
+from modstack.core import SerializableModule
 from modstack.typing import Effect, Effects
 from modstack.typing.vars import Other
 

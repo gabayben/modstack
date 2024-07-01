@@ -2,7 +2,7 @@ from typing import Any, Type, cast, override
 
 from pydantic import BaseModel
 
-from modstack.modules import Module, SerializableModule
+from modstack.core import Module, SerializableModule
 from modstack.typing import Effect
 from modstack.typing.vars import In, Out
 

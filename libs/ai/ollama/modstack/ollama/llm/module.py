@@ -3,7 +3,7 @@ from typing import Any, Iterator
 
 import requests
 
-from modstack.modules import Modules
+from modstack.core import Modules
 from modstack.artifacts.messages import AiMessageChunk, MessageChunk, MessageType
 from modstack.ai import LLMPrompt
 

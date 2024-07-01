@@ -4,7 +4,7 @@ import json
 from typing import Any, Iterable, Optional, final
 
 from modstack.artifacts.messages import AiMessage, MessageArtifact, ToolMessage
-from modstack.modules import Module, SerializableModule
+from modstack.core import Module, SerializableModule
 from modstack.typing import Effect, Effects, ToolCall
 from modstack.utils.threading import get_executor
 

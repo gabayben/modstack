@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import Any, Literal, Optional, TypedDict, Union
 
-from modstack.modules import ModuleLike
+from modstack.core import ModuleLike
 
 class IngestFileType(StrEnum):
     CSV = 'csv'

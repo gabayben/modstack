@@ -16,7 +16,7 @@ from modstack.flows.constants import END, HIDDEN, ROOT_KEY, START
 from modstack.flows.managed import ManagedValue, is_managed_value
 from modstack.flows.modules import Branch, ChannelRead, ChannelWrite, ChannelWriteEntry, CompiledFlow, Flow, PregelNode
 from modstack.flows.modules.write import SKIP_WRITE
-from modstack.modules import Functional, Module
+from modstack.core import Functional, Module
 from modstack.utils.serialization import create_schema
 
 logger = logging.getLogger(__name__)

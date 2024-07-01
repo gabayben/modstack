@@ -4,7 +4,7 @@ from typing import Type, final, override
 
 from pydantic import BaseModel
 
-from modstack.modules import Module, ModuleFunction
+from modstack.core import Module, ModuleFunction
 from modstack.typing import Effect, Effects
 from modstack.typing.vars import In, Out
 from modstack.utils.reflection import get_callable_type

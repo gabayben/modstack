@@ -5,7 +5,7 @@ from typing import Any, Callable, NamedTuple, Optional, Sequence
 from modstack.flows import Send
 from modstack.flows.channels import InvalidUpdateError
 from modstack.flows.constants import IS_CHANNEL_WRITER, TASKS, WRITE_KEY
-from modstack.modules import Module, Passthrough, SerializableModule
+from modstack.core import Module, Passthrough, SerializableModule
 from modstack.typing import Effect, Effects
 from modstack.utils.func import tzip
 
