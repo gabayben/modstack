@@ -5,7 +5,7 @@ import logging
 from typing import Any, Generic, Optional, Sequence, TypeVar
 
 from modstack.artifacts import Artifact
-from modstack.querying.indices.structs import IndexStruct
+from modstack.query.indices import IndexStruct
 from modstack.core import ArtifactTransform
 from modstack.core.utils import arun_transformations, run_transformations
 from modstack.settings import Settings

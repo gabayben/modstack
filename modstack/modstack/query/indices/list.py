@@ -1,8 +1,7 @@
 from typing import Sequence
 
 from modstack.artifacts import Artifact
-from modstack.querying.indices import Index
-from modstack.querying.indices.structs import ListStruct
+from modstack.query.indices import Index, ListStruct
 from modstack.data.stores import RefArtifactInfo
 
 class ListIndex(Index[ListStruct]):

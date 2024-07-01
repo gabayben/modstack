@@ -1,8 +1,9 @@
 from typing import Optional
 
-from modstack.querying import IndexStruct, index_struct_registry
-from modstack.stores.index import IndexStore
-from modstack.stores.keyvalue import KVStore
+import fsspec
+
+from modstack.query.indices import IndexStruct, index_struct_registry
+from modstack.data.stores import IndexStore, KVStore
 
 DEFAULT_NAMESPACE = 'index_store'
 DEFAULT_COLLECTION = 'data'
@@ -18,6 +19,14 @@ class KVIndexStore(IndexStore):
         namespace = namespace or DEFAULT_NAMESPACE
         collection = collection or DEFAULT_COLLECTION
         self._collection = f'{namespace}/{collection}'
+
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> None:
+        self._kvstore.persist(path, fs=fs, **kwargs)
 
     def get_struct(self, struct_id: Optional[str] = None, **kwargs) -> Optional[IndexStruct]:
         if struct_id is None:

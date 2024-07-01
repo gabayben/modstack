@@ -1,9 +1,20 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from modstack.querying import IndexStruct
+import fsspec
+
+from modstack.query.indices import IndexStruct
 
 class IndexStore(ABC):
+    @abstractmethod
+    def persist(
+        self,
+        path: str,
+        fs: Optional[fsspec.AbstractFileSystem] = None,
+        **kwargs
+    ) -> None:
+        pass
+
     @abstractmethod
     def get_struct(self, struct_id: Optional[str] = None, **kwargs) -> Optional[IndexStruct]:
         pass
