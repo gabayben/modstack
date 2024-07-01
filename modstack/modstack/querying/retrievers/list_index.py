@@ -3,8 +3,8 @@ from functools import partial
 from typing import Optional
 
 from modstack.artifacts import Artifact, ArtifactQuery
-from modstack.data.querying.indices import ListIndex
-from modstack.data.querying.indices.structs import ListStruct
+from modstack.querying.indices import ListIndex
+from modstack.querying.indices.structs import ListStruct
 from modstack.modules import Module, SerializableModule
 from modstack.data.stores import ArtifactStore
 from modstack.typing import Effect, Effects

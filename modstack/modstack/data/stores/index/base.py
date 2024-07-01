@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from modstack.data.querying.indices.structs import IndexStruct
+from modstack.querying import IndexStruct
 
 class IndexStore(ABC):
     @abstractmethod

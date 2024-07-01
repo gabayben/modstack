@@ -1,6 +1,6 @@
 from typing import Optional
 
-from modstack.data.querying.indices.structs import IndexStruct, index_struct_registry
+from modstack.querying import IndexStruct, index_struct_registry
 from modstack.stores.index import IndexStore
 from modstack.stores.keyvalue import KVStore
 
