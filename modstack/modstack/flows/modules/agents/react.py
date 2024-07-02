@@ -6,8 +6,8 @@ from modstack.flows.managed import ManagedValue
 from modstack.flows.modules import StateFlow
 from modstack.artifacts.messages import AiMessage, MessageArtifact, SystemMessage
 from modstack.core import ModuleLike, SerializableModule, coerce_to_module
-from modstack.modules import LLM, LLMPrompt
-from modstack.modules.tools import ToolExecutor
+from modstack.ai import LLM, LLMPrompt
+from modstack.ai.tools import ToolExecutor
 from modstack.typing import Effect, Effects
 
 _MessageModifier = Union[

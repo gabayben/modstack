@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from modstack.modules import Embedder, LLM
+from modstack.ai import Embedder, LLM
 from modstack.data.stores import ArtifactStore, IndexStore, InjestionCache, KVArtifactStore, KVIndexStore, KVStore
 from modstack.data.stores import GraphStore, SimpleGraphStore
 from modstack.data.stores import SimpleKVStore

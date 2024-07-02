@@ -6,7 +6,7 @@ from modstack.cohere.utils import build_cohore_metadata
 from modstack.artifacts.messages import AiMessageChunk, MessageArtifact, MessageChunk, MessageType
 from modstack.auth import Secret
 from modstack.core import Modules
-from modstack.modules import LLMPrompt
+from modstack.ai import LLMPrompt
 
 class CohereLLM(Modules.Stream[LLMPrompt, MessageChunk]):
     ROLES_MAP: ClassVar[dict[MessageType, str]] = {
