@@ -1,11 +1,11 @@
 from typing import Sequence, override
 
 from modstack.artifacts import Artifact
-from modstack.query.indices import Index
 from modstack.data.stores import RefArtifactInfo
+from modstack.query.indices.artifact_store import ArtifactStoreIndex
 from modstack.query.structs import ListStruct
 
-class ListIndex(Index[ListStruct]):
+class ListIndex(ArtifactStoreIndex[ListStruct]):
     def _build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> ListStruct:
         struct = ListStruct()
         for artifact in artifacts:
@@ -27,7 +27,7 @@ class ListIndex(Index[ListStruct]):
         artifacts_to_keep = [artifact for artifact in artifacts if artifact.id != artifact_id]
         self.struct.artifact_ids = artifacts_to_keep
 
-    def get_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
+    def get_refs(self) -> dict[str, RefArtifactInfo]:
         artifacts = self.artifact_store.get_many(self.struct.artifact_ids)
         ref_artifacts: dict[str, RefArtifactInfo] = {}
         for artifact in artifacts:
@@ -41,7 +41,7 @@ class ListIndex(Index[ListStruct]):
         return ref_artifacts
 
     @override
-    async def aget_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
+    async def aget_refs(self) -> dict[str, RefArtifactInfo]:
         artifacts = await self.artifact_store.aget_many(self.struct.artifact_ids)
         ref_artifacts: dict[str, RefArtifactInfo] = {}
         for artifact in artifacts:

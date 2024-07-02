@@ -5,11 +5,11 @@ from modstack.artifacts import Artifact
 from modstack.core import Module, ModuleLike, coerce_to_module
 from modstack.data.stores import RefArtifactInfo
 from modstack.query.common import simple_keyword_extractor
-from modstack.query.indices import Index
+from modstack.query.indices.artifact_store import ArtifactStoreIndex
 from modstack.query.structs import KeywordTable
 
 @dataclass
-class KeywordTableIndex(Index[KeywordTable]):
+class KeywordTableIndex(ArtifactStoreIndex[KeywordTable]):
     _keyword_extractor: ModuleLike[Artifact, set[str]] = field(default=simple_keyword_extractor, kw_only=True)
     keyword_extractor: Module[Artifact, set[str]]
 
@@ -64,7 +64,7 @@ class KeywordTableIndex(Index[KeywordTable]):
         for keyword in keywords_to_delete:
             del self.struct.table[keyword]
 
-    def get_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
+    def get_refs(self) -> dict[str, RefArtifactInfo]:
         artifacts = self.artifact_store.get_many(list(self.struct.artifact_ids))
         ref_infos: dict[str, RefArtifactInfo] = {}
         for artifact in artifacts:
@@ -78,7 +78,7 @@ class KeywordTableIndex(Index[KeywordTable]):
         return ref_infos
 
     @override
-    async def aget_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
+    async def aget_refs(self) -> dict[str, RefArtifactInfo]:
         artifacts = await self.artifact_store.aget_many(list(self.struct.artifact_ids))
         ref_infos: dict[str, RefArtifactInfo] = {}
         for artifact in artifacts:
