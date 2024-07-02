@@ -63,12 +63,12 @@ class Index(Generic[STRUCT], ABC):
         if struct is not None and artifacts is not None:
             raise ValueError('struct and artifacts cannot both be set.')
         if artifacts is not None:
-            struct = self.build_from_artifacts(artifacts, **kwargs)
+            struct = self._build(artifacts, **kwargs)
         self._struct = struct
         self.index_store.upsert_struct(self.struct, **kwargs)
 
     @abstractmethod
-    def build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> STRUCT:
+    def _build(self, artifacts: Sequence[Artifact], **kwargs) -> STRUCT:
         pass
 
     async def abuild(
@@ -82,12 +82,12 @@ class Index(Generic[STRUCT], ABC):
         if struct is not None and artifacts is not None:
             raise ValueError('struct and artifacts cannot both be set.')
         if artifacts is not None:
-            struct = await self.build_from_artifacts(artifacts, **kwargs)
+            struct = await self._build(artifacts, **kwargs)
         self._struct = struct
         await self.index_store.aupsert_struct(self.struct, **kwargs)
 
     @abstractmethod
-    async def abuild_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> STRUCT:
+    async def _abuild(self, artifacts: Sequence[Artifact], **kwargs) -> STRUCT:
         pass
 
     def insert_ref(self, ref: Artifact, **kwargs) -> None:

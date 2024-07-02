@@ -15,13 +15,13 @@ class SummaryIndex(Index[SummaryStruct]):
     def vector_store(self) -> VectorStore:
         return self._vector_store
 
-    def build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> SummaryStruct:
+    def _build(self, artifacts: Sequence[Artifact], **kwargs) -> SummaryStruct:
         self.artifact_store.insert(artifacts, **kwargs)
         struct = SummaryStruct()
         self._insert_artifacts_to_index(struct, list(artifacts), **kwargs)
         return struct
 
-    async def abuild_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> SummaryStruct:
+    async def _abuild(self, artifacts: Sequence[Artifact], **kwargs) -> SummaryStruct:
         await self.artifact_store.ainsert(artifacts, **kwargs)
         struct = SummaryStruct()
         await self._ainsert_artifacts_to_index(struct, list(artifacts), **kwargs)

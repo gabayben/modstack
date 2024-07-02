@@ -12,7 +12,7 @@ from modstack.utils.threading import run_async
 logger = logging.getLogger(__name__)
 
 class ArtifactStoreIndex(Index[STRUCT], ABC):
-    def build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> STRUCT:
+    def _build(self, artifacts: Sequence[Artifact], **kwargs) -> STRUCT:
         self.artifact_store.insert(artifacts, allow_update=True)
         return self._build_from_artifacts(artifacts, **kwargs)
 
@@ -20,7 +20,7 @@ class ArtifactStoreIndex(Index[STRUCT], ABC):
     def _build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> STRUCT:
         pass
 
-    async def abuild_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> STRUCT:
+    async def _abuild(self, artifacts: Sequence[Artifact], **kwargs) -> STRUCT:
         await self.artifact_store.ainsert(artifacts, allow_update=True)
         return await self._abuild_from_artifacts(artifacts, **kwargs)
 

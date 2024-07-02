@@ -8,7 +8,7 @@ from modstack.core import Module, SerializableModule
 from modstack.query.retrievers import ListIndexQuery
 from modstack.typing import Effect, Effects
 
-class _ListIndexRetriever(SerializableModule[ListIndexQuery, list[Artifact]], ABC):
+class _ListRetriever(SerializableModule[ListIndexQuery, list[Artifact]], ABC):
     def forward(self, query: ListIndexQuery, **kwargs) -> Effect[list[Artifact]]:
         return Effects.From(
             invoke=partial(self._invoke, query, **kwargs),
@@ -23,14 +23,14 @@ class _ListIndexRetriever(SerializableModule[ListIndexQuery, list[Artifact]], AB
     async def _ainvoke(self, query: ListIndexQuery, **kwargs) -> list[Artifact]:
         pass
 
-class ListIndexSimpleRetriever(_ListIndexRetriever):
+class ListSimpleRetriever(_ListRetriever):
     def _invoke(self, query: ListIndexQuery, **kwargs) -> list[Artifact]:
         return query.index.artifact_store.get_many(query.index.struct.artifact_ids, **kwargs)
 
     async def _ainvoke(self, query: ListIndexQuery, **kwargs) -> list[Artifact]:
         return await query.index.artifact_store.aget_many(query.index.struct.artifact_ids, **kwargs)
 
-class ListIndexEmbeddingRetriever(_ListIndexRetriever):
+class ListEmbeddingRetriever(_ListRetriever):
     def __init__(
         self,
         embedder: Embedder,
