@@ -27,14 +27,14 @@ class KeywordTableRetriever(SerializableModule[Artifact, list[Artifact]]):
             else self.index.keyword_extractor
         )
 
-    def forward(self, artifact: Artifact, **kwargs) -> Effect[list[Artifact]]:
+    def forward(self, query: Artifact, **kwargs) -> Effect[list[Artifact]]:
         return Effects.From(
-            invoke=partial(self._invoke, artifact, **kwargs),
-            ainvoke=partial(self._ainvoke, artifact, **kwargs)
+            invoke=partial(self._invoke, query, **kwargs),
+            ainvoke=partial(self._ainvoke, query, **kwargs)
         )
 
-    def _invoke(self, artifact: Artifact, **kwargs) -> list[Artifact]:
+    def _invoke(self, query: Artifact, **kwargs) -> list[Artifact]:
         pass
 
-    async def _ainvoke(self, artifact: Artifact, **kwargs) -> list[Artifact]:
+    async def _ainvoke(self, query: Artifact, **kwargs) -> list[Artifact]:
         pass

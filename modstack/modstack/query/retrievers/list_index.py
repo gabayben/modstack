@@ -26,18 +26,18 @@ class _ListIndexRetriever(SerializableModule[Artifact, list[Artifact]], ABC):
         super().__init__(**kwargs)
         self._index = index
 
-    def forward(self, artifact: Artifact, **kwargs) -> Effect[list[Artifact]]:
+    def forward(self, query: Artifact, **kwargs) -> Effect[list[Artifact]]:
         return Effects.From(
-            invoke=partial(self._invoke, artifact, **kwargs),
-            ainvoke=partial(self._ainvoke, artifact, **kwargs)
+            invoke=partial(self._invoke, query, **kwargs),
+            ainvoke=partial(self._ainvoke, query, **kwargs)
         )
 
     @abstractmethod
-    def _invoke(self, artifact: Artifact, **kwargs) -> list[Artifact]:
+    def _invoke(self, query: Artifact, **kwargs) -> list[Artifact]:
         pass
 
     @abstractmethod
-    async def _ainvoke(self, artifact: Artifact, **kwargs) -> list[Artifact]:
+    async def _ainvoke(self, query: Artifact, **kwargs) -> list[Artifact]:
         pass
 
 # Simple
@@ -65,9 +65,9 @@ class ListIndexEmbeddingRetriever(_ListIndexRetriever):
         self._ranker = ranker
         self._top_k = top_k
 
-    def _invoke(self, artifact: Artifact, **kwargs) -> list[Artifact]:
+    def _invoke(self, query: Artifact, **kwargs) -> list[Artifact]:
         artifacts = self.artifact_store.get_many(self.struct.artifact_ids)
-        query, artifacts = self._get_embeddings(artifact.value, artifacts, **kwargs)
+        query, artifacts = self._get_embeddings(query.value, artifacts, **kwargs)
         return self._ranker.invoke(artifacts, top_k=self._top_k, **kwargs)
 
     def _get_embeddings(
@@ -81,9 +81,9 @@ class ListIndexEmbeddingRetriever(_ListIndexRetriever):
         artifacts = self._embed_model.invoke(artifacts, **kwargs)
         return query, artifacts
 
-    async def _ainvoke(self, artifact: Artifact, **kwargs) -> list[Artifact]:
+    async def _ainvoke(self, query: Artifact, **kwargs) -> list[Artifact]:
         artifacts = await self.artifact_store.aget_many(self.struct.artifact_ids)
-        query, artifacts = await self._aget_embeddings(artifact.value, artifacts, **kwargs)
+        query, artifacts = await self._aget_embeddings(query.value, artifacts, **kwargs)
         return await self._ranker.ainvoke(artifacts, top_k=self._top_k, **kwargs)
 
     async def _aget_embeddings(
