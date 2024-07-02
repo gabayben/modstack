@@ -3,7 +3,7 @@ from typing import Optional
 
 import pandas as pd
 
-from modstack.ai import LLMPrompt
+from modstack.ai import LLMPrompt, PredictedLabel, ZeroShotClassifierInput
 from modstack.artifacts import Artifact
 from modstack.artifacts.messages import MessageArtifact
 from modstack.core import Module, Modules, module
@@ -51,8 +51,29 @@ def rake_keyword_extractor(
         keywords = expand_tokens_with_subtokens(keywords)
     return keywords
 
+class ZeroShotKeywordExtractor(Modules.Sync[Artifact, set[str]]):
+    """Extract keywords with a zero-shot classifier."""
+
+    def __init__(
+        self,
+        classifier: Module[ZeroShotClassifierInput, list[PredictedLabel]],
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self._classifier = classifier
+
+    def _invoke(self, artifact: Artifact, **kwargs) -> set[str]:
+        pass
+
 class LLMKeywordExtractor(Modules.Sync[Artifact, set[str]]):
-    def __init__(self, llm: Module[LLMPrompt, list[MessageArtifact]]):
+    """Extract keywords with an LLM."""
+
+    def __init__(
+        self,
+        llm: Module[LLMPrompt, list[MessageArtifact]],
+        **kwargs
+    ):
+        super().__init__(**kwargs)
         self._llm = llm
 
     def _invoke(self, artifact: Artifact, **kwargs) -> set[str]:
