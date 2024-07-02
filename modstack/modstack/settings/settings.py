@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from modstack.ai import Embedder, LLM
 from modstack.data.stores import ArtifactStore, IndexStore, InjestionCache, KVArtifactStore, KVIndexStore, KVStore
 from modstack.data.stores import GraphStore, SimpleGraphStore
 from modstack.data.stores import SimpleKVStore
@@ -14,6 +15,9 @@ class _Settings:
     _graph_store: Optional[GraphStore] = None
     _vector_store: Optional[VectorStore] = None
     _ingestion_cache: Optional[InjestionCache] = None
+
+    _embedder: Optional[Embedder] = None
+    _llm: Optional[LLM] = None
 
     @property
     def kvstore(self) -> KVStore:
@@ -74,6 +78,34 @@ class _Settings:
     @ingestion_cache.setter
     def ingestion_cache(self, ingestion_cache: Optional[InjestionCache]) -> None:
         self._ingestion_cache = ingestion_cache
+
+    @property
+    def embedder(self) -> Embedder:
+        if self._embedder is None:
+            try:
+                from modstack.huggingface import HuggingFaceApiTextEmbedder
+            except:
+                raise ImportError('Please install modstack_huggingface: `pip install modstack_huggingface`')
+            self._embedder = HuggingFaceApiTextEmbedder()
+        return self._embedder
+
+    @embedder.setter
+    def embedder(self, embedder: Optional[Embedder]) -> None:
+        self._embedder = embedder
+
+    @property
+    def llm(self) -> LLM:
+        if self._llm is None:
+            try:
+                from modstack.ollama import OllamaLLM
+            except:
+                raise ImportError('Please install modstack_ollama: `pip install modstack_ollama`')
+            self._llm = OllamaLLM()
+        return self._llm
+
+    @llm.setter
+    def llm(self, llm: Optional[LLM]) -> None:
+        self._llm = llm
 
 _kvstore = SimpleKVStore()
 Settings = _Settings(_kvstore=_kvstore)

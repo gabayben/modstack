@@ -19,6 +19,7 @@ modstack-neo4j = { path = "libs/stores/neo4j/", develop = true }
 
 modstack-ollama = { path = "libs/ai/ollama/", develop = true }
 #modstack-llamacpp = { path = "libs/ai/llamacpp/", develop = true }
+modstack-huggingface = { path = "libs/ai/huggingface/", develop = true }
 #modstack-transformers = { path = "libs/ai/transformers/", develop = true }
 #modstack-cohere = { path = "libs/ai/llamacpp/", develop = true }
 #modstack-anthropic = { path = "libs/ai/anthropic/", develop = true }

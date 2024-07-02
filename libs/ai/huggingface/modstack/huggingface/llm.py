@@ -18,9 +18,10 @@ class HuggingFaceApiLLM(Modules.Stream[LLMPrompt, MessageChunk]):
         token: Secret | None = Secret.from_env_var('HF_API_TOKEN', strict=False),
         stop_words: list[str] | None = None,
         max_tokens: int = 512,
-        generation_args: dict[str, Any] = {}
+        generation_args: dict[str, Any] = {},
+        **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
 
         if api_type == HFGenerationApiType.SERVERLESS_INFERENCE_API:
             validate_hf_model(model_or_url, HFModelType.GENERATION, token)
