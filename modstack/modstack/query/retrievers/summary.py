@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import partial
 
-from modstack.ai import Embedder, LLM
+from modstack.modules import Embedder, LLM
 from modstack.artifacts import Artifact
 from modstack.core import SerializableModule
 from modstack.query.indices import SummaryIndex

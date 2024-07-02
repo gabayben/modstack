@@ -3,7 +3,7 @@ from typing import Optional
 
 import pandas as pd
 
-from modstack.ai import LLM, ZeroShotClassifier
+from modstack.modules import LLM, ZeroShotClassifier
 from modstack.artifacts import Artifact
 from modstack.core import Modules, module
 from modstack.query.common.utils import expand_tokens_with_subtokens
