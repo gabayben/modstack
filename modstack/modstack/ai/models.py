@@ -5,4 +5,4 @@ from modstack.core import Module
 
 Embedder = Module[list[Artifact], list[Artifact]]
 ZeroShotClassifier = Module[ZeroShotClassifierInput, list[PredictedLabel]]
-LLM = Module[LLMPrompt, list[MessageArtifact]]
+LLM = Module[LLMPrompt, MessageArtifact]

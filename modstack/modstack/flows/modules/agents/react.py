@@ -5,8 +5,8 @@ from modstack.flows.constants import END
 from modstack.flows.managed import ManagedValue
 from modstack.flows.modules import StateFlow
 from modstack.artifacts.messages import AiMessage, MessageArtifact, SystemMessage
-from modstack.core import Module, ModuleLike, SerializableModule, coerce_to_module
-from modstack.ai import LLMPrompt
+from modstack.core import ModuleLike, SerializableModule, coerce_to_module
+from modstack.ai import LLM, LLMPrompt
 from modstack.ai.tools import ToolExecutor
 from modstack.typing import Effect, Effects
 
@@ -21,7 +21,7 @@ class ReactAgentState(TypedDict):
     is_last_step: NotRequired[ManagedValue[bool]]
 
 def create_react_agent(
-    model: Module[LLMPrompt, MessageArtifact],
+    model: LLM,
     tools: list[ModuleLike],
     message_modifier: Optional[_MessageModifier] = None,
     checkpointer: Optional[Checkpointer] = None,
