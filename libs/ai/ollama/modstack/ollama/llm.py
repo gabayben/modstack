@@ -11,7 +11,7 @@ class OllamaLLM(Modules.Stream[LLMPrompt, MessageChunk]):
     def __init__(
         self,
         url: str = 'http://localhost:11434/api/generate',
-        model: str = 'orca-mini',
+        model: str = 'llama3',
         system_prompt: str | None = None,
         template: str | None = None,
         timeout: int = 120,
