@@ -1,3 +1,5 @@
+from typing import Union
+
 from modstack.artifacts import Artifact
 from modstack.query.structs import IndexStruct
 
@@ -21,7 +23,7 @@ class SummaryStruct(IndexStruct):
     def add_summary_and_chunks(
         self,
         summary: Artifact,
-        chunks: list[Artifact]
+        chunks: list[Union[str, Artifact]]
     ) -> None:
         if summary.ref is None:
             raise ValueError('ref of summary cannot be None when building a SummaryStruct.')
@@ -31,14 +33,22 @@ class SummaryStruct(IndexStruct):
         self.ref_to_summary[ref_id] = summary_id
 
         for chunk in chunks:
-            chunk_id = chunk.id
+            chunk_id = chunk if isinstance(chunk, str) else chunk.id
             if summary_id not in self.summary_to_chunks:
                 self.summary_to_chunks[summary_id] = set()
             self.summary_to_chunks[summary_id].add(chunk_id)
             self.chunk_to_summary[chunk_id] = summary_id
 
     def delete_ref(self, ref_id: str) -> None:
-        pass
+        summary_id = self.ref_to_summary[ref_id]
+        del self.ref_to_summary[ref_id]
+        chunk_ids = self.summary_to_chunks[summary_id]
+        for chunk_id in chunk_ids:
+            del self.chunk_to_summary[chunk_id]
+        del self.summary_to_chunks[summary_id]
 
     def delete_chunks(self, chunk_ids: list[str]) -> None:
-        pass
+        for chunk_id in chunk_ids:
+            summary_id = self.chunk_to_summary[chunk_id]
+            self.summary_to_chunks[summary_id].remove(chunk_id)
+            del self.chunk_to_summary[chunk_id]
