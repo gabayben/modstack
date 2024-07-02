@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Sequence
+from typing import Sequence, override
 
 from modstack.artifacts import Artifact
 from modstack.core import Module, ModuleLike, coerce_to_module
@@ -21,6 +21,7 @@ class KeywordTableIndex(Index[KeywordTable]):
         self._insert_artifacts_to_index(struct, list(artifacts), **kwargs)
         return struct
 
+    @override
     async def _abuild_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> KeywordTable:
         struct = KeywordTable()
         await self._ainsert_artifacts_to_index(struct, list(artifacts), **kwargs)
@@ -39,6 +40,7 @@ class KeywordTableIndex(Index[KeywordTable]):
             keywords = self.keyword_extractor.invoke(artifact, **kwargs)
             struct.add_artifact(artifact, keywords)
 
+    @override
     async def _ainsert_many(self, artifacts: list[Artifact], **kwargs) -> None:
         await self._ainsert_artifacts_to_index(self.struct, artifacts, **kwargs)
 
@@ -75,6 +77,7 @@ class KeywordTableIndex(Index[KeywordTable]):
             ref_infos[ref.id] = ref_info
         return ref_infos
 
+    @override
     async def aget_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
         artifacts = await self.artifact_store.aget_many(list(self.struct.artifact_ids))
         ref_infos: dict[str, RefArtifactInfo] = {}

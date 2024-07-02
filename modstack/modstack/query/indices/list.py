@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Sequence, override
 
 from modstack.artifacts import Artifact
 from modstack.query.indices import Index
@@ -12,9 +12,6 @@ class ListIndex(Index[ListStruct]):
             struct.add_artifact(artifact.id)
         return struct
 
-    async def _abuild_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> ListStruct:
-        return self._build_from_artifacts(artifacts, **kwargs)
-
     def _insert_many(self, artifacts: list[Artifact], **kwargs) -> None:
         for artifact in artifacts:
             self.struct.add_artifact(artifact.id)
@@ -24,6 +21,7 @@ class ListIndex(Index[ListStruct]):
         artifacts_to_keep = [artifact for artifact in artifacts if artifact.id != artifact_id]
         self.struct.artifact_ids = artifacts_to_keep
 
+    @override
     async def _adelete(self, artifact_id: str, **kwargs) -> None:
         artifacts = await self.artifact_store.aget_many(self.struct.artifact_ids, **kwargs)
         artifacts_to_keep = [artifact for artifact in artifacts if artifact.id != artifact_id]
@@ -42,6 +40,7 @@ class ListIndex(Index[ListStruct]):
             ref_artifacts[ref.id] = ref_artifact
         return ref_artifacts
 
+    @override
     async def aget_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
         artifacts = await self.artifact_store.aget_many(self.struct.artifact_ids)
         ref_artifacts: dict[str, RefArtifactInfo] = {}

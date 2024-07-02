@@ -93,9 +93,8 @@ class Index(Generic[STRUCT], ABC):
         self._struct = struct
         await self.index_store.aupsert_struct(self._struct, **kwargs)
 
-    @abstractmethod
     async def _abuild_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> STRUCT:
-        pass
+        return await run_async(self._build_from_artifacts, artifacts, **kwargs)
 
     def insert(self, ref_artifact: Artifact, **kwargs) -> None:
         artifacts = (

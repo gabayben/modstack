@@ -1,7 +1,10 @@
-from typing import Union
+from typing import NamedTuple, Union
+
+from pydantic import Field
 
 from modstack.artifacts import Artifact
 from modstack.artifacts.messages import HumanMessage, MessageArtifact, SystemMessage
+from modstack.typing import Schema
 
 class LLMPrompt:
     messages: list[MessageArtifact]
@@ -33,3 +36,11 @@ class LLMPrompt:
     def __add__(self, other: 'LLMPrompt') -> 'LLMPrompt':
         self.messages += other.messages
         return self
+
+class ZeroShotClassifierInput(Schema):
+    artifact: Artifact
+    labels: list[str] = Field(default_factory=list)
+
+class PredictedLabel(NamedTuple):
+    label: str
+    score: float

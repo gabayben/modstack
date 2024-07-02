@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from functools import partial
 from typing import Optional
 
+from modstack.ai import Embedder
 from modstack.artifacts import Artifact
 from modstack.query.indices import ListIndex
 from modstack.core import Module, SerializableModule
@@ -55,7 +56,7 @@ class ListIndexEmbeddingRetriever(_ListIndexRetriever):
     def __init__(
         self,
         index: ListIndex,
-        embed_model: Module[list[Artifact], list[Artifact]],
+        embed_model: Embedder,
         ranker: Module[list[Artifact], list[Artifact]],
         top_k: Optional[int] = 1,
         **kwargs
