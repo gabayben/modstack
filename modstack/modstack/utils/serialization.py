@@ -7,8 +7,8 @@ from pydantic import BaseModel, ConfigDict, create_model as create_model_base
 from pydantic.main import Model
 
 from modstack.utils.constants import SCHEMA_TYPE
-from modstack.typing import SchemaType
-from modstack.utils.reflection import is_named_tuple, is_not_required, is_typed_dict
+from modstack.typing import Schema, SchemaType
+from modstack.utils.reflection import is_named_tuple
 
 class _SchemaConfig(ConfigDict):
     pass
@@ -76,29 +76,13 @@ def model_from_callable(name: str, func: Callable) -> Type[BaseModel]:
     )
 
 def create_schema[T](name: str, type_: Type[T]) -> Type[BaseModel]:
-    if issubclass(type_.__class__, BaseModel):
+    if issubclass(type_.__class__, Schema):
         return type_
-
-    schema_type: SchemaType
-    field_descriptions: dict[str, (Type, Any)]
-
-    if is_named_tuple(type_):
-        schema_type = SchemaType.NAMED_TUPLE
-        field_descriptions = {
-            k: (v, type_._field_defaults[k]) if k in type_._field_defaults else (v, ...)
-            for k, v in type_.__annotations__.items()
-        }
-    elif is_typed_dict(type_):
-        schema_type = SchemaType.TYPED_DICT
-        field_descriptions = {
-            k: (v.__args__[0], None) if is_not_required(v) else (v, ...)
-            for k, v in type_.__annotations__.items()
-        }
-    else:
-        schema_type = SchemaType.VALUE
-        field_descriptions = {'value': (type_, ...)}
-
-    return create_model(name, __config__={SCHEMA_TYPE: schema_type}, **field_descriptions)
+    return create_model(
+        name,
+        __config__={SCHEMA_TYPE: SchemaType.VALUE},
+        value=(type_, ...)
+    )
 
 def from_parameters(parameters: dict[str, Parameter]) -> dict[str, tuple[Any, Any | None]]:
     return {
@@ -113,19 +97,20 @@ def from_parameters(parameters: dict[str, Parameter]) -> dict[str, tuple[Any, An
 
 def from_dict(data: dict[str, Any], input_schema: Type[BaseModel]) -> Any:
     schema_type = input_schema.model_config.get(SCHEMA_TYPE, None)
-    if not schema_type or schema_type == SchemaType.PYDANTIC:
+    if isinstance(input_schema, Schema):
         return input_schema.model_construct(**data)
-    elif schema_type == SchemaType.TYPED_DICT:
+    field = (
+        input_schema.model_fields.popitem()[1]
+        if len(input_schema.model_fields) > 0
+        else None
+    )
+    if field is None:
+        return None
+    if issubclass(field.annotation, dict):
         return data
-    elif schema_type == SchemaType.NAMED_TUPLE:
-        return NamedTuple(input_schema.__name__, data.items())
     return data.popitem()[1] if len(data) > 0 else None
 
 def to_dict(data: Any) -> dict[str, Any]:
-    if isinstance(data, dict):
-        return data
-    elif isinstance(data, BaseModel):
-        return dict(data)
-    elif is_named_tuple(type(data)):
-        return data._asdict()
+    if isinstance(data, Schema):
+        return data.model_dump()
     return {'value': data}
