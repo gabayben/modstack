@@ -18,12 +18,12 @@ modstack-chroma = { path = "libs/stores/chroma/", develop = true }
 modstack-neo4j = { path = "libs/stores/neo4j/", develop = true }
 
 modstack-ollama = { path = "libs/ai/ollama/", develop = true }
-#modstack-llamacpp = { path = "libs/modules/llamacpp/", develop = true }
+#modstack-llamacpp = { path = "libs/ai/llamacpp/", develop = true }
 modstack-huggingface = { path = "libs/ai/huggingface/", develop = true }
-#modstack-transformers = { path = "libs/modules/transformers/", develop = true }
-#modstack-cohere = { path = "libs/modules/llamacpp/", develop = true }
-#modstack-anthropic = { path = "libs/modules/anthropic/", develop = true }
-#modstack-fireworks = { path = "libs/modules/fireworks/", develop = true }
+#modstack-transformers = { path = "libs/ai/transformers/", develop = true }
+#modstack-cohere = { path = "libs/ai/llamacpp/", develop = true }
+#modstack-anthropic = { path = "libs/ai/anthropic/", develop = true }
+#modstack-fireworks = { path = "libs/ai/fireworks/", develop = true }
 
 [tool.poetry.group.test]
 optional = true

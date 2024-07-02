@@ -5,7 +5,7 @@ import requests
 
 from modstack.core import Modules
 from modstack.artifacts.messages import AiMessageChunk, MessageChunk, MessageType
-from modstack.modules import LLMPrompt
+from modstack.ai import LLMPrompt
 
 class OllamaLLM(Modules.Stream[LLMPrompt, MessageChunk]):
     def __init__(
