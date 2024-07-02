@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from functools import partial
 from typing import Optional
 
-from modstack.ai import Embedder
+from modstack.modules import Embedder
 from modstack.artifacts import Artifact
 from modstack.query.indices import ListIndex
 from modstack.core import Module, SerializableModule

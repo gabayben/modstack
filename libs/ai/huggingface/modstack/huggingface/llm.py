@@ -4,7 +4,7 @@ from huggingface_hub import ChatCompletionStreamOutput, InferenceClient
 
 from modstack.auth import Secret
 from modstack.core import Modules
-from modstack.ai import LLMPrompt
+from modstack.modules import LLMPrompt
 from modstack.artifacts.messages import AiMessageChunk, MessageChunk, MessageType
 from modstack.utils.paths import validate_url
 from modstack.huggingface import HFGenerationApiType, HFModelType

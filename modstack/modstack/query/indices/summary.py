@@ -1,11 +1,20 @@
+from dataclasses import dataclass, field
 from typing import Sequence
 
 from modstack.artifacts import Artifact
-from modstack.data.stores import RefArtifactInfo
+from modstack.data.stores import RefArtifactInfo, VectorStore
 from modstack.query.indices import Index
 from modstack.query.structs import SummaryStruct
+from modstack.settings import Settings
 
+@dataclass
 class SummaryIndex(Index[SummaryStruct]):
+    _vector_store: VectorStore = field(default=Settings.vector_store, kw_only=True)
+
+    @property
+    def vector_store(self) -> VectorStore:
+        return self._vector_store
+
     def build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> SummaryStruct:
         self.artifact_store.insert(artifacts, **kwargs)
         struct = SummaryStruct()

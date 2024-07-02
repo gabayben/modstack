@@ -1,6 +1,6 @@
 from typing import ClassVar, Optional
 
-from modstack.ai import LLMPrompt
+from modstack.modules import LLMPrompt
 from modstack.artifacts import Artifact, ArtifactSource
 from modstack.artifacts.messages import MessageArtifact
 from modstack.data.ingest import IngestFileType, email_partitioner, html_partitioner, text_partitioner

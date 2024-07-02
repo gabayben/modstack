@@ -4,7 +4,7 @@ from llama_cpp import ChatCompletionRequestMessage, Llama
 
 from modstack.core import Modules
 from modstack.artifacts.messages import MessageArtifact, MessageChunk, MessageType
-from modstack.ai import LLMPrompt
+from modstack.modules import LLMPrompt
 
 class LlamaCppLLM(Modules.Sync[LLMPrompt, MessageChunk]):
     def __init__(

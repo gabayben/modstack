@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022-present deepset GmbH <info@deepset.ai>
+# SPDX-FileCopyrightText: 2022-present deepset GmbH <info@deepset.modules>
 # SPDX-License-Identifier: Apache-2.0
 
 import torch
