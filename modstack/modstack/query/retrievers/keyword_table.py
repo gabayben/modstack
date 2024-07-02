@@ -5,66 +5,58 @@ from typing import Optional
 
 from modstack.artifacts import Artifact
 from modstack.core import Module, ModuleLike, SerializableModule, coerce_to_module
-from modstack.query.indices import KeywordTableIndex
+from modstack.query.retrievers import KeywordTableQuery
 from modstack.query.structs import KeywordTable
 from modstack.typing import Effect, Effects
 
 logger = logging.getLogger(__name__)
 
-class KeywordTableRetriever(SerializableModule[Artifact, list[Artifact]]):
+class KeywordTableRetriever(SerializableModule[KeywordTableQuery, list[Artifact]]):
     _keyword_extractor: Module[Artifact, set[str]]
-
-    @property
-    def index(self) -> KeywordTableIndex:
-        return self._index
-
-    @property
-    def struct(self) -> KeywordTable:
-        return self.index.struct
 
     def __init__(
         self,
-        index: KeywordTableIndex,
         keyword_extractor: Optional[ModuleLike[Artifact, set[str]]] = None,
         num_chunks_per_query: int = 10,
         **kwargs
     ):
         super().__init__(**kwargs)
-        self._index = index
-        self._keyword_extractor = (
-            coerce_to_module(keyword_extractor)
-            if keyword_extractor
-            else self.index.keyword_extractor
-        )
+        self._keyword_extractor = coerce_to_module(keyword_extractor) if keyword_extractor else None
         self.num_chunks_per_query = num_chunks_per_query
 
-    def forward(self, query: Artifact, **kwargs) -> Effect[list[Artifact]]:
+    def forward(self, query: KeywordTableQuery, **kwargs) -> Effect[list[Artifact]]:
         return Effects.From(
             invoke=partial(self._invoke, query, **kwargs),
             ainvoke=partial(self._ainvoke, query, **kwargs)
         )
 
-    def _invoke(self, query: Artifact, **kwargs) -> list[Artifact]:
-        logger.info(f'> Starting query: {str(query)}')
-        keywords = self._keyword_extractor.invoke(query, **kwargs)
-        chunk_ids = self._extract_chunk_ids(keywords)
-        return self.index.artifact_store.get_many(chunk_ids, **kwargs)
+    def _invoke(self, query: KeywordTableQuery, **kwargs) -> list[Artifact]:
+        logger.info(f'> Starting query: {str(query.value)}')
+        keyword_extractor = self._keyword_extractor or query.index.keyword_extractor
+        keywords = keyword_extractor.invoke(query.value, **kwargs)
+        chunk_ids = self._extract_chunk_ids(query.index.struct, keywords)
+        return query.index.artifact_store.get_many(chunk_ids, **kwargs)
 
-    async def _ainvoke(self, query: Artifact, **kwargs) -> list[Artifact]:
-        logger.info(f'> Starting query: {str(query)}')
-        keywords = await self._keyword_extractor.ainvoke(query, **kwargs)
-        chunk_ids = self._extract_chunk_ids(keywords)
-        return await self.index.artifact_store.aget_many(chunk_ids, **kwargs)
+    async def _ainvoke(self, query: KeywordTableQuery, **kwargs) -> list[Artifact]:
+        logger.info(f'> Starting query: {str(query.value)}')
+        keyword_extractor = self._keyword_extractor or query.index.keyword_extractor
+        keywords = await keyword_extractor.ainvoke(query.value, **kwargs)
+        chunk_ids = self._extract_chunk_ids(query.index.struct, keywords)
+        return await query.index.artifact_store.aget_many(chunk_ids, **kwargs)
 
-    def _extract_chunk_ids(self, keywords: set[str]) -> list[str]:
+    def _extract_chunk_ids(
+        self,
+        struct: KeywordTable,
+        keywords: set[str]
+    ) -> list[str]:
         logger.info(f'query keywords: {keywords}')
 
         chunk_ids_count: dict[str, int] = defaultdict(int)
-        keywords = [k for k in keywords if k in self.struct.keywords]
+        keywords = [k for k in keywords if k in struct.keywords]
         logger.info(f'> Extracted keywords: {keywords}')
 
         for keyword in keywords:
-            for artifact_id in self.struct.table[keyword]:
+            for artifact_id in struct.table[keyword]:
                 chunk_ids_count[artifact_id] += 1
 
         sorted_chunk_ids = sorted(
