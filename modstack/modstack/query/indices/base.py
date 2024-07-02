@@ -10,6 +10,7 @@ from modstack.core import ArtifactTransform
 from modstack.core.utils import arun_transformations, run_transformations
 from modstack.settings import Settings
 from modstack.data.stores import ArtifactStore, InjestionCache, RefArtifactInfo, IndexStore
+from modstack.utils.threading import run_async
 
 logger = logging.getLogger(__name__)
 
@@ -96,14 +97,6 @@ class Index(Generic[STRUCT], ABC):
     async def _abuild_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> STRUCT:
         pass
 
-    @abstractmethod
-    def get_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
-        pass
-
-    @abstractmethod
-    async def aget_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
-        pass
-
     def insert(self, ref_artifact: Artifact, **kwargs) -> None:
         artifacts = (
             run_transformations(
@@ -146,9 +139,8 @@ class Index(Generic[STRUCT], ABC):
         await self._ainsert_many(artifacts, **kwargs)
         await self.index_store.aupsert_struct(self.struct, **kwargs)
 
-    @abstractmethod
     async def _ainsert_many(self, artifacts: list[Artifact], **kwargs) -> None:
-        pass
+        await run_async(self._insert_many, artifacts, **kwargs)
 
     def update(
         self,
@@ -224,9 +216,8 @@ class Index(Generic[STRUCT], ABC):
         await asyncio.gather(adelete(artifact_id) for artifact_id in artifact_ids)
         await self.index_store.aupsert_struct(self.struct)
 
-    @abstractmethod
     async def _adelete(self, artifact_id: str, **kwargs) -> None:
-        pass
+        await run_async(self._delete, artifact_id, **kwargs)
 
     def refresh(
         self,
@@ -271,3 +262,10 @@ class Index(Generic[STRUCT], ABC):
                 )
                 refreshed_artifacts[i] = True
         return refreshed_artifacts
+
+    @abstractmethod
+    def get_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
+        pass
+
+    async def aget_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
+        return await run_async(self.get_ref_artifacts)

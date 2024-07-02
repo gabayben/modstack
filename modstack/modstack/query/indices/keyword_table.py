@@ -7,7 +7,6 @@ from modstack.data.stores import RefArtifactInfo
 from modstack.query.common import simple_keyword_extractor
 from modstack.query.indices import Index
 from modstack.query.structs import KeywordTable
-from modstack.utils.threading import run_async
 
 @dataclass
 class KeywordTableIndex(Index[KeywordTable]):
@@ -26,32 +25,6 @@ class KeywordTableIndex(Index[KeywordTable]):
         struct = KeywordTable()
         await self._ainsert_artifacts_to_index(struct, list(artifacts), **kwargs)
         return struct
-
-    def get_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
-        artifacts = self.artifact_store.get_many(list(self.struct.artifact_ids))
-        ref_infos: dict[str, RefArtifactInfo] = {}
-        for artifact in artifacts:
-            ref = artifact.ref
-            if not ref:
-                continue
-            ref_info = self.artifact_store.get_ref(ref.id)
-            if not ref_info:
-                continue
-            ref_infos[ref.id] = ref_info
-        return ref_infos
-
-    async def aget_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
-        artifacts = await self.artifact_store.aget_many(list(self.struct.artifact_ids))
-        ref_infos: dict[str, RefArtifactInfo] = {}
-        for artifact in artifacts:
-            ref = artifact.ref
-            if not ref:
-                continue
-            ref_info = await self.artifact_store.aget_ref(ref.id)
-            if not ref_info:
-                continue
-            ref_infos[ref.id] = ref_info
-        return ref_infos
 
     def _insert_many(self, artifacts: list[Artifact], **kwargs) -> None:
         self._insert_artifacts_to_index(self.struct, artifacts, **kwargs)
@@ -89,5 +62,28 @@ class KeywordTableIndex(Index[KeywordTable]):
         for keyword in keywords_to_delete:
             del self.struct.table[keyword]
 
-    async def _adelete(self, artifact_id: str, **kwargs) -> None:
-        await run_async(self._delete, artifact_id, **kwargs)
+    def get_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
+        artifacts = self.artifact_store.get_many(list(self.struct.artifact_ids))
+        ref_infos: dict[str, RefArtifactInfo] = {}
+        for artifact in artifacts:
+            ref = artifact.ref
+            if not ref:
+                continue
+            ref_info = self.artifact_store.get_ref(ref.id)
+            if not ref_info:
+                continue
+            ref_infos[ref.id] = ref_info
+        return ref_infos
+
+    async def aget_ref_artifacts(self) -> dict[str, RefArtifactInfo]:
+        artifacts = await self.artifact_store.aget_many(list(self.struct.artifact_ids))
+        ref_infos: dict[str, RefArtifactInfo] = {}
+        for artifact in artifacts:
+            ref = artifact.ref
+            if not ref:
+                continue
+            ref_info = await self.artifact_store.aget_ref(ref.id)
+            if not ref_info:
+                continue
+            ref_infos[ref.id] = ref_info
+        return ref_infos
