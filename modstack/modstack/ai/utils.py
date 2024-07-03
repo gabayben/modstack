@@ -8,3 +8,10 @@ def embed_artifacts(
     **kwargs
 ) -> dict[str, Embedding]:
     pass
+
+async def aembed_artifacts(
+    embedder: Embedder,
+    artifacts: list[Artifact],
+    **kwargs
+) -> dict[str, Embedding]:
+    pass

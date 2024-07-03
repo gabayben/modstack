@@ -4,7 +4,7 @@ import logging
 from typing import Sequence
 
 from modstack.ai import Embedder
-from modstack.ai.utils import embed_artifacts
+from modstack.ai.utils import aembed_artifacts, embed_artifacts
 from modstack.artifacts import Artifact, ArtifactInfo, Text
 from modstack.core import coerce_to_module
 from modstack.data.stores import RefArtifactInfo, VectorStore
@@ -131,6 +131,19 @@ class SummaryIndex(Index[SummaryStruct]):
             ref_id_to_summary[ref_id] = summary
             await self.artifact_store.ainsert([summary])
             logger.info(f'> Generated summary for ref {ref_id}: {str(summary)}')
+
+        for ref_id, chunks in ref_id_to_chunks.items():
+            self.struct.add_summary_and_chunks(ref_id_to_summary[ref_id], chunks)
+
+        if self._embed_summaries:
+            summaries = list(ref_id_to_summary.values())
+            summary_to_embedding = await aembed_artifacts(self.embedder, summaries, **kwargs)
+            summaries_with_embeddings: list[Artifact] = []
+            for summary in summaries:
+                summary_with_embedding = summary.model_copy(deep=True)
+                summary_with_embedding.embedding = summary_to_embedding[summary.id]
+                summaries_with_embeddings.append(summary_with_embedding)
+            await self.vector_store.ainsert(summaries_with_embeddings, **kwargs)
 
     def delete_ref(self, ref_id: str, delete_from_store: bool = False, **kwargs) -> None:
         ref_info = self.artifact_store.get_ref(ref_id)
