@@ -6,7 +6,8 @@ from modstack.artifacts import Artifact
 from modstack.query.structs import IndexStruct
 from modstack.typing import Embedding
 
-TripletLike = Union[str, tuple[str, str, str]]
+Triplet = tuple[str, str, str]
+TripletLike = Union[str, Triplet]
 
 class KnowledgeGraph(IndexStruct):
     table: dict[str, set[str]] = Field(default_factory=dict)

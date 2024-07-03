@@ -4,6 +4,7 @@ import logging
 from typing import Sequence
 
 from modstack.ai import Embedder
+from modstack.ai.prompts import SUMMARY_QUERY_PROMPT
 from modstack.ai.utils import aembed_artifacts, embed_artifacts
 from modstack.artifacts import Artifact, ArtifactInfo, Text
 from modstack.core import coerce_to_module
@@ -15,10 +16,7 @@ from modstack.settings import Settings
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_SUMMARY_QUERY = Text(
-    "Describe what the provided text is about. "
-    "Also describe some of the questions that this text can answer. "
-)
+DEFAULT_SUMMARY_QUERY = Text(SUMMARY_QUERY_PROMPT)
 
 @dataclass
 class SummaryIndex(Index[SummaryStruct]):
