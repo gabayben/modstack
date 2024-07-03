@@ -90,13 +90,8 @@ class SummaryIndex(Index[SummaryStruct]):
 
         if self._embed_summaries:
             summaries = list(ref_id_to_summary.values())
-            summary_to_embedding = embed_artifacts(self.embedder, summaries, **kwargs)
-            summaries_with_embeddings: list[Artifact] = []
-            for summary in summaries:
-                summary_with_embedding = summary.model_copy(deep=True)
-                summary_with_embedding.embedding = summary_to_embedding[summary.id]
-                summaries_with_embeddings.append(summary_with_embedding)
-            self.vector_store.insert(summaries_with_embeddings, **kwargs)
+            embedded_summaries = embed_artifacts(self.embedder, summaries, **kwargs)
+            self.vector_store.insert(embedded_summaries, **kwargs)
 
     async def ainsert_many(self, artifacts: list[Artifact], **kwargs) -> None:
         await self.artifact_store.ainsert(artifacts, allow_update=True)
@@ -137,13 +132,8 @@ class SummaryIndex(Index[SummaryStruct]):
 
         if self._embed_summaries:
             summaries = list(ref_id_to_summary.values())
-            summary_to_embedding = await aembed_artifacts(self.embedder, summaries, **kwargs)
-            summaries_with_embeddings: list[Artifact] = []
-            for summary in summaries:
-                summary_with_embedding = summary.model_copy(deep=True)
-                summary_with_embedding.embedding = summary_to_embedding[summary.id]
-                summaries_with_embeddings.append(summary_with_embedding)
-            await self.vector_store.ainsert(summaries_with_embeddings, **kwargs)
+            embedded_summaries = await aembed_artifacts(self.embedder, summaries, **kwargs)
+            await self.vector_store.ainsert(embedded_summaries, **kwargs)
 
     def delete_ref(self, ref_id: str, delete_from_store: bool = False, **kwargs) -> None:
         ref_info = self.artifact_store.get_ref(ref_id)
