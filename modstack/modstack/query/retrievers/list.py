@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import partial
-from typing import Optional
+from typing import Optional, final
 
 from modstack.ai import Embedder
 from modstack.artifacts import Artifact
@@ -9,6 +9,7 @@ from modstack.query.retrievers import ListIndexQuery
 from modstack.typing import Effect, Effects
 
 class _ListRetriever(SerializableModule[ListIndexQuery, list[Artifact]], ABC):
+    @final
     def forward(self, query: ListIndexQuery, **kwargs) -> Effect[list[Artifact]]:
         return Effects.From(
             invoke=partial(self._invoke, query, **kwargs),

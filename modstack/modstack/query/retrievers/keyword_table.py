@@ -1,7 +1,7 @@
 from collections import defaultdict
 from functools import partial
 import logging
-from typing import Optional
+from typing import Optional, final
 
 from modstack.artifacts import Artifact
 from modstack.core import Module, ModuleLike, SerializableModule, coerce_to_module
@@ -24,6 +24,7 @@ class KeywordTableRetriever(SerializableModule[KeywordTableQuery, list[Artifact]
         self._keyword_extractor = coerce_to_module(keyword_extractor) if keyword_extractor else None
         self.num_chunks_per_query = num_chunks_per_query
 
+    @final
     def forward(self, query: KeywordTableQuery, **kwargs) -> Effect[list[Artifact]]:
         return Effects.From(
             invoke=partial(self._invoke, query, **kwargs),
