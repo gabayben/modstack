@@ -1,1 +1,1 @@
-from .typing import Synthesis, Synthesizer
+from .typing import Synthesis, SynthesizerLike, Synthesizer

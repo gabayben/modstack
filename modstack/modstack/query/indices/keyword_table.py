@@ -11,10 +11,13 @@ from modstack.query.structs import KeywordTable
 @dataclass
 class KeywordTableIndex(ArtifactStoreIndex[KeywordTable]):
     _keyword_extractor: ModuleLike[Artifact, set[str]] = field(default=simple_keyword_extractor, kw_only=True)
-    keyword_extractor: Module[Artifact, set[str]]
+
+    @property
+    def keyword_extractor(self) -> Module[Artifact, set[str]]:
+        return self._keyword_extractor
 
     def __post_init__(self):
-        self.keyword_extractor = coerce_to_module(self._keyword_extractor)
+        self._keyword_extractor: Module[Artifact, set[str]] = coerce_to_module(self._keyword_extractor)
 
     def _build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> KeywordTable:
         struct = KeywordTable()

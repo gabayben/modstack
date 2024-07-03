@@ -1,5 +1,5 @@
 from modstack.artifacts import Artifact
-from modstack.core import Module
+from modstack.core import Module, ModuleLike
 from modstack.typing import Schema
 
 class Synthesis(Schema):
@@ -14,4 +14,5 @@ class Synthesis(Schema):
     ):
         super().__init__(query=query, chunks=chunks, **kwargs)
 
+SynthesizerLike = ModuleLike[Synthesis, Artifact]
 Synthesizer = Module[Synthesis, Artifact]
