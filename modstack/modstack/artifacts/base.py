@@ -57,9 +57,25 @@ class ArtifactRelationship(StrEnum):
 
 class ArtifactInfo(Serializable):
     id: str
-    type: str
+    type: Optional[str] = None
     hash: Optional[str] = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    def __init__(
+        self,
+        id_: str,
+        type_: Optional[str] = None,
+        hash_: Optional[str] = None,
+        metadata: dict[str, Any] = {},
+        **kwargs
+    ):
+        super().__init__(
+            id=id_,
+            type=type_,
+            hash=hash_,
+            metadata=metadata,
+            **kwargs
+        )
 
 RelatedArtifact = Union[ArtifactInfo, list[ArtifactInfo]]
 
@@ -73,6 +89,10 @@ class ArtifactHierarchy(dict[ArtifactRelationship, RelatedArtifact]):
             raise ValueError('Ref object must be a single ArtifactInfo object.')
         return related
 
+    @ref.setter
+    def ref(self, ref: Optional[ArtifactInfo]) -> None:
+        self[ArtifactRelationship.REF] = ref
+
     @property
     def previous(self) -> Optional[ArtifactInfo]:
         if ArtifactRelationship.PREVIOUS not in self:
@@ -81,6 +101,10 @@ class ArtifactHierarchy(dict[ArtifactRelationship, RelatedArtifact]):
         if not isinstance(related, ArtifactInfo):
             raise ValueError('Previous object must be a single ArtifactInfo object.')
         return related
+
+    @previous.setter
+    def previous(self, previous: Optional[ArtifactInfo]) -> None:
+        self[ArtifactRelationship.PREVIOUS] = previous
 
     @property
     def next(self) -> Optional[ArtifactInfo]:
@@ -91,6 +115,10 @@ class ArtifactHierarchy(dict[ArtifactRelationship, RelatedArtifact]):
             raise ValueError('Next object must be a single ArtifactInfo object.')
         return related
 
+    @next.setter
+    def next(self, next_: Optional[ArtifactInfo]) -> None:
+        self[ArtifactRelationship.NEXT] = next_
+
     @property
     def parent(self) -> Optional[ArtifactInfo]:
         if ArtifactRelationship.PARENT not in self:
@@ -100,6 +128,10 @@ class ArtifactHierarchy(dict[ArtifactRelationship, RelatedArtifact]):
             raise ValueError('Parent object must be a single ArtifactInfo object.')
         return related
 
+    @parent.setter
+    def parent(self, parent: Optional[ArtifactInfo]) -> None:
+        self[ArtifactRelationship.PARENT] = parent
+
     @property
     def children(self) -> Optional[list[ArtifactInfo]]:
         if ArtifactRelationship.CHILDREN not in self:
@@ -108,6 +140,10 @@ class ArtifactHierarchy(dict[ArtifactRelationship, RelatedArtifact]):
         if not isinstance(children, list):
             raise ValueError('Children objects must be a list of ArtifactInfo objects.')
         return children
+
+    @children.setter
+    def children(self, children: Optional[list[ArtifactInfo]]):
+        self[ArtifactRelationship.CHILDREN] = children
 
 #### Metadata
 
@@ -216,21 +252,41 @@ class Artifact(BaseDocWithoutId, ABC):
     def ref(self) -> Optional[ArtifactInfo]:
         return self.hierarchy.ref
 
+    @ref.setter
+    def ref(self, ref: Optional[ArtifactInfo]) -> None:
+        self.hierarchy.ref = ref
+
     @property
     def previous(self) -> Optional[ArtifactInfo]:
         return self.hierarchy.previous
+
+    @previous.setter
+    def previous(self, previous: Optional[ArtifactInfo]) -> None:
+        self.hierarchy.previous = previous
 
     @property
     def next(self) -> Optional[ArtifactInfo]:
         return self.hierarchy.next
 
+    @next.setter
+    def next(self, next_: Optional[ArtifactInfo]) -> None:
+        self.hierarchy.next = next_
+
     @property
     def parent(self) -> Optional[ArtifactInfo]:
         return self.hierarchy.parent
 
+    @parent.setter
+    def parent(self, parent: Optional[ArtifactInfo]) -> None:
+        self.hierarchy.parent = parent
+
     @property
     def children(self) -> Optional[list[ArtifactInfo]]:
         return self.hierarchy.children
+
+    @children.setter
+    def children(self, children: Optional[list[ArtifactInfo]]) -> None:
+        self.hierarchy.children = children
 
     @classmethod
     def from_source(cls, source: 'ArtifactSource', metadata: dict[str, Any] = {}) -> Self:
