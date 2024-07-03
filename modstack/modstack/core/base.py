@@ -46,8 +46,18 @@ class Module(Generic[In, Out], ABC):
     def __str__(self) -> str:
         return self.get_name()
 
-    def map(self, mapper: 'ModuleLike[Out, Other]') -> 'Module[In, Other]':
+    def map_in(self, mapper: 'ModuleLike[Other, In]') -> 'Module[Other, Out]':
+        return mapper | self
+
+    def map_out(self, mapper: 'ModuleLike[Out, Other]') -> 'Module[In, Other]':
         return self | mapper
+
+    def map(
+        self,
+        in_mapper: 'ModuleLike[Other, In]',
+        out_mapper: 'ModuleLike[Out, Other]'
+    ) -> 'Module[Other, Other]':
+        return in_mapper | self | out_mapper
 
     def bind(self, **kwargs) -> 'Module[In, Out]':
         from modstack.core.decorator import Decorator

@@ -75,5 +75,5 @@ def to_text_artifacts(
     metadata = normalize_metadata(metadata, len(content))
     artifacts: list[Text] = []
     for text, md in tzip(content, metadata):
-        artifacts.append(Text(text, metadata=ArtifactMetadata(md)))
+        artifacts.append(Text(text, metadata=ArtifactMetadata(**md)))
     return artifacts

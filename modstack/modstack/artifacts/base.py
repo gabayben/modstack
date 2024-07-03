@@ -198,8 +198,9 @@ class ArtifactMetadata(ModelDict):
     coordinates: Optional[CoordinatesMetadata]
     regex: Optional[RegexMetadata]
 
-    def __init__(self):
-        self.hierarchy = ArtifactHierarchy()
+    def __init__(self, **data):
+        data.setdefault('hierarchy', ArtifactHierarchy())
+        super().__init__(**data)
 
 #### Artifacts
 

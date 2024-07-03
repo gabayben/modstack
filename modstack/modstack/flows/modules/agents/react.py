@@ -1,4 +1,4 @@
-from typing import NotRequired, Optional, Sequence, TypedDict, Union
+from typing import Optional, Sequence, Union
 
 from modstack.flows.checkpoints import Checkpointer
 from modstack.flows.constants import END
@@ -8,7 +8,7 @@ from modstack.artifacts.messages import AiMessage, MessageArtifact, SystemMessag
 from modstack.core import ModuleLike, SerializableModule, coerce_to_module
 from modstack.ai import LLM, LLMPrompt
 from modstack.ai.tools import ToolExecutor
-from modstack.typing import Effect, Effects
+from modstack.typing import Effect, Effects, Schema
 
 _MessageModifier = Union[
     str,
@@ -16,9 +16,21 @@ _MessageModifier = Union[
     ModuleLike[LLMPrompt, LLMPrompt]
 ]
 
-class ReactAgentState(TypedDict):
+class ReactAgentState(Schema):
     messages: list[MessageArtifact]
-    is_last_step: NotRequired[ManagedValue[bool]]
+    is_last_step: Optional[ManagedValue[bool]] = None
+
+    def __init__(
+        self,
+        messages: list[MessageArtifact],
+        is_last_step: Optional[ManagedValue[bool]] = None,
+        **kwargs
+    ):
+        super().__init__(
+            messages=messages,
+            is_last_step=is_last_step,
+            **kwargs
+        )
 
 def create_react_agent(
     model: LLM,
@@ -63,15 +75,15 @@ def create_react_agent(
 
         def handle_response(response: MessageArtifact) -> ReactAgentState:
             if state['is_last_step'] and isinstance(response, AiMessage) and response.tool_calls:
-                return {
-                    'messages': [AiMessage(
+                return ReactAgentState(
+                    messages=[AiMessage(
                         content='Sorry, need more steps to process this request.',
                         id=response.id
                     )]
-                }
+                )
 
             # We return a list, because this will get added to the existing list
-            return {'messages': [response]}
+            return ReactAgentState(messages=[response])
 
         return Effects.From(invoke=invoke, ainvoke=ainvoke)
 
