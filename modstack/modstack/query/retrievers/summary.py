@@ -3,8 +3,10 @@ from functools import partial
 from typing import Optional
 
 from modstack.ai import Embedder, LLM
+from modstack.ai.utils import aembed_query, embed_query
 from modstack.artifacts import Artifact
 from modstack.core import SerializableModule
+from modstack.data.stores import VectorStoreQuery, VectorStoreQueryResult
 from modstack.query.retrievers import SummaryIndexQuery
 from modstack.settings import Settings
 from modstack.typing import Effect, Effects
@@ -25,15 +27,67 @@ class _SummaryRetriever(SerializableModule[SummaryIndexQuery, list[Artifact]], A
         pass
 
 class SummaryEmbeddingRetriever(_SummaryRetriever):
-    def __init__(self, embedder: Optional[Embedder] = None, **kwargs):
+    def __init__(
+        self,
+        embedder: Optional[Embedder] = None,
+        top_k: int = 1,
+        **kwargs
+    ):
         super().__init__(**kwargs)
         self._embedder = embedder
+        self._top_k = top_k
 
     def _invoke(self, query: SummaryIndexQuery, **kwargs) -> list[Artifact]:
-        pass
+        index = query.index
+        embedder = self._embedder or index.embedder
+        embedded_value = embed_query(embedder, query.value, **kwargs)
+
+        query_result = index.vector_store.retrieve(
+            VectorStoreQuery(
+                query_embedding=embedded_value.embedding,
+                similarity_top_k=self._top_k
+            ),
+            **kwargs
+        )
+        top_k_summary_ids = self._extract_top_k_summary_ids(query_result)
+
+        results: list[Artifact] = []
+        for summary_id in top_k_summary_ids:
+            chunk_ids = index.struct.chunk_ids
+            chunks = index.artifact_store.get_many(chunk_ids)
+            results.extend(chunks)
+        return results
 
     async def _ainvoke(self, query: SummaryIndexQuery, **kwargs) -> list[Artifact]:
-        pass
+        index = query.index
+        embedder = self._embedder or index.embedder
+        embedded_value = await aembed_query(embedder, query.value, **kwargs)
+
+        query_result = await index.vector_store.aretrieve(
+            VectorStoreQuery(
+                query_embedding=embedded_value.embedding,
+                similarity_top_k=self._top_k
+            ),
+            **kwargs
+        )
+        top_k_summary_ids = self._extract_top_k_summary_ids(query_result)
+
+        results: list[Artifact] = []
+        for summary_id in top_k_summary_ids:
+            chunk_ids = index.struct.chunk_ids
+            chunks = await index.artifact_store.aget_many(chunk_ids)
+            results.extend(chunks)
+        return results
+
+    def _extract_top_k_summary_ids(self, query_result: VectorStoreQueryResult) -> list[str]:
+        top_k_summary_ids: list[str]
+        if query_result.ids is not None:
+            top_k_summary_ids = query_result.ids
+        elif query_result.artifacts is not None:
+            top_k_summary_ids = [artifact.id for artifact in query_result.artifacts]
+        else:
+            raise ValueError('VectorStore.retrieve(...) must return ids or artifacts.')
+        return top_k_summary_ids
 
 class SummaryLLMRetriever(_SummaryRetriever):
     def __init__(self, llm: LLM = Settings.llm, **kwargs):

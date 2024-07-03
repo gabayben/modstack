@@ -2,6 +2,24 @@ from modstack.ai import Embedder
 from modstack.artifacts import Artifact
 from modstack.utils.func import tzip
 
+def embed_query(
+    embedder: Embedder,
+    query: Artifact,
+    **kwargs
+) -> Artifact:
+    if query.embedding is None:
+        query.embedding = embedder.invoke([query])[0].embedding
+    return query
+
+async def aembed_query(
+    embedder: Embedder,
+    query: Artifact,
+    **kwargs
+) -> Artifact:
+    if query.embedding is None:
+        query.embedding = (await embedder.ainvoke([query]))[0].embedding
+    return query
+
 def embed_artifacts(
     embedder: Embedder,
     artifacts: list[Artifact],
