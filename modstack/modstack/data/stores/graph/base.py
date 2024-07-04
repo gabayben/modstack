@@ -126,6 +126,14 @@ class GraphStore(ABC):
     async def aupsert_relations(self, relations: list[GraphRelation], **kwargs) -> None:
         pass
 
+    def upsert_triplet(self, triplet: GraphTriplet, **kwargs) -> None:
+        self.upsert_nodes([triplet.subject, triplet.obj], **kwargs)
+        self.upsert_relations([triplet.relation], **kwargs)
+
+    async def aupsert_triplet(self, triplet: GraphTriplet, **kwargs) -> None:
+        await self.aupsert_nodes([triplet.subject, triplet.obj], **kwargs)
+        await self.aupsert_relations([triplet.relation], **kwargs)
+
     @abstractmethod
     def delete(self, query: Optional[GraphNodeQuery] = None) -> None:
         pass

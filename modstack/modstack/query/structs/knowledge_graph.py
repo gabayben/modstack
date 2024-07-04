@@ -3,11 +3,11 @@ from typing import Union
 from pydantic import Field
 
 from modstack.artifacts import Artifact
+from modstack.data.stores import GraphTriplet
 from modstack.query.structs import IndexStruct
 from modstack.typing import Embedding
 
-Triplet = tuple[str, str, str]
-TripletLike = Union[str, Triplet]
+Triplet = Union[str, tuple[str, str, str], GraphTriplet]
 
 class KnowledgeGraph(IndexStruct):
     table: dict[str, set[str]] = Field(default_factory=dict)
@@ -21,7 +21,7 @@ class KnowledgeGraph(IndexStruct):
     def chunk_ids(self) -> set[str]:
         return set.union(*self.table.values())
 
-    def add_embedding(self, triplet: TripletLike, embedding: Embedding) -> None:
+    def add_embedding(self, triplet: Triplet, embedding: Embedding) -> None:
         self.embedding_dict[str(triplet)] = embedding
 
     def add_chunk(self, chunk: Artifact, keywords: list[str]) -> None:

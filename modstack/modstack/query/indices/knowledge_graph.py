@@ -1,30 +1,36 @@
 from dataclasses import dataclass, field
 from typing import Optional, Sequence, override
 
+from modstack.ai import Embedder
 from modstack.ai.prompts import EXTRACT_TRIPLETS_PROMPT
 from modstack.artifacts import Artifact
 from modstack.core import Module, ModuleLike, coerce_to_module
-from modstack.data.stores import GraphStore, RefArtifactInfo
-from modstack.query.indices.artifact_store import ArtifactStoreIndex
-from modstack.query.structs import KnowledgeGraph, Triplet
+from modstack.data.stores import GraphStore, GraphTriplet, RefArtifactInfo
+from modstack.query.indices.simple import SimpleIndex
+from modstack.query.structs import KnowledgeGraph
 from modstack.settings import Settings
 
 @dataclass
-class KnowledgeGraphIndex(ArtifactStoreIndex[KnowledgeGraph]):
+class KnowledgeGraphIndex(SimpleIndex[KnowledgeGraph]):
     _graph_store: GraphStore = field(default=Settings.graph_store, kw_only=True)
-    _triplet_extractor: Optional[ModuleLike[str, list[Triplet]]] = field(default=None, kw_only=True)
+    _triplet_extractor: Optional[ModuleLike[Artifact, list[GraphTriplet]]] = field(default=None, kw_only=True)
     _extract_triplets_template: str = field(default=EXTRACT_TRIPLETS_PROMPT, kw_only=True)
+    _embedder: Embedder = field(default=Settings.embedder, kw_only=True)
 
     @property
     def graph_store(self) -> GraphStore:
         return self._graph_store
 
     @property
-    def triplet_extractor(self) -> Module[str, list[Triplet]]:
+    def triplet_extractor(self) -> Module[Artifact, list[GraphTriplet]]:
         return self._triplet_extractor
 
+    @property
+    def embedder(self) -> Embedder:
+        return self._embedder
+
     def __post_init__(self):
-        self._triplet_extractor: Module[str, list[Triplet]] = coerce_to_module(
+        self._triplet_extractor: Module[Artifact, list[GraphTriplet]] = coerce_to_module(
             self._triplet_extractor or self._llm_extract_triplets
         )
 
@@ -52,5 +58,69 @@ class KnowledgeGraphIndex(ArtifactStoreIndex[KnowledgeGraph]):
     async def aget_refs(self) -> dict[str, RefArtifactInfo]:
         pass
 
-    def _llm_extract_triplets(self, text: str) -> list[Triplet]:
+    def upsert_triplet_and_chunk(
+        self,
+        triplet: GraphTriplet,
+        chunk: Artifact,
+        include_embeddings: bool = False,
+        **kwargs
+    ) -> None:
+        self.upsert_triplet(triplet, **kwargs)
+        self.insert_chunk(chunk, [triplet.subject.name, triplet.obj.name])
+        if include_embeddings:
+            self._embed_triplet(triplet, **kwargs)
+
+    async def aupsert_triplet_and_chunk(
+        self,
+        triplet: GraphTriplet,
+        chunk: Artifact,
+        include_embeddings: bool = False,
+        **kwargs
+    ) -> None:
+        await self.aupsert_triplet(triplet, **kwargs)
+        await self.ainsert_chunk(chunk, [triplet.subject.name, triplet.obj.name])
+        if include_embeddings:
+            await self._aembed_triplet(triplet, **kwargs)
+
+    def upsert_triplet(
+        self,
+        triplet: GraphTriplet,
+        include_embeddings: bool = False,
+        **kwargs
+    ) -> None:
+        self.graph_store.upsert_triplet(triplet, **kwargs)
+        if include_embeddings:
+            self._embed_triplet(triplet, **kwargs)
+
+    async def aupsert_triplet(
+        self,
+        triplet: GraphTriplet,
+        include_embeddings: bool = False,
+        **kwargs
+    ) -> None:
+        await self.graph_store.aupsert_triplet(triplet, **kwargs)
+        if include_embeddings:
+            await self._aembed_triplet(triplet, **kwargs)
+
+    def insert_chunk(self, chunk: Artifact, keywords: list[str]) -> None:
+        self.struct.add_chunk(chunk, keywords)
+        self.artifact_store.insert([chunk], allow_update=True)
+
+    async def ainsert_chunk(self, chunk: Artifact, keywords: list[str]) -> None:
+        self.struct.add_chunk(chunk, keywords)
+        await self.artifact_store.ainsert([chunk], allow_update=True)
+
+    def _embed_triplet(self, triplet: GraphTriplet, **kwargs) -> None:
+        artifact = triplet.to_artifact()
+        embedding = self.embedder.invoke([artifact])[0].embedding
+        self.struct.add_embedding(triplet, embedding)
+        self.index_store.upsert_struct(self.struct, **kwargs)
+
+    async def _aembed_triplet(self, triplet: GraphTriplet, **kwargs) -> None:
+        artifact = triplet.to_artifact()
+        embedding = (await self.embedder.ainvoke([artifact]))[0].embedding
+        self.struct.add_embedding(triplet, embedding)
+        await self.index_store.aupsert_struct(self.struct, **kwargs)
+
+    def _llm_extract_triplets(self, artifact: Artifact) -> list[GraphTriplet]:
         pass

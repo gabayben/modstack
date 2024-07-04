@@ -11,7 +11,7 @@ from modstack.utils.threading import run_async
 
 logger = logging.getLogger(__name__)
 
-class ArtifactStoreIndex(Index[STRUCT], ABC):
+class SimpleIndex(Index[STRUCT], ABC):
     def _build(self, artifacts: Sequence[Artifact], **kwargs) -> STRUCT:
         self.artifact_store.insert(artifacts, allow_update=True)
         return self._build_from_artifacts(artifacts, **kwargs)

@@ -2,10 +2,10 @@ from typing import Sequence, override
 
 from modstack.artifacts import Artifact
 from modstack.data.stores import RefArtifactInfo
-from modstack.query.indices.artifact_store import ArtifactStoreIndex
+from modstack.query.indices.simple import SimpleIndex
 from modstack.query.structs import ListStruct
 
-class ListIndex(ArtifactStoreIndex[ListStruct]):
+class ListIndex(SimpleIndex[ListStruct]):
     def _build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> ListStruct:
         struct = ListStruct()
         for artifact in artifacts:

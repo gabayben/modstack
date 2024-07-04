@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Self, Union, override
+from typing import Any, NamedTuple, Optional, Self, Union, override
 
 from pydantic import Field
 
-from modstack.artifacts import Artifact, Text
+from modstack.artifacts import Artifact, ArtifactMetadata, Text
 from modstack.typing import Embedding, Serializable
 
 class GraphElement(Serializable, ABC):
@@ -14,6 +14,10 @@ class GraphElement(Serializable, ABC):
     @abstractmethod
     def id(self) -> str:
         pass
+
+    @property
+    def name(self) -> str:
+        return self.label or self.id
 
     @abstractmethod
     def __str__(self) -> str:
@@ -94,7 +98,34 @@ class GraphRelation(GraphElement):
     def __str__(self) -> str:
         return self.label or f'{self.source} to {self.target}'
 
-GraphTriplet = tuple[GraphNode, GraphRelation, GraphNode]
+class GraphTripletMetadata(ArtifactMetadata):
+    subject: dict[str, Any]
+    relation: dict[str, Any]
+    obj: dict[str, Any]
+
+    def __init__(self, **data):
+        data.setdefault('subject', {})
+        data.setdefault('relation', {})
+        data.setdefault('obj', {})
+        super().__init__(**data)
+
+class GraphTriplet(NamedTuple):
+    subject: GraphNode
+    relation: GraphRelation
+    obj: GraphNode
+
+    def __str__(self) -> str:
+        return f'({str(self.subject)}, {str(self.relation)}, {str(self.obj)})'
+
+    def to_artifact(self) -> Artifact:
+        return Text(
+            str(self),
+            metadata=GraphTripletMetadata(
+                subject=self.subject.properties,
+                relation=self.relation.properties,
+                obj=self.obj.properties
+            )
+        )
 
 class Graph(Serializable):
     nodes: dict[str, GraphNode] = Field(default_factory=dict)
@@ -109,7 +140,7 @@ class Graph(Serializable):
 
     def get_triplets(self) -> list[GraphTriplet]:
         return [
-            (self.nodes[subject], self.relations[relation], self.nodes[obj])
+            GraphTriplet(self.nodes[subject], self.relations[relation], self.nodes[obj])
             for subject, relation, obj in self.triplets
         ]
 
@@ -121,7 +152,7 @@ class Graph(Serializable):
             self.nodes[relation.source] = EntityNode(name=relation.source)
         if relation.target not in self.nodes:
             self.nodes[relation.target] = EntityNode(name=relation.target)
-        self.add_triplet((
+        self.add_triplet(GraphTriplet(
             self.nodes[relation.source],
             relation,
             self.nodes[relation.target]
