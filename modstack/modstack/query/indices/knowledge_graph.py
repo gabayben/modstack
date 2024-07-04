@@ -1,11 +1,11 @@
 from dataclasses import dataclass, field
 from typing import Optional, Sequence, override
 
-from modstack.ai import Embedder
-from modstack.ai.prompts import EXTRACT_TRIPLETS_PROMPT
+from modstack.ai import Embedder, LLM
 from modstack.artifacts import Artifact
 from modstack.core import Module, ModuleLike, coerce_to_module
 from modstack.data.stores import GraphStore, GraphTriplet, RefArtifactInfo
+from modstack.query.helpers import LLMTripletExtractor
 from modstack.query.indices.simple import SimpleIndex
 from modstack.query.structs import KnowledgeGraph
 from modstack.settings import Settings
@@ -14,8 +14,10 @@ from modstack.settings import Settings
 class KnowledgeGraphIndex(SimpleIndex[KnowledgeGraph]):
     _graph_store: GraphStore = field(default=Settings.graph_store, kw_only=True)
     _triplet_extractor: Optional[ModuleLike[Artifact, list[GraphTriplet]]] = field(default=None, kw_only=True)
-    _extract_triplets_template: str = field(default=EXTRACT_TRIPLETS_PROMPT, kw_only=True)
     _embedder: Embedder = field(default=Settings.embedder, kw_only=True)
+    _llm: Optional[LLM] = field(default=None, kw_only=True)
+    _llm_template: Optional[str] = field(default=None, kw_only=True)
+    _max_object_length: Optional[int] = field(default=None, kw_only=True)
 
     @property
     def graph_store(self) -> GraphStore:
@@ -30,8 +32,14 @@ class KnowledgeGraphIndex(SimpleIndex[KnowledgeGraph]):
         return self._embedder
 
     def __post_init__(self):
-        self._triplet_extractor: Module[Artifact, list[GraphTriplet]] = coerce_to_module(
-            self._triplet_extractor or self._llm_extract_triplets
+        self._triplet_extractor: Module[Artifact, list[GraphTriplet]] = (
+            coerce_to_module(self._triplet_extractor)
+            if self._triplet_extractor is not None
+            else LLMTripletExtractor(
+                llm=self._llm,
+                prompt_template=self._llm_template,
+                max_object_length=self._max_object_length
+            )
         )
 
     def _build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> KnowledgeGraph:
@@ -121,6 +129,3 @@ class KnowledgeGraphIndex(SimpleIndex[KnowledgeGraph]):
         embedding = (await self.embedder.ainvoke([artifact]))[0].embedding
         self.struct.add_embedding(triplet, embedding)
         await self.index_store.aupsert_struct(self.struct, **kwargs)
-
-    def _llm_extract_triplets(self, artifact: Artifact) -> list[GraphTriplet]:
-        pass

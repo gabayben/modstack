@@ -1,10 +1,10 @@
 from abc import ABC
 import datetime as dt
-from typing import Final, Optional, override
+from typing import Final, Optional, Union, override
 
 from pydantic import PrivateAttr
 
-from modstack.artifacts import ArtifactMetadata, ArtifactType
+from modstack.artifacts import Artifact, ArtifactMetadata, ArtifactType
 from modstack.artifacts.text.base import TextBase
 
 class EmailAddress(TextBase):
@@ -33,7 +33,7 @@ class EmailName(EmailPart, ABC):
         **kwargs
     ):
         metadata = (
-            ArtifactMetadata({**metadata, 'datastamp': datestamp})
+            ArtifactMetadata(**{**metadata, 'datastamp': datestamp})
             if datestamp
             else metadata
         )
@@ -84,18 +84,6 @@ class EmailSubject(EmailPart):
     def category(self) -> str:
         return ArtifactType.EMAIL_SUBJECT
 
-class BodyText(EmailPart):
-    """
-    BodyText is an artifact consisting of multiple, well-formulated sentences.
-    This excludes artifacts such as titles, headers, footers, and captions.
-    It is the body of an email.
-    """
-
-    @property
-    @override
-    def category(self) -> str:
-        return ArtifactType.BODY_TEXT
-
 class EmailMetadata(EmailName):
     """A text artifact for capturing header metadata of an email."""
 
@@ -119,3 +107,27 @@ class EmailAttachment(EmailName):
     @override
     def category(self) -> str:
         return ArtifactType.EMAIL_ATTACHMENT
+
+class BodyText(EmailPart):
+    """
+    BodyText is an artifact consisting of multiple, well-formulated sentences.
+    This excludes artifacts such as titles, headers, footers, and captions.
+    It is the body of an email.
+    """
+
+    @property
+    @override
+    def category(self) -> str:
+        return ArtifactType.BODY_TEXT
+
+    def __init__(
+        self,
+        sentences: list[Union[str, Artifact]],
+        metadata: ArtifactMetadata = ArtifactMetadata(),
+        **kwargs
+    ):
+        super().__init__(
+            content=' '.join([str(s) for s in sentences]),
+            metadata=metadata,
+            **kwargs
+        )

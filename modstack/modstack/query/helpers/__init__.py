@@ -4,3 +4,5 @@ from .keyword_extractors import (
     ZeroShotKeywordExtractor,
     LLMKeywordExtractor
 )
+
+from .triplet_extractors import LLMTripletExtractor

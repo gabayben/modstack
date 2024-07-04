@@ -6,7 +6,7 @@ import pandas as pd
 from modstack.ai import LLM, ZeroShotClassifier
 from modstack.artifacts import Artifact
 from modstack.core import Modules, module
-from modstack.query.common.utils import expand_tokens_with_subtokens
+from modstack.query.helpers.utils import expand_tokens_with_subtokens
 from modstack.utils.globals_helper import globals_helper
 
 @module
