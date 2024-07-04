@@ -1,5 +1,5 @@
 from modstack.artifacts import Artifact
-from modstack.data.ingest import IngestDocument
+from modstack.ingest import IngestDocument
 
 class RedditDocument(IngestDocument):
     def load(self, **kwargs) -> None:

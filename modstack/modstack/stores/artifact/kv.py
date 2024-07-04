@@ -4,7 +4,7 @@ from typing import Any, Optional, Sequence
 import fsspec
 
 from modstack.artifacts import Artifact, artifact_registry
-from modstack.data.stores import ArtifactStore, RefArtifactInfo, KVStore
+from modstack.stores import ArtifactStore, RefArtifactInfo, KVStore
 from modstack.utils.constants import DEFAULT_STORAGE_BATCH_SIZE
 
 DEFAULT_NAMESPACE = 'artifact_store'

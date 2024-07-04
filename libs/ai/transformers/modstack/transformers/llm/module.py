@@ -1,6 +1,6 @@
 from typing import Iterator
 
-from modstack.auth import Secret
+from modstack.config import Secret
 from modstack.core import Modules
 from modstack.ai import LLMPrompt
 from modstack.artifacts.messages import MessageChunk

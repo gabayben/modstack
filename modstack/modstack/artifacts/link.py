@@ -47,7 +47,7 @@ class Link(Utf8Artifact):
         return Text(
             self.link.load(),
             **self.model_dump(exclude={'link', 'title', 'position', 'description', 'metadata'}),
-            metadata=ArtifactMetadata({
+            metadata=ArtifactMetadata(**{
                 'link': str(self.link),
                 'title': self.title,
                 'position': self.position,

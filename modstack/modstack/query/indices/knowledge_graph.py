@@ -4,11 +4,11 @@ from typing import Optional, Sequence, override
 from modstack.ai import Embedder, LLM
 from modstack.artifacts import Artifact
 from modstack.core import Module, ModuleLike, coerce_to_module
-from modstack.data.stores import GraphStore, GraphTriplet, RefArtifactInfo
+from modstack.stores import GraphStore, GraphTriplet, RefArtifactInfo
 from modstack.query.helpers import LLMTripletExtractor
 from modstack.query.indices.simple import SimpleIndex
 from modstack.query.structs import KnowledgeGraph
-from modstack.settings import Settings
+from modstack.config import Settings
 
 @dataclass
 class KnowledgeGraphIndex(SimpleIndex[KnowledgeGraph]):

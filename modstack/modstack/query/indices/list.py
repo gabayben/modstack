@@ -1,7 +1,7 @@
 from typing import Sequence, override
 
 from modstack.artifacts import Artifact
-from modstack.data.stores import RefArtifactInfo
+from modstack.stores import RefArtifactInfo
 from modstack.query.indices.simple import SimpleIndex
 from modstack.query.structs import ListStruct
 

@@ -4,7 +4,7 @@ from typing import Optional, Sequence
 import fsspec
 
 from modstack.artifacts import Artifact
-from modstack.data.stores import RefArtifactInfo
+from modstack.stores import RefArtifactInfo
 from modstack.utils.constants import DEFAULT_STORAGE_BATCH_SIZE
 
 class ArtifactStore(ABC):

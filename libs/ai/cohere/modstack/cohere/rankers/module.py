@@ -5,7 +5,7 @@ import cohere
 
 from modstack.artifacts import Artifact
 from modstack.cohere.rankers import CohereRankRequest
-from modstack.auth import Secret
+from modstack.config import Secret
 from modstack.core import Modules
 from modstack.utils.func import tzip
 

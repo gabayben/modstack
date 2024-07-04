@@ -4,7 +4,7 @@ from typing import Any, Optional
 import fsspec
 
 from modstack.artifacts import Artifact, ArtifactRelationship
-from modstack.data.stores import ChunkNode, GraphNode, GraphNodeQuery, GraphRelation, GraphTriplet, GraphTripletQuery, VectorStoreQuery
+from modstack.stores import ChunkNode, GraphNode, GraphNodeQuery, GraphRelation, GraphTriplet, GraphTripletQuery, VectorStoreQuery
 from modstack.typing import Embedding
 from modstack.utils.constants import GRAPH_TRIPLET_SOURCE_KEY
 

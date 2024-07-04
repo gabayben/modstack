@@ -2,7 +2,7 @@ from email.message import Message as EmailMessage
 import re
 
 from modstack.artifacts import Artifact, ArtifactSource
-from modstack.data import extract_email_addresses
+from modstack.ingest import extract_email_addresses
 from modstack.core import module
 from modstack.utils.regex import EMAIL_ADDRESS_REGEX
 

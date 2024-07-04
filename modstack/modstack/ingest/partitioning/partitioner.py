@@ -3,7 +3,7 @@ from typing import ClassVar, Optional
 from modstack.ai import LLMPrompt
 from modstack.artifacts import Artifact, ArtifactSource
 from modstack.artifacts.messages import MessageArtifact
-from modstack.data.ingest import IngestFileType, email_partitioner, html_partitioner, text_partitioner
+from modstack.ingest import IngestFileType, email_partitioner, html_partitioner, text_partitioner
 from modstack.core import Module, ModuleLike, Modules, coerce_to_module, module
 
 PARTITION_DETECTOR_SYSTEM_PROMPT = ''

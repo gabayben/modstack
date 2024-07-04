@@ -6,8 +6,8 @@ from modstack.artifacts import Artifact
 from modstack.query.structs import IndexStruct
 from modstack.core import ArtifactTransform
 from modstack.core.utils import arun_transformations, run_transformations
-from modstack.settings import Settings
-from modstack.data.stores import ArtifactStore, InjestionCache, RefArtifactInfo, IndexStore
+from modstack.config import Settings
+from modstack.stores import ArtifactStore, InjestionCache, RefArtifactInfo, IndexStore
 
 STRUCT = TypeVar('STRUCT', bound=IndexStruct)
 

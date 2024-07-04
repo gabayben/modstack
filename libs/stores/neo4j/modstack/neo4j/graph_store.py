@@ -3,8 +3,8 @@ from typing import Any, Optional, override
 import fsspec
 import neo4j
 
-from modstack.data.stores import GraphNode, GraphNodeQuery, GraphRelation, GraphStore, GraphTriplet, GraphTripletQuery
-from modstack.data.stores.vector import VectorStoreQuery
+from modstack.stores import GraphNode, GraphNodeQuery, GraphRelation, GraphStore, GraphTriplet, GraphTripletQuery
+from modstack.stores import VectorStoreQuery
 from modstack.typing import Embedding
 
 class Neo4jGraphStore(GraphStore):

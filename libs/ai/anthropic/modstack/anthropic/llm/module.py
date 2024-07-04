@@ -3,7 +3,7 @@ from typing import Any, Iterable, Iterator, Mapping, TypedDict
 from anthropic import Anthropic, NOT_GIVEN
 from anthropic.types import ContentBlockDeltaEvent, MessageDeltaEvent, MessageStartEvent
 
-from modstack.auth import Secret
+from modstack.config import Secret
 from modstack.core import Module, Modules
 
 from modstack.artifacts.messages import AiMessageChunk, MessageArtifact, MessageChunk, MessageType

@@ -3,7 +3,7 @@ from typing import Optional
 import fsspec
 
 from modstack.query.indices import IndexStruct, index_struct_registry
-from modstack.data.stores import IndexStore, KVStore
+from modstack.stores import IndexStore, KVStore
 
 DEFAULT_NAMESPACE = 'index_store'
 DEFAULT_COLLECTION = 'data'

@@ -2,7 +2,7 @@ import asyncio
 from typing import Optional
 
 from modstack.artifacts import Artifact, artifact_registry
-from modstack.data.stores import KVStore
+from modstack.stores import KVStore
 
 class InjestionCache:
     def __init__(

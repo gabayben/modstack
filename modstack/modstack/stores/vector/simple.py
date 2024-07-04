@@ -1,39 +1,55 @@
-from abc import ABC, abstractmethod
-from typing import Optional
+from dataclasses import dataclass, field
+import json
+import os.path
+from typing import Any, Optional
 
+from dataclasses_json import DataClassJsonMixin
 import fsspec
 
 from modstack.artifacts import Artifact
-from modstack.data.stores import VectorStoreQuery, VectorStoreQueryResult
-from modstack.typing import MetadataFilters
+from modstack.stores import VectorStore, VectorStoreQuery, VectorStoreQueryResult
+from modstack.typing import Embedding, MetadataFilters
 
-class VectorStore(ABC):
-    @abstractmethod
+@dataclass
+class SimpleVectorStoreData(DataClassJsonMixin):
+    embeddings: dict[str, Embedding] = field(default_factory=dict)
+    ref_id_mapping: dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+class SimpleVectorStore(VectorStore):
+    def __init__(
+        self,
+        data: Optional[SimpleVectorStoreData] = None,
+        fs: Optional[fsspec.AbstractFileSystem] = None
+    ):
+        self._data: SimpleVectorStoreData = data or SimpleVectorStoreData()
+        self._fs: fsspec.AbstractFileSystem = fs or fsspec.filesystem('file')
+
     def persist(
         self,
         path: str,
         fs: Optional[fsspec.AbstractFileSystem] = None,
         **kwargs
     ) -> None:
-        pass
+        fs = fs or self._fs
+        dirname = os.path.dirname(path)
+        if not fs.exists(dirname):
+            fs.makedirs(dirname)
+        with fs.open(path, 'w') as f:
+            json.dump(self._data.to_dict(), f)
 
-    @abstractmethod
     def retrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
         pass
 
-    @abstractmethod
     async def aretrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
         pass
 
-    @abstractmethod
     def insert(self, artifacts: list[Artifact], **kwargs) -> list[str]:
         pass
 
-    @abstractmethod
     async def ainsert(self, artifacts: list[Artifact], **kwargs) -> list[str]:
         pass
 
-    @abstractmethod
     def delete(
         self,
         artifact_ids: Optional[list[str]] = None,
@@ -42,7 +58,6 @@ class VectorStore(ABC):
     ) -> None:
         pass
 
-    @abstractmethod
     async def adelete(
         self,
         artifact_ids: Optional[list[str]] = None,
@@ -51,18 +66,14 @@ class VectorStore(ABC):
     ) -> None:
         pass
 
-    @abstractmethod
     def delete_ref(self, ref_artifact_id: str, **kwargs) -> None:
         pass
 
-    @abstractmethod
     async def adelete_ref(self, ref_artifact_id: str, **kwargs) -> None:
         pass
 
-    @abstractmethod
     def clear(self, **kwargs) -> None:
         pass
 
-    @abstractmethod
     async def aclear(self, **kwargs) -> None:
         pass

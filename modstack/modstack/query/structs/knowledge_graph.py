@@ -3,7 +3,7 @@ from typing import Union
 from pydantic import Field
 
 from modstack.artifacts import Artifact
-from modstack.data.stores import GraphTriplet
+from modstack.stores import GraphTriplet
 from modstack.query.structs import IndexStruct
 from modstack.typing import Embedding
 

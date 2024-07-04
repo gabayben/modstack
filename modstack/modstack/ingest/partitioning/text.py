@@ -1,7 +1,7 @@
 from typing import Optional
 
 from modstack.artifacts import Artifact, ArtifactSource
-from modstack.data.ingest import default_partition_options
+from modstack.ingest import default_partition_options
 from modstack.core import module
 
 @module

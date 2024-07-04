@@ -4,7 +4,7 @@ import logging
 from typing import Sequence
 
 from modstack.artifacts import Artifact
-from modstack.data.stores import RefArtifactInfo
+from modstack.stores import RefArtifactInfo
 from modstack.query.indices import Index
 from modstack.query.indices.base import STRUCT
 from modstack.utils.threading import run_async

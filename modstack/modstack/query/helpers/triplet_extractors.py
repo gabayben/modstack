@@ -5,8 +5,8 @@ from modstack.ai import LLM
 from modstack.ai.prompts import EXTRACT_TRIPLETS_PROMPT
 from modstack.artifacts import Artifact
 from modstack.core import SerializableModule
-from modstack.data.stores import GraphTriplet
-from modstack.settings import Settings
+from modstack.stores import GraphTriplet
+from modstack.config import Settings
 from modstack.typing import Effect, Effects
 
 class LLMTripletExtractor(SerializableModule[Artifact, list[GraphTriplet]]):

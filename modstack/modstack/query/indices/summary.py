@@ -8,11 +8,11 @@ from modstack.ai.prompts import SUMMARY_QUERY_PROMPT
 from modstack.ai.utils import aembed_artifacts, embed_artifacts
 from modstack.artifacts import Artifact, ArtifactInfo, Text
 from modstack.core import coerce_to_module
-from modstack.data.stores import RefArtifactInfo, VectorStore
+from modstack.stores import RefArtifactInfo, VectorStore
 from modstack.query.indices import Index
 from modstack.query.structs import SummaryStruct
 from modstack.query.synthesizers import Synthesis, Synthesizer, SynthesizerLike
-from modstack.settings import Settings
+from modstack.config import Settings
 
 logger = logging.getLogger(__name__)
 

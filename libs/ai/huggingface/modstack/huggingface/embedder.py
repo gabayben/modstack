@@ -1,7 +1,7 @@
 from typing import Any, Optional
 
 from modstack.artifacts import Artifact
-from modstack.auth import EnvVarSecret, Secret
+from modstack.config import EnvVarSecret, Secret
 from modstack.core import Modules
 
 class HuggingFaceApiTextEmbedder(Modules.Sync[list[Artifact], list[Artifact]]):

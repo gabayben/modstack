@@ -3,7 +3,7 @@ from typing import Sequence, override
 
 from modstack.artifacts import Artifact
 from modstack.core import Module, ModuleLike, coerce_to_module
-from modstack.data.stores import RefArtifactInfo
+from modstack.stores import RefArtifactInfo
 from modstack.query.helpers import simple_keyword_extractor
 from modstack.query.indices.simple import SimpleIndex
 from modstack.query.structs import KeywordTable

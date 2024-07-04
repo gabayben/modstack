@@ -6,9 +6,9 @@ from modstack.ai import Embedder, LLM
 from modstack.ai.utils import aembed_query, embed_query
 from modstack.artifacts import Artifact
 from modstack.core import SerializableModule
-from modstack.data.stores import VectorStoreQuery, VectorStoreQueryResult
+from modstack.stores import VectorStoreQuery, VectorStoreQueryResult
 from modstack.query.retrievers import SummaryIndexQuery
-from modstack.settings import Settings
+from modstack.config import Settings
 from modstack.typing import Effect, Effects
 
 class _SummaryRetriever(SerializableModule[SummaryIndexQuery, list[Artifact]], ABC):

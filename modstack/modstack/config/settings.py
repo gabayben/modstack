@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from typing import Optional
 
 from modstack.ai import Embedder, LLM
-from modstack.data.stores import ArtifactStore, IndexStore, InjestionCache, KVArtifactStore, KVIndexStore, KVStore
-from modstack.data.stores import GraphStore, SimpleGraphStore
-from modstack.data.stores import SimpleKVStore
-from modstack.data.stores.vector import SimpleVectorStore, VectorStore
+from modstack.stores import ArtifactStore, IndexStore, InjestionCache, KVArtifactStore, KVIndexStore, KVStore
+from modstack.stores import GraphStore, SimpleGraphStore
+from modstack.stores import SimpleKVStore
+from modstack.stores import SimpleVectorStore, VectorStore
 
 @dataclass
 class _Settings:

@@ -5,8 +5,8 @@ from typing import Optional, Self
 
 import fsspec
 
-from modstack.data.stores import KVStore
-from modstack.data.stores.keyvalue.base import DEFAULT_COLLECTION
+from modstack.stores import KVStore
+from modstack.stores.keyvalue.base import DEFAULT_COLLECTION
 
 logger = logging.getLogger(__name__)
 _DATA_TYPE = dict[str, dict[str, dict]]

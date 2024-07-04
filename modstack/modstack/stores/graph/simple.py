@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 import fsspec
 
-from modstack.data.stores import Graph, GraphNode, GraphNodeQuery, GraphRelation, GraphStore, GraphTriplet, GraphTripletQuery, VectorStoreQuery
+from modstack.stores import Graph, GraphNode, GraphNodeQuery, GraphRelation, GraphStore, GraphTriplet, GraphTripletQuery, VectorStoreQuery
 from modstack.typing import Embedding
 
 class SimpleGraphStore(GraphStore):

@@ -26,11 +26,5 @@ from .blob import (
 )
 
 from .byte_stream import ByteStream
-
-from .text import *
-
-from .forms import (
-    Checkbox
-)
-
+from .text import Text
 from .link import Link
