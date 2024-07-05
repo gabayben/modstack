@@ -5,11 +5,11 @@ from modstack.artifacts import Artifact
 from modstack.core import Module, ModuleLike, coerce_to_module
 from modstack.stores import RefArtifactInfo
 from modstack.query.helpers import simple_keyword_extractor
-from modstack.query.indices.simple import SimpleIndex
+from modstack.query.indices.common import CommonIndex
 from modstack.query.structs import KeywordTable
 
 @dataclass
-class KeywordTableIndex(SimpleIndex[KeywordTable]):
+class KeywordTableIndex(CommonIndex[KeywordTable]):
     _keyword_extractor: ModuleLike[Artifact, set[str]] = field(default=simple_keyword_extractor, kw_only=True)
 
     @property
