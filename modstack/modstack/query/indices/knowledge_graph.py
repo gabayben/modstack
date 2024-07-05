@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import logging
 from typing import Optional, Sequence, override
 
 from modstack.ai import Embedder, LLM
@@ -10,6 +11,8 @@ from modstack.query.indices.simple import SimpleIndex
 from modstack.query.structs import KnowledgeGraph
 from modstack.config import Settings
 
+logger = logging.getLogger(__name__)
+
 @dataclass
 class KnowledgeGraphIndex(SimpleIndex[KnowledgeGraph]):
     _graph_store: GraphStore = field(default=Settings.graph_store, kw_only=True)
@@ -18,6 +21,7 @@ class KnowledgeGraphIndex(SimpleIndex[KnowledgeGraph]):
     _llm: Optional[LLM] = field(default=None, kw_only=True)
     _llm_template: Optional[str] = field(default=None, kw_only=True)
     _max_object_length: Optional[int] = field(default=None, kw_only=True)
+    _include_embeddings: Optional[bool]= field(default=False, kw_only=True)
 
     @property
     def graph_store(self) -> GraphStore:
@@ -50,21 +54,67 @@ class KnowledgeGraphIndex(SimpleIndex[KnowledgeGraph]):
         pass
 
     def _insert_many(self, artifacts: list[Artifact], **kwargs) -> None:
-        pass
+        for artifact in artifacts:
+            triplets = self.triplet_extractor.invoke(artifact, **kwargs)
+            logger.debug(f'Extracted triplets {triplets}.')
+            for triplet in triplets:
+                self.upsert_triplet(triplet, **kwargs)
+                self.struct.add_chunk(artifact, [triplet.subject.name, triplet.obj.name])
+                triplet_str = str(triplet)
+                if (
+                    self._include_embeddings
+                    and triplet_str not in self.struct.embedding_dict
+                ):
+                    embedding = self.embedder.invoke([triplet.to_artifact()])[0].embedding
+                    self.struct.add_embedding(triplet, embedding)
+        self.index_store.upsert_struct(self.struct, **kwargs)
 
     @override
     async def _ainsert_many(self, artifacts: list[Artifact], **kwargs) -> None:
-        pass
+        for artifact in artifacts:
+            triplets = await self.triplet_extractor.ainvoke(artifact, **kwargs)
+            logger.debug(f'Extracted triplets {triplets}.')
+            for triplet in triplets:
+                await self.aupsert_triplet(triplet, **kwargs)
+                self.struct.add_chunk(artifact, [triplet.subject.name, triplet.obj.name])
+                triplet_str = str(triplet)
+                if (
+                    self._include_embeddings
+                    and triplet_str not in self.struct.embedding_dict
+                ):
+                    embedding = (await self.embedder.ainvoke([triplet.to_artifact()]))[0].embedding
+                    self.struct.add_embedding(triplet, embedding)
+        await self.index_store.aupsert_struct(self.struct, **kwargs)
 
     def _delete(self, artifact_id: str, **kwargs) -> None:
         raise NotImplementedError('Delete is not yet supported for KnowledgeGraphIndex.')
 
     def get_refs(self) -> dict[str, RefArtifactInfo]:
-        pass
+        chunks = self.artifact_store.get_many(self.struct.chunk_ids)
+        ref_infos: dict[str, RefArtifactInfo] = {}
+        for chunk in chunks:
+            ref = chunk.ref
+            if not ref:
+                continue
+            ref_info = self.artifact_store.get_ref(ref.id)
+            if not ref_info:
+                continue
+            ref_infos[ref.id] = ref_info
+        return ref_infos
 
     @override
     async def aget_refs(self) -> dict[str, RefArtifactInfo]:
-        pass
+        chunks = await self.artifact_store.aget_many(self.struct.chunk_ids)
+        ref_infos: dict[str, RefArtifactInfo] = {}
+        for chunk in  chunks:
+            ref = chunk.ref
+            if not ref:
+                continue
+            ref_info = await self.artifact_store.aget_ref(ref.id)
+            if not ref_info:
+                continue
+            ref_infos[ref.id] = ref_info
+        return ref_infos
 
     def upsert_triplet_and_chunk(
         self,

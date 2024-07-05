@@ -18,8 +18,8 @@ class KnowledgeGraph(IndexStruct):
         return list(self.table.keys())
 
     @property
-    def chunk_ids(self) -> set[str]:
-        return set.union(*self.table.values())
+    def chunk_ids(self) -> list:
+        return list(set().union(*self.table.values()))
 
     def add_embedding(self, triplet: TripletLike, embedding: Embedding) -> None:
         self.embedding_dict[str(triplet)] = embedding
