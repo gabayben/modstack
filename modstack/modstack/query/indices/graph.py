@@ -53,6 +53,8 @@ class GraphIndex(CommonIndex[GraphStruct]):
 
     def _insert_many(self, artifacts: list[Artifact], **kwargs) -> None:
         self._insert_chunks(artifacts, **kwargs)
+        for artifact in artifacts:
+            self.struct.add_artifact(artifact.id)
 
     def _insert_chunks(self, chunks: list[Artifact], **kwargs) -> list[Artifact]:
         pass
@@ -60,6 +62,8 @@ class GraphIndex(CommonIndex[GraphStruct]):
     @override
     async def _ainsert_many(self, artifacts: list[Artifact], **kwargs) -> None:
         await self._ainsert_chunks(artifacts, **kwargs)
+        for artifact in artifacts:
+            self.struct.add_artifact(artifact.id)
 
     async def _ainsert_chunks(self, artifacts: list[Artifact], **kwargs) -> list[Artifact]:
         pass
@@ -72,6 +76,9 @@ class GraphIndex(CommonIndex[GraphStruct]):
     async def _adelete(self, artifact_id: str, **kwargs) -> None:
         await self.graph_store.adelete(ids=[artifact_id], **kwargs)
         self.struct.delete_artifact(artifact_id)
+
+    def get_ref_ids(self) -> list[str]:
+        return []
 
     def get_artifact_ids(self) -> list[str]:
         return self.struct.artifact_ids

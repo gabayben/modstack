@@ -33,5 +33,8 @@ class ListIndex(CommonIndex[ListStruct]):
         artifacts_to_keep = [artifact for artifact in artifacts if artifact.id != artifact_id]
         self.struct.artifact_ids = artifacts_to_keep
 
+    def get_ref_ids(self) -> list[str]:
+        return []
+
     def get_artifact_ids(self) -> list[str]:
         return self.struct.artifact_ids

@@ -76,5 +76,8 @@ class KeywordTableIndex(CommonIndex[KeywordTable]):
         for keyword in keywords_to_delete:
             del self.struct.table[keyword]
 
+    def get_ref_ids(self) -> list[str]:
+        return []
+
     def get_artifact_ids(self) -> list[str]:
         return self.struct.artifact_ids

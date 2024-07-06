@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 import logging
-from typing import Optional, Sequence, Unpack, override
+from typing import Optional, Sequence, Unpack
 
 from modstack.ai import Embedder, LLM
 from modstack.ai.prompts import SUMMARY_QUERY_PROMPT
@@ -9,7 +9,7 @@ from modstack.ai.utils import aembed_artifacts, embed_artifacts
 from modstack.artifacts import Artifact, ArtifactInfo, Text
 from modstack.core import Module, coerce_to_module
 from modstack.query.indices.base import IndexDependencies
-from modstack.stores import RefArtifactInfo, VectorStore
+from modstack.stores import VectorStore
 from modstack.query.indices import Index, IndexData, Indexer
 from modstack.query.structs import SummaryStruct
 from modstack.query.synthesizers import LLMSummarySynthesizer, SynthesizerInput, Synthesizer, SynthesizerLike
@@ -195,27 +195,8 @@ class SummaryIndex(Index[SummaryStruct]):
             if self.struct.ref_to_summary[ref_id] in summaries_to_remove
         ]
 
-    @override
-    def get_refs(self) -> dict[str, RefArtifactInfo]:
-        ref_ids = self.struct.ref_ids
-        ref_infos: dict[str, RefArtifactInfo] = {}
-        for ref_id in ref_ids:
-            ref_info = self.artifact_store.get_ref(ref_id)
-            if not ref_info:
-                continue
-            ref_infos[ref_id] = ref_info
-        return ref_infos
-
-    @override
-    async def aget_refs(self) -> dict[str, RefArtifactInfo]:
-        ref_ids = self.struct.ref_ids
-        ref_infos: dict[str, RefArtifactInfo] = {}
-        for ref_id in ref_ids:
-            ref_info = await self.artifact_store.aget_ref(ref_id)
-            if not ref_info:
-                continue
-            ref_infos[ref_id] = ref_info
-        return ref_infos
+    def get_ref_ids(self) -> list[str]:
+        return self.struct.ref_ids
 
     def get_artifact_ids(self) -> list[str]:
         return self.struct.chunk_ids

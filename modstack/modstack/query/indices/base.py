@@ -224,32 +224,55 @@ class Index(Generic[STRUCT], ABC):
         return refreshed_artifacts
 
     def get_refs(self) -> dict[str, RefArtifactInfo]:
-        artifact_ids = self.get_artifact_ids()
         ref_infos: dict[str, RefArtifactInfo] = {}
-        for artifact_id in artifact_ids:
-            artifact = self.artifact_store.get(artifact_id)
-            ref = artifact.ref
-            if not ref:
-                continue
-            ref_info = self.artifact_store.get_ref(ref.id)
-            if not ref_info:
-                continue
-            ref_infos[ref.id] = ref_info
+        ref_ids = self.get_ref_ids()
+        if ref_ids:
+            for ref_id in ref_ids:
+                ref_info = self.artifact_store.get_ref(ref_id)
+                if not ref_info:
+                    continue
+                ref_infos[ref_id] = ref_info
+        else:
+            artifact_ids = self.get_artifact_ids()
+            for artifact_id in artifact_ids:
+                artifact = self.artifact_store.get(artifact_id)
+                ref = artifact.ref
+                if not ref:
+                    continue
+                ref_info = self.artifact_store.get_ref(ref.id)
+                if not ref_info:
+                    continue
+                ref_infos[ref.id] = ref_info
         return ref_infos
 
     async def aget_refs(self) -> dict[str, RefArtifactInfo]:
-        artifact_ids = await self.aget_artifact_ids()
         ref_infos: dict[str, RefArtifactInfo] = {}
-        for artifact_id in artifact_ids:
-            artifact = await self.artifact_store.aget(artifact_id)
-            ref = artifact.ref
-            if not ref:
-                continue
-            ref_info = await self.artifact_store.aget_ref(ref.id)
-            if not ref_info:
-                continue
-            ref_infos[ref.id] = ref_info
+        ref_ids = await self.aget_ref_ids()
+        if ref_ids:
+            for ref_id in ref_ids:
+                ref_info = await self.artifact_store.aget_ref(ref_id)
+                if not ref_info:
+                    continue
+                ref_infos[ref_id] = ref_info
+        else:
+            artifact_ids = await self.aget_artifact_ids()
+            for artifact_id in artifact_ids:
+                artifact = await self.artifact_store.aget(artifact_id)
+                ref = artifact.ref
+                if not ref:
+                    continue
+                ref_info = await self.artifact_store.aget_ref(ref.id)
+                if not ref_info:
+                    continue
+                ref_infos[ref.id] = ref_info
         return ref_infos
+
+    @abstractmethod
+    def get_ref_ids(self) -> list[str]:
+        pass
+
+    async def aget_ref_ids(self) -> list[str]:
+        return await run_async(self.get_ref_ids)
 
     @abstractmethod
     def get_artifact_ids(self) -> list[str]:
