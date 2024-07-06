@@ -43,13 +43,7 @@ class SummaryEmbeddingRetriever(_SummaryRetriever):
         embedder = self._embedder or index.embedder
         embedded_value = embed_query(embedder, query.value, **kwargs)
 
-        query_result = index.vector_store.retrieve(
-            VectorStoreQuery(
-                query_embedding=embedded_value.embedding,
-                similarity_top_k=self._top_k
-            ),
-            **kwargs
-        )
+        query_result = index.vector_store.retrieve(query_embedding=embedded_value.embedding, similarity_top_k=self._top_k)
         top_k_summary_ids = self._extract_top_k_summary_ids(query_result)
 
         results: list[Artifact] = []
@@ -64,13 +58,7 @@ class SummaryEmbeddingRetriever(_SummaryRetriever):
         embedder = self._embedder or index.embedder
         embedded_value = await aembed_query(embedder, query.value, **kwargs)
 
-        query_result = await index.vector_store.aretrieve(
-            VectorStoreQuery(
-                query_embedding=embedded_value.embedding,
-                similarity_top_k=self._top_k
-            ),
-            **kwargs
-        )
+        query_result = await index.vector_store.aretrieve(query_embedding=embedded_value.embedding, similarity_top_k=self._top_k)
         top_k_summary_ids = self._extract_top_k_summary_ids(query_result)
 
         results: list[Artifact] = []

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any, Optional, Unpack
 
 import fsspec
 
@@ -45,35 +45,35 @@ class GraphStore(ABC):
         pass
 
     @abstractmethod
-    def vector_query(self, query: VectorStoreQuery, **kwargs) -> tuple[list[GraphNode], Embedding]:
+    def vector_query(self, **query: Unpack[VectorStoreQuery]) -> tuple[list[GraphNode], Embedding]:
         pass
 
     @abstractmethod
-    async def avector_query(self, query: VectorStoreQuery, **kwargs) -> tuple[list[GraphNode], Embedding]:
+    async def avector_query(self, **query: Unpack[VectorStoreQuery]) -> tuple[list[GraphNode], Embedding]:
         pass
 
     @abstractmethod
-    def get(self, query: Optional[GraphNodeQuery] = None) -> list[GraphNode]:
+    def get(self, **query: Unpack[GraphNodeQuery]) -> list[GraphNode]:
         pass
 
     @abstractmethod
-    async def aget(self, query: Optional[GraphNodeQuery] = None) -> list[GraphNode]:
+    async def aget(self, **query: Unpack[GraphNodeQuery]) -> list[GraphNode]:
         pass
 
     def get_artifacts(self, node_ids: list[str]) -> list[Artifact]:
-        nodes = self.get(GraphNodeQuery(ids=node_ids))
+        nodes = self.get(ids=node_ids)
         return [node.to_artifact() for node in nodes]
 
     async def aget_artifacts(self, node_ids: list[str]) -> list[Artifact]:
-        nodes = await self.aget(GraphNodeQuery(ids=node_ids))
+        nodes = await self.aget(ids=node_ids)
         return [node.to_artifact() for node in nodes]
 
     @abstractmethod
-    def get_triplets(self, query: Optional[GraphTripletQuery] = None) -> list[GraphTriplet]:
+    def get_triplets(self, **query: Unpack[GraphTripletQuery]) -> list[GraphTriplet]:
         pass
 
     @abstractmethod
-    async def aget_triplets(self, query: Optional[GraphTripletQuery] = None) -> list[GraphTriplet]:
+    async def aget_triplets(self, **query: Unpack[GraphTripletQuery]) -> list[GraphTriplet]:
         pass
 
     @abstractmethod
@@ -135,11 +135,11 @@ class GraphStore(ABC):
         await self.aupsert_relations([triplet.relation], **kwargs)
 
     @abstractmethod
-    def delete(self, query: Optional[GraphNodeQuery] = None) -> None:
+    def delete(self, **query: Unpack[GraphNodeQuery]) -> None:
         pass
 
     @abstractmethod
-    async def adelete(self, query: Optional[GraphNodeQuery] = None) -> None:
+    async def adelete(self, **query: Unpack[GraphNodeQuery]) -> None:
         pass
 
     def delete_artifacts(
@@ -151,32 +151,22 @@ class GraphStore(ABC):
 
         artifact_ids = artifact_ids or []
         for artifact_id in artifact_ids:
-            nodes.extend(self.get(
-                GraphNodeQuery(properties={GRAPH_TRIPLET_SOURCE_KEY: artifact_id})
-            ))
+            nodes.extend(self.get(properties={GRAPH_TRIPLET_SOURCE_KEY: artifact_id}))
 
         if len(artifact_ids) > 0:
-            nodes.extend(self.get(
-                GraphNodeQuery(ids=artifact_ids)
-            ))
+            nodes.extend(self.get(ids=artifact_ids))
 
         ref_artifact_ids = ref_artifact_ids or []
         for ref_artifact_id in artifact_ids:
-            nodes.extend(self.get(
-                GraphNodeQuery(properties={
-                    'relationships': {ArtifactRelationship.REF: ref_artifact_id}
-                })
-            ))
+            nodes.extend(self.get(properties={
+                'relationships': {ArtifactRelationship.REF: ref_artifact_id}
+            }))
 
         if len(ref_artifact_ids) > 0:
-            nodes.extend(self.get(
-                GraphNodeQuery(ids=ref_artifact_ids)
-            ))
+            nodes.extend(self.get(ids=ref_artifact_ids))
 
         if len(nodes) > 0:
-            self.delete(
-                GraphNodeQuery(ids=[node.id for node in nodes])
-            )
+            self.delete(ids=[node.id for node in nodes])
 
     async def adelete_artifacts(
         self,
@@ -187,29 +177,19 @@ class GraphStore(ABC):
 
         artifact_ids = artifact_ids or []
         for artifact_id in artifact_ids:
-            nodes.extend(await self.aget(
-                GraphNodeQuery(properties={GRAPH_TRIPLET_SOURCE_KEY: artifact_id})
-            ))
+            nodes.extend(await self.aget(properties={GRAPH_TRIPLET_SOURCE_KEY: artifact_id}))
 
         if len(artifact_ids) > 0:
-            nodes.extend(await self.aget(
-                GraphNodeQuery(ids=artifact_ids)
-            ))
+            nodes.extend(await self.aget(ids=artifact_ids))
 
         ref_artifact_ids = ref_artifact_ids or []
         for ref_artifact_id in artifact_ids:
-            nodes.extend(await self.aget(
-                GraphNodeQuery(properties={
-                    'relationships': {ArtifactRelationship.REF: ref_artifact_id}
-                })
-            ))
+            nodes.extend(await self.aget(properties={
+                'relationships': {ArtifactRelationship.REF: ref_artifact_id}
+            }))
 
         if len(ref_artifact_ids) > 0:
-            nodes.extend(await self.aget(
-                GraphNodeQuery(ids=ref_artifact_ids)
-            ))
+            nodes.extend(await self.aget(ids=ref_artifact_ids))
 
         if len(nodes) > 0:
-            await self.adelete(
-                GraphNodeQuery(ids=[node.id for node in nodes])
-            )
+            await self.adelete(ids=[node.id for node in nodes])

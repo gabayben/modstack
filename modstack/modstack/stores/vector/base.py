@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Unpack
 
 import fsspec
 
@@ -18,11 +18,11 @@ class VectorStore(ABC):
         pass
 
     @abstractmethod
-    def retrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
+    def retrieve(self, **query: Unpack[VectorStoreQuery]) -> VectorStoreQueryResult:
         pass
 
     @abstractmethod
-    async def aretrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
+    async def aretrieve(self, **query: Unpack[VectorStoreQuery]) -> VectorStoreQueryResult:
         pass
 
     @abstractmethod

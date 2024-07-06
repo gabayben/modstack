@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 import json
 import os.path
-from typing import Any, Optional
+from typing import Any, Optional, Unpack
 
 from dataclasses_json import DataClassJsonMixin
 import fsspec
@@ -38,10 +38,10 @@ class SimpleVectorStore(VectorStore):
         with fs.open(path, 'w') as f:
             json.dump(self._data.to_dict(), f)
 
-    def retrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
+    def retrieve(self, **query: Unpack[VectorStoreQuery]) -> VectorStoreQueryResult:
         pass
 
-    async def aretrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
+    async def aretrieve(self, **query: Unpack[VectorStoreQuery]) -> VectorStoreQueryResult:
         pass
 
     def insert(self, artifacts: list[Artifact], **kwargs) -> list[str]:

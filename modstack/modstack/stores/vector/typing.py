@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Optional, Sequence
+from typing import Optional, Sequence, TypedDict
 
 from modstack.artifacts import Artifact
 from modstack.typing import Embedding, MetadataFilter, MetadataFilterInfo, MetadataFilters, Serializable
@@ -25,20 +25,19 @@ class VectorStoreQuerySpec(Serializable):
     filters: list[MetadataFilter]
     top_k: Optional[int] = None
 
-@dataclass(kw_only=True)
-class VectorStoreQuery:
-    ref_artifact_ids: Optional[list[str]] = None
-    artifact_ids: Optional[list[str]] = None
-    query: Optional[Artifact] = None
-    query_embedding: Optional[Embedding] = None
-    embedding_field: Optional[str] = None
-    output_fields: Optional[list[str]] = None
-    filters: Optional[MetadataFilters] = None
-    mode: str = VectorStoreQueryMode.DEFAULT
-    similarity_top_k: int = 1
-    sparse_top_k: Optional[int] = None
-    hybrid_top_k: Optional[int] = None
-    mmr_threshold: Optional[float] = None
+class VectorStoreQuery(TypedDict, total=False):
+    ref_artifact_ids: Optional[list[str]]
+    artifact_ids: Optional[list[str]]
+    query: Optional[Artifact]
+    query_embedding: Optional[Embedding]
+    embedding_field: Optional[str]
+    output_fields: Optional[list[str]]
+    filters: Optional[MetadataFilters]
+    mode: Optional[str]
+    similarity_top_k: Optional[int]
+    sparse_top_k: Optional[int]
+    hybrid_top_k: Optional[int]
+    mmr_threshold: Optional[float]
 
 @dataclass(kw_only=True)
 class VectorStoreQueryResult:

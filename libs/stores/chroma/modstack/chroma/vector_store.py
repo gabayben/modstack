@@ -2,7 +2,7 @@ import json
 import logging
 import math
 import os.path
-from typing import Any, Generator, Optional
+from typing import Any, Generator, Optional, Unpack
 
 import chromadb
 from chromadb.api.models.Collection import Collection
@@ -77,11 +77,12 @@ class ChromaVectorStore(VectorStore):
         with fs.open(path, 'w') as f:
             json.dump(data, f)
 
-    def retrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
-        where = _to_chroma_filters(query.filters) if query.filters else {}
-        if not query.query_embedding:
-            return self._get(where, query.similarity_top_k, **kwargs)
-        return self._retrieve(query.query_embedding, where, query.similarity_top_k, **kwargs)
+    def retrieve(self, **query: Unpack[VectorStoreQuery]) -> VectorStoreQueryResult:
+        query.setdefault('similarity_top_k', 1)
+        where = _to_chroma_filters(query['filters']) if query['filters'] else {}
+        if not query['query_embedding']:
+            return self._get(where, query['similarity_top_k'], **query)
+        return self._retrieve(query['query_embedding'], where, query['similarity_top_k'], **query)
 
     def _retrieve(
         self,
@@ -154,8 +155,8 @@ class ChromaVectorStore(VectorStore):
 
         return VectorStoreQueryResult(artifacts=artifacts, ids=ids)
 
-    async def aretrieve(self, query: VectorStoreQuery, **kwargs) -> VectorStoreQueryResult:
-        return await run_async(self.retrieve, query, **kwargs)
+    async def aretrieve(self, **query: Unpack[VectorStoreQuery]) -> VectorStoreQueryResult:
+        return await run_async(self.retrieve, **query)
 
     def insert(self, artifacts: list[Artifact], **kwargs) -> list[str]:
         all_ids = []

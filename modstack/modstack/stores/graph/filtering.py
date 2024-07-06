@@ -1,16 +1,13 @@
-from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, TypedDict
 
-@dataclass(kw_only=True)
-class GraphNodeQuery:
-    ids: Optional[list[str]] = None
-    properties: Optional[dict[str, Any]] = None
+class GraphNodeQuery(TypedDict, total=False):
+    ids: Optional[list[str]]
+    properties: Optional[dict[str, Any]]
 
-@dataclass(kw_only=True)
-class GraphTripletQuery:
-    ids: Optional[list[str]] = None
-    entity_names: Optional[list[str]] = None
-    relation_names: Optional[list[str]] = None
-    sources: Optional[list[str]] = None
-    targets: Optional[list[str]] = None
-    properties: Optional[dict[str, Any]] = None
+class GraphTripletQuery(TypedDict, total=False):
+    ids: Optional[list[str]]
+    entity_names: Optional[list[str]]
+    relation_names: Optional[list[str]]
+    sources: Optional[list[str]]
+    targets: Optional[list[str]]
+    properties: Optional[dict[str, Any]]
