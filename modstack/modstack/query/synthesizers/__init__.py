@@ -1,1 +1,2 @@
-from .typing import Synthesis, SynthesizerLike, Synthesizer
+from .typing import SynthesizerInput, SynthesizerLike, Synthesizer
+from .summary import LLMSummarySynthesizer

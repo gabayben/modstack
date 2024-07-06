@@ -1,41 +1,50 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 import logging
-from typing import Sequence
+from typing import Optional, Sequence, Unpack
 
-from modstack.ai import Embedder
+from modstack.ai import Embedder, LLM
 from modstack.ai.prompts import SUMMARY_QUERY_PROMPT
 from modstack.ai.utils import aembed_artifacts, embed_artifacts
 from modstack.artifacts import Artifact, ArtifactInfo, Text
-from modstack.core import coerce_to_module
+from modstack.core import Module, coerce_to_module
+from modstack.query.indices.base import IndexDependencies
 from modstack.stores import RefArtifactInfo, VectorStore
-from modstack.query.indices import Index
+from modstack.query.indices import Index, IndexData, Indexer
 from modstack.query.structs import SummaryStruct
-from modstack.query.synthesizers import Synthesis, Synthesizer, SynthesizerLike
+from modstack.query.synthesizers import LLMSummarySynthesizer, SynthesizerInput, Synthesizer, SynthesizerLike
 from modstack.config import Settings
 
 logger = logging.getLogger(__name__)
+DEFAULT_QUERY_TEMPLATE = Text(SUMMARY_QUERY_PROMPT)
 
-DEFAULT_SUMMARY_QUERY = Text(SUMMARY_QUERY_PROMPT)
+class SummaryIndexDependencies(IndexDependencies, total=False):
+    vector_store: VectorStore
+    embedder: Embedder
+    synthesizer: Optional[SynthesizerLike]
+    llm: Optional[LLM]
+    query_template: Artifact
+    embed_summaries: bool
 
 @dataclass
 class SummaryIndex(Index[SummaryStruct]):
-    _vector_store: VectorStore = field(default=Settings.vector_store, kw_only=True)
-    _embedder: Embedder = field(default=Settings.embedder, kw_only=True)
-    _synthesizer: SynthesizerLike = field(kw_only=True)
-    _summary_query: Artifact = field(default=DEFAULT_SUMMARY_QUERY, kw_only=True)
-    _embed_summaries: bool = field(default=True, kw_only=True)
-
-    @property
-    def vector_store(self) -> VectorStore:
-        return self._vector_store
-
-    @property
-    def embedder(self) -> Embedder:
-        return self._embedder
+    vector_store: VectorStore = field(default=Settings.vector_store, kw_only=True)
+    embedder: Embedder = field(default=Settings.embedder, kw_only=True)
+    synthesizer: Optional[SynthesizerLike] = field(default=None, kw_only=True)
+    llm: Optional[LLM] = field(default=None, kw_only=True)
+    query_template: Artifact = field(default=DEFAULT_QUERY_TEMPLATE, kw_only=True)
+    embed_summaries: bool = field(default=True, kw_only=True)
 
     def __post_init__(self):
-        self._synthesizer: Synthesizer = coerce_to_module(self._synthesizer)
+        self.synthesizer: Synthesizer = (
+            coerce_to_module(self.synthesizer)
+            if self.synthesizer
+            else LLMSummarySynthesizer(llm=self.llm)
+        )
+
+    @classmethod
+    def indexer(cls, **kwargs: Unpack[SummaryIndexDependencies]) -> Module[IndexData[SummaryStruct], 'SummaryIndex']:
+        return Indexer(cls(**kwargs))
 
     def _build(self, artifacts: Sequence[Artifact], **kwargs) -> SummaryStruct:
         self.artifact_store.insert(artifacts, **kwargs)
@@ -72,8 +81,8 @@ class SummaryIndex(Index[SummaryStruct]):
 
         for ref_id, chunks in ref_id_to_chunks.items():
             logger.info(f'Current ref id: {ref_id}')
-            summary = self._synthesizer.invoke(
-                Synthesis(self._summary_query, chunks),
+            summary = self.synthesizer.invoke(
+                SynthesizerInput(self.query_template, chunks),
                 **kwargs
             )
             metadata = ref_id_to_chunks.get(ref_id, [Text('')])[0].metadata
@@ -86,7 +95,7 @@ class SummaryIndex(Index[SummaryStruct]):
         for ref_id, chunks in ref_id_to_chunks.items():
             self.struct.add_summary_and_chunks(ref_id_to_summary[ref_id], chunks)
 
-        if self._embed_summaries:
+        if self.embed_summaries:
             summaries = list(ref_id_to_summary.values())
             embedded_summaries = embed_artifacts(self.embedder, summaries, **kwargs)
             self.vector_store.insert(embedded_summaries, **kwargs)
@@ -114,8 +123,8 @@ class SummaryIndex(Index[SummaryStruct]):
 
         for ref_id, chunks in ref_id_to_chunks.items():
             logger.info(f'Current ref id: {ref_id}')
-            summary = await self._synthesizer.ainvoke(
-                Synthesis(self._summary_query, chunks),
+            summary = await self.synthesizer.ainvoke(
+                SynthesizerInput(self.query_template, chunks),
                 **kwargs
             )
             metadata = ref_id_to_chunks.get(ref_id, [Text('')])[0].metadata
@@ -128,7 +137,7 @@ class SummaryIndex(Index[SummaryStruct]):
         for ref_id, chunks in ref_id_to_chunks.items():
             self.struct.add_summary_and_chunks(ref_id_to_summary[ref_id], chunks)
 
-        if self._embed_summaries:
+        if self.embed_summaries:
             summaries = list(ref_id_to_summary.values())
             embedded_summaries = await aembed_artifacts(self.embedder, summaries, **kwargs)
             await self.vector_store.ainsert(embedded_summaries, **kwargs)
