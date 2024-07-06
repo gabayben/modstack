@@ -1,9 +1,11 @@
 from .typing import (
     IndexQuery,
+    GraphIndexQuery,
     KeywordTableQuery,
     ListIndexQuery,
     SummaryIndexQuery,
-    VoidIndexQuery
+    IndexRetrieverLike,
+    IndexRetriever
 )
 
 from .keyword_table import KeywordTableRetriever
