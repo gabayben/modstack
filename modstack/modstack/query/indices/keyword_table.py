@@ -5,7 +5,6 @@ from modstack.artifacts import Artifact
 from modstack.core import Module, ModuleLike, coerce_to_module
 from modstack.query.indices import IndexData, Indexer
 from modstack.query.indices.base import IndexDependencies
-from modstack.stores import RefArtifactInfo
 from modstack.query.helpers import simple_keyword_extractor
 from modstack.query.indices.common import CommonIndex
 from modstack.query.structs import KeywordTable
@@ -77,29 +76,5 @@ class KeywordTableIndex(CommonIndex[KeywordTable]):
         for keyword in keywords_to_delete:
             del self.struct.table[keyword]
 
-    def get_refs(self) -> dict[str, RefArtifactInfo]:
-        artifacts = self.artifact_store.get_many(list(self.struct.artifact_ids))
-        ref_infos: dict[str, RefArtifactInfo] = {}
-        for artifact in artifacts:
-            ref = artifact.ref
-            if not ref:
-                continue
-            ref_info = self.artifact_store.get_ref(ref.id)
-            if not ref_info:
-                continue
-            ref_infos[ref.id] = ref_info
-        return ref_infos
-
-    @override
-    async def aget_refs(self) -> dict[str, RefArtifactInfo]:
-        artifacts = await self.artifact_store.aget_many(list(self.struct.artifact_ids))
-        ref_infos: dict[str, RefArtifactInfo] = {}
-        for artifact in artifacts:
-            ref = artifact.ref
-            if not ref:
-                continue
-            ref_info = await self.artifact_store.aget_ref(ref.id)
-            if not ref_info:
-                continue
-            ref_infos[ref.id] = ref_info
-        return ref_infos
+    def get_artifact_ids(self) -> list[str]:
+        return self.struct.artifact_ids

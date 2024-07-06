@@ -4,7 +4,6 @@ import logging
 from typing import Sequence
 
 from modstack.artifacts import Artifact
-from modstack.stores import RefArtifactInfo
 from modstack.query.indices import Index
 from modstack.query.indices.base import STRUCT
 from modstack.utils.threading import run_async
@@ -102,6 +101,3 @@ class CommonIndex(Index[STRUCT], ABC):
 
     async def _adelete(self, artifact_id: str, **kwargs) -> None:
         await run_async(self._delete, artifact_id, **kwargs)
-
-    async def aget_refs(self) -> dict[str, RefArtifactInfo]:
-        return await run_async(self.get_refs)

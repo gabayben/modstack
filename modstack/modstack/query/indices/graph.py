@@ -8,8 +8,8 @@ from modstack.core import ArtifactTransform, ArtifactTransformLike, Module, coer
 from modstack.query.indices import IndexData, Indexer
 from modstack.query.indices.base import IndexDependencies
 from modstack.query.indices.common import CommonIndex
-from modstack.query.structs import VoidStruct
-from modstack.stores import GraphStore, RefArtifactInfo, VectorStore
+from modstack.query.structs import GraphStruct
+from modstack.stores import GraphStore, VectorStore
 
 class GraphIndexDependencies(IndexDependencies, total=False):
     graph_store: GraphStore
@@ -19,9 +19,9 @@ class GraphIndexDependencies(IndexDependencies, total=False):
     embed_nodes: bool
 
 @dataclass(kw_only=True)
-class GraphIndex(CommonIndex[VoidStruct]):
+class GraphIndex(CommonIndex[GraphStruct]):
     graph_store: GraphStore = field(default=Settings.graph_store)
-    vector_store: VectorStore = field(default=Settings.vector_store)
+    vector_store: Optional[VectorStore] = field(default=None)
     embedder: Embedder = field(default=Settings.embedder)
     graph_extractors: Optional[list[ArtifactTransformLike]] = field(default=None)
     embed_nodes: bool = field(default=True)
@@ -35,33 +35,43 @@ class GraphIndex(CommonIndex[VoidStruct]):
         )
 
     @classmethod
-    def indexer(cls, **kwargs: Unpack[GraphIndexDependencies]) -> Module[IndexData[VoidStruct], 'GraphIndex']:
+    def indexer(cls, **kwargs: Unpack[GraphIndexDependencies]) -> Module[IndexData[GraphStruct], 'GraphIndex']:
         return Indexer(cls(**kwargs))
 
-    def _build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> VoidStruct:
-        pass
+    def _build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> GraphStruct:
+        struct = GraphStruct()
+        struct.artifact_ids = set([artifact.id for artifact in artifacts])
+        self._insert_chunks(list(artifacts), **kwargs)
+        return struct
 
     @override
-    async def _abuild_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> VoidStruct:
-        pass
+    async def _abuild_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> GraphStruct:
+        struct = GraphStruct()
+        struct.artifact_ids = set([artifact.id for artifact in artifacts])
+        await self._ainsert_chunks(list(artifacts), **kwargs)
+        return struct
 
     def _insert_many(self, artifacts: list[Artifact], **kwargs) -> None:
+        self._insert_chunks(artifacts, **kwargs)
+
+    def _insert_chunks(self, chunks: list[Artifact], **kwargs) -> list[Artifact]:
         pass
 
     @override
     async def _ainsert_many(self, artifacts: list[Artifact], **kwargs) -> None:
+        await self._ainsert_chunks(artifacts, **kwargs)
+
+    async def _ainsert_chunks(self, artifacts: list[Artifact], **kwargs) -> list[Artifact]:
         pass
 
     def _delete(self, artifact_id: str, **kwargs) -> None:
-        pass
+        self.graph_store.delete(ids=[artifact_id], **kwargs)
+        self.struct.delete_artifact(artifact_id)
 
     @override
     async def _adelete(self, artifact_id: str, **kwargs) -> None:
-        pass
+        await self.graph_store.adelete(ids=[artifact_id], **kwargs)
+        self.struct.delete_artifact(artifact_id)
 
-    def get_refs(self) -> dict[str, RefArtifactInfo]:
-        pass
-
-    @override
-    async def aget_refs(self) -> dict[str, RefArtifactInfo]:
-        pass
+    def get_artifact_ids(self) -> list[str]:
+        return self.struct.artifact_ids

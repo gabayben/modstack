@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from functools import partial
-from typing import Any, Generic, Optional, Sequence, TypeVar, TypedDict, Union
+from typing import Any, Generic, Optional, Sequence, TypeVar, TypedDict, Union, final
 
 from modstack.artifacts import Artifact
 from modstack.query.structs import IndexStruct
@@ -10,6 +10,7 @@ from modstack.core.utils import arun_transformations, run_transformations
 from modstack.config import Settings
 from modstack.stores import ArtifactStore, InjestionCache, RefArtifactInfo, IndexStore
 from modstack.typing import Effect, Effects
+from modstack.utils.threading import run_async
 
 STRUCT = TypeVar('STRUCT', bound=IndexStruct)
 
@@ -222,16 +223,44 @@ class Index(Generic[STRUCT], ABC):
                 refreshed_artifacts[i] = True
         return refreshed_artifacts
 
-    @abstractmethod
     def get_refs(self) -> dict[str, RefArtifactInfo]:
-        pass
+        artifact_ids = self.get_artifact_ids()
+        ref_infos: dict[str, RefArtifactInfo] = {}
+        for artifact_id in artifact_ids:
+            artifact = self.artifact_store.get(artifact_id)
+            ref = artifact.ref
+            if not ref:
+                continue
+            ref_info = self.artifact_store.get_ref(ref.id)
+            if not ref_info:
+                continue
+            ref_infos[ref.id] = ref_info
+        return ref_infos
+
+    async def aget_refs(self) -> dict[str, RefArtifactInfo]:
+        artifact_ids = await self.aget_artifact_ids()
+        ref_infos: dict[str, RefArtifactInfo] = {}
+        for artifact_id in artifact_ids:
+            artifact = await self.artifact_store.aget(artifact_id)
+            ref = artifact.ref
+            if not ref:
+                continue
+            ref_info = await self.artifact_store.aget_ref(ref.id)
+            if not ref_info:
+                continue
+            ref_infos[ref.id] = ref_info
+        return ref_infos
 
     @abstractmethod
-    async def aget_refs(self) -> dict[str, RefArtifactInfo]:
+    def get_artifact_ids(self) -> list[str]:
         pass
+
+    async def aget_artifact_ids(self) -> list[str]:
+        return await run_async(self.get_artifact_ids)
 
 INDEX = TypeVar('INDEX', bound=Index)
 
+@final
 class Indexer(SerializableModule[IndexData[STRUCT], INDEX], Generic[STRUCT, INDEX]):
     def __init__(self, index: INDEX):
         self.index = index

@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 import logging
-from typing import Optional, Sequence, Unpack
+from typing import Optional, Sequence, Unpack, override
 
 from modstack.ai import Embedder, LLM
 from modstack.ai.prompts import SUMMARY_QUERY_PROMPT
@@ -195,6 +195,7 @@ class SummaryIndex(Index[SummaryStruct]):
             if self.struct.ref_to_summary[ref_id] in summaries_to_remove
         ]
 
+    @override
     def get_refs(self) -> dict[str, RefArtifactInfo]:
         ref_ids = self.struct.ref_ids
         ref_infos: dict[str, RefArtifactInfo] = {}
@@ -205,6 +206,7 @@ class SummaryIndex(Index[SummaryStruct]):
             ref_infos[ref_id] = ref_info
         return ref_infos
 
+    @override
     async def aget_refs(self) -> dict[str, RefArtifactInfo]:
         ref_ids = self.struct.ref_ids
         ref_infos: dict[str, RefArtifactInfo] = {}
@@ -214,3 +216,6 @@ class SummaryIndex(Index[SummaryStruct]):
                 continue
             ref_infos[ref_id] = ref_info
         return ref_infos
+
+    def get_artifact_ids(self) -> list[str]:
+        return self.struct.chunk_ids

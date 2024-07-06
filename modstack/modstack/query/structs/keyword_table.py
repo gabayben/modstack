@@ -9,14 +9,14 @@ class KeywordTable(IndexStruct):
     table: dict[str, set[str]] = Field(default_factory=dict)
 
     @property
-    def keywords(self) -> set[str]:
+    def keywords(self) -> list[str]:
         """Get all keywords in the table."""
-        return set(self.table.keys())
+        return list(set(self.table.keys()))
 
     @property
-    def artifact_ids(self) -> set[str]:
+    def artifact_ids(self) -> list[str]:
         """Get all artifact ids."""
-        return set.union(*self.table.values())
+        return list(set.union(*self.table.values()))
 
     @property
     def size(self) -> int:
