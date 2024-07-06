@@ -5,7 +5,7 @@ from typing import Any, Generic, Optional, Sequence, TypeVar, TypedDict, Union
 
 from modstack.artifacts import Artifact
 from modstack.query.structs import IndexStruct
-from modstack.core import ArtifactTransform, SerializableModule
+from modstack.core import ArtifactTransform, ArtifactTransformLike, SerializableModule, coerce_to_module
 from modstack.core.utils import arun_transformations, run_transformations
 from modstack.config import Settings
 from modstack.stores import ArtifactStore, InjestionCache, RefArtifactInfo, IndexStore
@@ -20,7 +20,7 @@ class IndexDependencies(TypedDict, total=False):
     artifact_store: ArtifactStore
     cache: InjestionCache
     cache_collection: Optional[str]
-    transformations: list[ArtifactTransform]
+    transformations: list[ArtifactTransformLike]
 
 @dataclass
 class Index(Generic[STRUCT], ABC):
@@ -29,7 +29,7 @@ class Index(Generic[STRUCT], ABC):
     artifact_store: ArtifactStore = field(default=Settings.artifact_store, kw_only=True)
     cache: InjestionCache = field(default=Settings.ingestion_cache, kw_only=True)
     cache_collection: Optional[str] = field(default=None, kw_only=True)
-    transformations: list[ArtifactTransform] = field(default_factory=list, kw_only=True)
+    transformations: Optional[list[ArtifactTransformLike]] = field(default=None, kw_only=True)
 
     @property
     def struct(self) -> STRUCT:
@@ -42,6 +42,13 @@ class Index(Generic[STRUCT], ABC):
     @property
     def is_built(self) -> bool:
         return self._struct is not None
+
+    def __post_init__(self):
+        self.transformations: list[ArtifactTransform] = (
+            [coerce_to_module(transform) for transform in self.transformations]
+            if self.transformations
+            else []
+        )
 
     def build(
         self,

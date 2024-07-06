@@ -4,6 +4,7 @@ from .base import (
     Modules,
     ModuleFunction,
     ModuleLike,
+    ArtifactTransformLike,
     ArtifactTransform,
     coerce_to_module,
     module

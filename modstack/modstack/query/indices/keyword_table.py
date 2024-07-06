@@ -13,11 +13,12 @@ from modstack.query.structs import KeywordTable
 class KeywordTableIndexDependencies(IndexDependencies, total=False):
     keyword_extractor: Optional[ModuleLike[Artifact, set[str]]]
 
-@dataclass
+@dataclass(kw_only=True)
 class KeywordTableIndex(CommonIndex[KeywordTable]):
-    keyword_extractor: Optional[ModuleLike[Artifact, set[str]]] = field(default=None, kw_only=True)
+    keyword_extractor: Optional[ModuleLike[Artifact, set[str]]] = field(default=None)
 
     def __post_init__(self):
+        super().__post_init__()
         self.keyword_extractor: Module[Artifact, set[str]] = (
             coerce_to_module(self.keyword_extractor)
             if self.keyword_extractor

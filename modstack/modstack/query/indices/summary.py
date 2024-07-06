@@ -26,16 +26,17 @@ class SummaryIndexDependencies(IndexDependencies, total=False):
     query_template: Artifact
     embed_summaries: bool
 
-@dataclass
+@dataclass(kw_only=True)
 class SummaryIndex(Index[SummaryStruct]):
-    vector_store: VectorStore = field(default=Settings.vector_store, kw_only=True)
-    embedder: Embedder = field(default=Settings.embedder, kw_only=True)
-    synthesizer: Optional[SynthesizerLike] = field(default=None, kw_only=True)
-    llm: Optional[LLM] = field(default=None, kw_only=True)
-    query_template: Artifact = field(default=DEFAULT_QUERY_TEMPLATE, kw_only=True)
-    embed_summaries: bool = field(default=True, kw_only=True)
+    vector_store: VectorStore = field(default=Settings.vector_store)
+    embedder: Embedder = field(default=Settings.embedder)
+    synthesizer: Optional[SynthesizerLike] = field(default=None)
+    llm: Optional[LLM] = field(default=None)
+    query_template: Artifact = field(default=DEFAULT_QUERY_TEMPLATE)
+    embed_summaries: bool = field(default=True)
 
     def __post_init__(self):
+        super().__post_init__()
         self.synthesizer: Synthesizer = (
             coerce_to_module(self.synthesizer)
             if self.synthesizer

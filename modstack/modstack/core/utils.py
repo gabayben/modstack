@@ -3,7 +3,7 @@ import re
 from typing import Optional
 
 from modstack.artifacts import Artifact, ArtifactMetadata, Text
-from modstack.core import ArtifactTransform, Module, coerce_to_module, module
+from modstack.core import ArtifactTransformLike, Module, coerce_to_module, module
 from modstack.stores import InjestionCache
 from modstack.typing import MetadataType
 from modstack.utils.dicts import normalize_metadata
@@ -11,7 +11,7 @@ from modstack.utils.func import tzip
 
 def run_transformations(
     artifacts: list[Artifact],
-    transformations: list[ArtifactTransform],
+    transformations: list[ArtifactTransformLike],
     cache: Optional[InjestionCache] = None,
     cache_collection: Optional[str] = None,
     in_place: bool = True
@@ -34,7 +34,7 @@ def run_transformations(
 
 async def arun_transformations(
     artifacts: list[Artifact],
-    transformations: list[ArtifactTransform],
+    transformations: list[ArtifactTransformLike],
     cache: Optional[InjestionCache] = None,
     cache_collection: Optional[str] = None,
     in_place: bool = True
