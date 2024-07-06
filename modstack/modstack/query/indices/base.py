@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from builtins import type
 from dataclasses import dataclass, field
 from functools import partial
 from typing import Any, Generic, Optional, Self, Sequence, TypeVar, Union
