@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from functools import partial
-from typing import Any, Generic, Optional, Self, Sequence, TypeVar, Union
+from typing import Any, Generic, Optional, Sequence, TypeVar, TypedDict, Union
 
 from modstack.artifacts import Artifact
 from modstack.query.structs import IndexStruct
-from modstack.core import ArtifactTransform, Module, SerializableModule
+from modstack.core import ArtifactTransform, SerializableModule
 from modstack.core.utils import arun_transformations, run_transformations
 from modstack.config import Settings
 from modstack.stores import ArtifactStore, InjestionCache, RefArtifactInfo, IndexStore
@@ -15,14 +15,21 @@ STRUCT = TypeVar('STRUCT', bound=IndexStruct)
 
 IndexData = Union[STRUCT, Artifact, list[Artifact]]
 
+class IndexDependencies(TypedDict, total=False):
+    index_store: IndexStore
+    artifact_store: ArtifactStore
+    cache: InjestionCache
+    cache_collection: Optional[str]
+    transformations: list[ArtifactTransform]
+
 @dataclass
 class Index(Generic[STRUCT], ABC):
     _struct: Optional[STRUCT] = field(default=None, init=False)
-    _index_store: IndexStore = field(default=Settings.index_store, kw_only=True)
-    _artifact_store: ArtifactStore = field(default=Settings.artifact_store, kw_only=True)
-    _cache: Optional[InjestionCache] = field(default=Settings.ingestion_cache, kw_only=True)
-    _cache_collection: Optional[str] = field(default=None, kw_only=True)
-    _transformations: list[ArtifactTransform] = field(default_factory=list, kw_only=True)
+    index_store: IndexStore = field(default=Settings.index_store, kw_only=True)
+    artifact_store: ArtifactStore = field(default=Settings.artifact_store, kw_only=True)
+    cache: InjestionCache = field(default=Settings.ingestion_cache, kw_only=True)
+    cache_collection: Optional[str] = field(default=None, kw_only=True)
+    transformations: list[ArtifactTransform] = field(default_factory=list, kw_only=True)
 
     @property
     def struct(self) -> STRUCT:
@@ -33,32 +40,8 @@ class Index(Generic[STRUCT], ABC):
         return self._struct
 
     @property
-    def index_store(self) -> IndexStore:
-        return self._index_store
-
-    @property
-    def artifact_store(self) -> ArtifactStore:
-        raise self._artifact_store
-
-    @property
-    def cache(self) -> Optional[InjestionCache]:
-        return self._cache
-
-    @property
-    def cache_collection(self) -> Optional[str]:
-        return self._cache_collection
-
-    @property
-    def transformations(self) -> list[ArtifactTransform]:
-        return self._transformations
-
-    @property
     def is_built(self) -> bool:
         return self._struct is not None
-
-    @classmethod
-    def indexer(cls, **kwargs) -> Module[IndexData[STRUCT], Self]:
-        return _Indexer(cls(**kwargs))
 
     def build(
         self,
@@ -242,7 +225,7 @@ class Index(Generic[STRUCT], ABC):
 
 INDEX = TypeVar('INDEX', bound=Index)
 
-class _Indexer(SerializableModule[IndexData[STRUCT], INDEX], Generic[STRUCT, INDEX]):
+class Indexer(SerializableModule[IndexData[STRUCT], INDEX], Generic[STRUCT, INDEX]):
     def __init__(self, index: INDEX):
         self.index = index
 

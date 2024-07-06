@@ -1,11 +1,18 @@
-from typing import Sequence, override
+from typing import Sequence, Unpack, override
 
 from modstack.artifacts import Artifact
+from modstack.core import Module
+from modstack.query.indices import IndexData, Indexer
+from modstack.query.indices.base import IndexDependencies
 from modstack.stores import RefArtifactInfo
 from modstack.query.indices.common import CommonIndex
 from modstack.query.structs import ListStruct
 
 class ListIndex(CommonIndex[ListStruct]):
+    @classmethod
+    def indexer(cls, **kwargs: Unpack[IndexDependencies]) -> Module[IndexData[ListStruct], 'ListIndex']:
+        return Indexer(cls(**kwargs))
+
     def _build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> ListStruct:
         struct = ListStruct()
         for artifact in artifacts:

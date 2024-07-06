@@ -1,23 +1,32 @@
 from dataclasses import dataclass, field
-from typing import Sequence, override
+from typing import Optional, Sequence, Unpack, override
 
 from modstack.artifacts import Artifact
 from modstack.core import Module, ModuleLike, coerce_to_module
+from modstack.query.indices import IndexData, Indexer
+from modstack.query.indices.base import IndexDependencies
 from modstack.stores import RefArtifactInfo
 from modstack.query.helpers import simple_keyword_extractor
 from modstack.query.indices.common import CommonIndex
 from modstack.query.structs import KeywordTable
 
+class KeywordTableIndexDependencies(IndexDependencies, total=False):
+    keyword_extractor: Optional[ModuleLike[Artifact, set[str]]]
+
 @dataclass
 class KeywordTableIndex(CommonIndex[KeywordTable]):
-    _keyword_extractor: ModuleLike[Artifact, set[str]] = field(default=simple_keyword_extractor, kw_only=True)
-
-    @property
-    def keyword_extractor(self) -> Module[Artifact, set[str]]:
-        return self._keyword_extractor
+    keyword_extractor: Optional[ModuleLike[Artifact, set[str]]] = field(default=None, kw_only=True)
 
     def __post_init__(self):
-        self._keyword_extractor: Module[Artifact, set[str]] = coerce_to_module(self._keyword_extractor)
+        self.keyword_extractor: Module[Artifact, set[str]] = (
+            coerce_to_module(self.keyword_extractor)
+            if self.keyword_extractor
+            else simple_keyword_extractor
+        )
+
+    @classmethod
+    def indexer(cls, **kwargs: Unpack[KeywordTableIndexDependencies]) -> Module[IndexData[KeywordTable], 'KeywordTableIndex']:
+        return Indexer(cls(**kwargs))
 
     def _build_from_artifacts(self, artifacts: Sequence[Artifact], **kwargs) -> KeywordTable:
         struct = KeywordTable()
