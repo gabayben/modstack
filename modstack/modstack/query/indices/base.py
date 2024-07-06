@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from builtins import type
 from dataclasses import dataclass, field
 from functools import partial
 from typing import Any, Generic, Optional, Self, Sequence, TypeVar, Union
@@ -246,13 +247,13 @@ class _Indexer(SerializableModule[IndexData[STRUCT], INDEX], Generic[STRUCT, IND
     def __init__(self, index: INDEX):
         self.index = index
 
-    def forward(self, data: IndexData, **kwargs) -> Effect[INDEX]:
+    def forward(self, data: IndexData[STRUCT], **kwargs) -> Effect[INDEX]:
         return Effects.From(
             invoke=partial(self._invoke, data, **kwargs),
             ainvoke=partial(self._ainvoke, data, **kwargs)
         )
 
-    def _invoke(self, data: IndexData, **kwargs) -> INDEX:
+    def _invoke(self, data: IndexData[STRUCT], **kwargs) -> INDEX:
         if not self.index.is_built:
             if isinstance(data, IndexStruct):
                 self.index.build(struct=data, **kwargs)
@@ -268,7 +269,7 @@ class _Indexer(SerializableModule[IndexData[STRUCT], INDEX], Generic[STRUCT, IND
                 self.index.insert_ref(data, **kwargs)
         return self.index
 
-    async def _ainvoke(self, data: IndexData, **kwargs) -> INDEX:
+    async def _ainvoke(self, data: IndexData[STRUCT], **kwargs) -> INDEX:
         if not self.index.is_built:
             if isinstance(data, IndexStruct):
                 await self.index.abuild(struct=data, **kwargs)
