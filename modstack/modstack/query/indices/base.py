@@ -1,15 +1,19 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Generic, Optional, Sequence, TypeVar
+from functools import partial
+from typing import Any, Generic, Optional, Self, Sequence, TypeVar, Union
 
 from modstack.artifacts import Artifact
 from modstack.query.structs import IndexStruct
-from modstack.core import ArtifactTransform
+from modstack.core import ArtifactTransform, Module, SerializableModule
 from modstack.core.utils import arun_transformations, run_transformations
 from modstack.config import Settings
 from modstack.stores import ArtifactStore, InjestionCache, RefArtifactInfo, IndexStore
+from modstack.typing import Effect, Effects
 
 STRUCT = TypeVar('STRUCT', bound=IndexStruct)
+
+IndexData = Union[STRUCT, Artifact, list[Artifact]]
 
 @dataclass
 class Index(Generic[STRUCT], ABC):
@@ -51,6 +55,10 @@ class Index(Generic[STRUCT], ABC):
     @property
     def is_built(self) -> bool:
         return self._struct is not None
+
+    @classmethod
+    def indexer(cls, **kwargs) -> Module[IndexData[STRUCT], Self]:
+        return _Indexer(cls(**kwargs))
 
     def build(
         self,
@@ -231,3 +239,47 @@ class Index(Generic[STRUCT], ABC):
     @abstractmethod
     async def aget_refs(self) -> dict[str, RefArtifactInfo]:
         pass
+
+INDEX = TypeVar('INDEX', bound=Index)
+
+class _Indexer(SerializableModule[IndexData[STRUCT], INDEX], Generic[STRUCT, INDEX]):
+    def __init__(self, index: INDEX):
+        self.index = index
+
+    def forward(self, data: IndexData, **kwargs) -> Effect[INDEX]:
+        return Effects.From(
+            invoke=partial(self._invoke, data, **kwargs),
+            ainvoke=partial(self._ainvoke, data, **kwargs)
+        )
+
+    def _invoke(self, data: IndexData, **kwargs) -> INDEX:
+        if not self.index.is_built:
+            if isinstance(data, IndexStruct):
+                self.index.build(struct=data, **kwargs)
+            else:
+                data = data if isinstance(data, list) else [data]
+                self.index.build(artifacts=data, **kwargs)
+        else:
+            if isinstance(data, IndexStruct):
+                raise ValueError('Index already built. Expected ref artifact or list of artifacts.')
+            elif isinstance(data, list):
+                self.index.insert_many(data, **kwargs)
+            else:
+                self.index.insert_ref(data, **kwargs)
+        return self.index
+
+    async def _ainvoke(self, data: IndexData, **kwargs) -> INDEX:
+        if not self.index.is_built:
+            if isinstance(data, IndexStruct):
+                await self.index.abuild(struct=data, **kwargs)
+            else:
+                data = data if isinstance(data, list) else [data]
+                await self.index.abuild(artifacts=data, **kwargs)
+        else:
+            if isinstance(data, IndexStruct):
+                raise ValueError('Index already built. Expected ref artifact or list of artifacts.')
+            elif isinstance(data, list):
+                await self.index.ainsert_many(data, **kwargs)
+            else:
+                await self.index.ainsert_ref(data, **kwargs)
+        return self.index
