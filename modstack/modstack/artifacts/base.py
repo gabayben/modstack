@@ -18,6 +18,7 @@ from modstack.utils.string import type_name
 
 if TYPE_CHECKING:
     from modstack.artifacts.link import Link
+    from modstack.stores import GraphNode, GraphRelation
 
 class ArtifactType(StrEnum):
     UNCATEGORIZED = 'Uncategorized'
@@ -179,6 +180,8 @@ class RegexMetadata(TypedDict):
 
 class ArtifactMetadata(ModelDict):
     hierarchy: ArtifactHierarchy
+    graph_nodes: Optional[list['GraphNode']]
+    graph_relations: Optional[list['GraphRelation']]
     datestamp: Optional[datetime]
     filename: Optional[str]
     filetype: Optional[str]
