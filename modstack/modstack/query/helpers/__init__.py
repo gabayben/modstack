@@ -5,3 +5,4 @@ from .keyword_extractors import (
     ZeroShotKeywordExtractor,
     LLMKeywordExtractor
 )
+from .triplet_parsers import default_triplet_parser
