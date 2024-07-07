@@ -7,6 +7,7 @@ from modstack.artifacts import Artifact, ArtifactRelationship
 from modstack.stores import ChunkNode, GraphNode, GraphNodeQuery, GraphRelation, GraphTriplet, GraphTripletQuery, VectorStoreQuery
 from modstack.typing import Embedding
 from modstack.utils.constants import GRAPH_TRIPLET_SOURCE_KEY
+from modstack.utils.threading import run_async
 
 class GraphStore(ABC):
     @property
@@ -25,6 +26,19 @@ class GraphStore(ABC):
         **kwargs
     ) -> None:
         pass
+
+    @abstractmethod
+    def get_schema(self, refresh: bool = False, **kwargs) -> Any:
+        pass
+
+    async def aget_schema(self, refresh: bool = False, **kwargs) -> Any:
+        return await run_async(self.get_schema, refresh=refresh, **kwargs)
+
+    def get_schema_str(self, refresh: bool = False, **kwargs) -> str:
+        return str(self.get_schema(refresh=refresh, **kwargs))
+
+    async def aget_schema_str(self, refresh: bool = False, **kwargs) -> str:
+        return str(await self.aget_schema(refresh=refresh, **kwargs))
 
     @abstractmethod
     def structured_query(

@@ -11,4 +11,5 @@ GRAPH_VECTOR_SOURCE_KEY = "vector_source_id"
 GRAPH_NODES_KEY = "graph_nodes"
 GRAPH_RELATIONS_KEY = "graph_relations"
 GRAPH_SOURCE_REL = "SOURCE"
+
 DATETIMETZ_FORMAT = "%Y-%m-%dT%H:%M:%S%z"

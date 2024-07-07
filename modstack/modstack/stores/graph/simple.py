@@ -1,5 +1,5 @@
 import os.path
-from typing import Any, Optional
+from typing import Any, Optional, Unpack
 
 import fsspec
 
@@ -28,6 +28,9 @@ class SimpleGraphStore(GraphStore):
         with fs.open(path, 'w') as f:
             f.write(self._graph.model_dump_json())
 
+    def get_schema(self, refresh: bool = False, **kwargs) -> Any:
+        pass
+
     def structured_query(
         self,
         query: str,
@@ -44,22 +47,22 @@ class SimpleGraphStore(GraphStore):
     ) -> Any:
         raise NotImplementedError()
 
-    def vector_query(self, query: VectorStoreQuery, **kwargs) -> tuple[list[GraphNode], Embedding]:
+    def vector_query(self, **query: Unpack[VectorStoreQuery]) -> tuple[list[GraphNode], Embedding]:
         raise NotImplementedError()
 
-    async def avector_query(self, query: VectorStoreQuery, **kwargs) -> tuple[list[GraphNode], Embedding]:
+    async def avector_query(self, **query: Unpack[VectorStoreQuery]) -> tuple[list[GraphNode], Embedding]:
         raise NotImplementedError()
 
-    def get(self, query: Optional[GraphNodeQuery] = None) -> list[GraphNode]:
+    def get(self, **query: Unpack[GraphNodeQuery]) -> list[GraphNode]:
         pass
 
-    async def aget(self, query: Optional[GraphNodeQuery] = None) -> list[GraphNode]:
+    async def aget(self, **query: Unpack[GraphNodeQuery]) -> list[GraphNode]:
         pass
 
-    def get_triplets(self, query: Optional[GraphTripletQuery] = None) -> list[GraphTriplet]:
+    def get_triplets(self, **query: Unpack[GraphTripletQuery]) -> list[GraphTriplet]:
         pass
 
-    async def aget_triplets(self, query: Optional[GraphTripletQuery] = None) -> list[GraphTriplet]:
+    async def aget_triplets(self, **query: Unpack[GraphTripletQuery]) -> list[GraphTriplet]:
         pass
 
     def get_rel_map(
@@ -94,8 +97,8 @@ class SimpleGraphStore(GraphStore):
     async def aupsert_relations(self, relations: list[GraphRelation], **kwargs) -> None:
         pass
 
-    def delete(self, query: Optional[GraphNodeQuery] = None) -> None:
+    def delete(self, **query: Unpack[GraphNodeQuery]) -> None:
         pass
 
-    async def adelete(self, query: Optional[GraphNodeQuery] = None) -> None:
+    async def adelete(self, **query: Unpack[GraphNodeQuery]) -> None:
         pass

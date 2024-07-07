@@ -46,10 +46,7 @@ class Neo4jGraphStore(GraphStore):
         )
 
         if refresh_schema:
-            self.refresh_schema()
-
-    def refresh_schema(self) -> None:
-        pass
+            self.get_schema(refresh=True)
 
     def persist(
         self,
@@ -57,6 +54,13 @@ class Neo4jGraphStore(GraphStore):
         fs: Optional[fsspec.AbstractFileSystem] = None,
         **kwargs
     ) -> None:
+        pass
+
+    def get_schema(self, refresh: bool = False, **kwargs) -> Any:
+        pass
+
+    @override
+    async def aget_schema(self, refresh: bool = False, **kwargs) -> Any:
         pass
 
     def structured_query(
