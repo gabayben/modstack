@@ -27,7 +27,7 @@ class OllamaLLM(Modules.Stream[LLMPrompt, MessageChunk]):
         self.raw = raw
         self.generation_args = generation_args
 
-    def _iter(
+    def _stream(
         self,
         prompt: LLMPrompt,
         role: MessageType = MessageType.HUMAN,

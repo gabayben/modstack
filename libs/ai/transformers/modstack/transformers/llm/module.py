@@ -15,5 +15,5 @@ class HuggingFaceLocalLLM(Modules.Stream[LLMPrompt, MessageChunk]):
     ):
         pass
 
-    def _iter(self, data: LLMPrompt, **kwargs) -> Iterator[MessageChunk]:
+    def _stream(self, data: LLMPrompt, **kwargs) -> Iterator[MessageChunk]:
         pass

@@ -34,7 +34,7 @@ class HuggingFaceApiLLM(Modules.Stream[LLMPrompt, MessageChunk]):
         self.generation_args.setdefault('max_tokens', max_tokens)
         self.client = InferenceClient(model_or_url, token=token.resolve_value() if token else None)
 
-    def _iter(
+    def _stream(
         self,
         prompt: LLMPrompt,
         role: MessageType = MessageType.HUMAN,

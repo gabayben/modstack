@@ -34,7 +34,7 @@ class CohereLLM(Modules.Stream[LLMPrompt, MessageChunk]):
             timeout=timeout
         )
 
-    def _iter(
+    def _stream(
         self,
         prompt: LLMPrompt,
         role: MessageType = MessageType.HUMAN,

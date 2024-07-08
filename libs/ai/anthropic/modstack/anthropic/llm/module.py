@@ -50,7 +50,7 @@ class AnthropicLLM(Modules.Stream[LLMPrompt, MessageChunk]):
         if tools:
             self.tools = [_convert_to_anthropic_tool(tool) for tool in tools]
 
-    def _iter(
+    def _stream(
         self,
         prompt: LLMPrompt,
         role: MessageType = MessageType.HUMAN,
