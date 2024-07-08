@@ -167,7 +167,7 @@ class CompiledStateFlow(CompiledFlow):
                 tags=[HIDDEN]
             )
         else:
-            self.nodes[name] = PregelNode(
+            pregel_node = PregelNode(
                 channels=(
                     state_keys
                     if state_keys == [ROOT_KEY]
@@ -184,7 +184,10 @@ class CompiledStateFlow(CompiledFlow):
                     if state_keys != [ROOT_KEY]
                     else None
                 )
-            ) | node
+            )
+            if node:
+                pregel_node = pregel_node | node
+            self.nodes[name] = pregel_node
             self.channels[name] = EphemeralValue(Any, guard=False)
 
     @override
