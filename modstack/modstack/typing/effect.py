@@ -10,17 +10,15 @@ from modstack.utils.threading import get_executor, run_async, run_async_iter, ru
 class Effect(Generic[Out], ABC):
     def map(
         self,
-        func: Callable[[Out, ...], Other],
-        **kwargs
+        func: Callable[[Out], Other]
     ) -> 'Effect[Other]':
-        return Effects.Map(self, func, **kwargs)
+        return Effects.Map(self, func)
 
     def flat_map(
         self,
-        func: Callable[[Out, ...], 'Effect[Other]'],
-        **kwargs
+        func: Callable[[Out], 'Effect[Other]']
     ) -> 'Effect[Other]':
-        return Effects.FlatMap(self, func, **kwargs)
+        return Effects.FlatMap(self, func)
 
     @abstractmethod
     def invoke(self) -> Out:
@@ -299,52 +297,48 @@ class Effects:
         def __init__(
             self,
             effect: Effect[Other],
-            func: Callable[[Other, ...], Out],
-            **kwargs
+            func: Callable[[Other], Out]
         ):
             self.effect = effect
             self.func = func
-            self.kwargs = kwargs
 
         def invoke(self) -> Out:
-            return self.func(self.effect.invoke(), **self.kwargs)
+            return self.func(self.effect.invoke())
 
         async def ainvoke(self) -> Out:
-            return self.func(await self.effect.ainvoke(), **self.kwargs)
+            return self.func(await self.effect.ainvoke())
 
         def iter(self) -> Iterator[Out]:
             for item in self.effect.iter():
-                yield self.func(item, **self.kwargs)
+                yield self.func(item)
 
         async def aiter(self) -> AsyncIterator[Out]:
             async for item in self.effect.aiter(): #type: ignore
-                yield self.func(item, **self.kwargs)
+                yield self.func(item)
 
     @final
     class FlatMap(Generic[Other, Out], Effect[Out]):
         def __init__(
             self,
             effect: Effect[Other],
-            func: Callable[[Other, ...], Effect[Out]],
-            **kwargs
+            func: Callable[[Other], Effect[Out]]
         ):
             self.effect = effect
             self.func = func
-            self.kwargs = kwargs
 
         def invoke(self) -> Out:
-            return self.func(self.effect.invoke(), **self.kwargs).invoke()
+            return self.func(self.effect.invoke()).invoke()
 
         async def ainvoke(self) -> Out:
-            return await self.func(await self.effect.ainvoke(), **self.kwargs).ainvoke()
+            return await self.func(await self.effect.ainvoke()).ainvoke()
 
         def iter(self) -> Iterator[Out]:
             for item in self.effect.iter():
-                yield self.func(item, **self.kwargs).invoke()
+                yield self.func(item).invoke()
 
         async def aiter(self) -> AsyncIterator[Out]:
             async for item in self.effect.aiter(): #type: ignore
-                yield await self.func(item, **self.kwargs).ainvoke()
+                yield await self.func(item).ainvoke()
 
 _T = TypeVar('_T')
 ReturnType = _T | Coroutine[Any, Any, _T] | Iterator[_T] | AsyncIterator[_T] | Effect[_T]
