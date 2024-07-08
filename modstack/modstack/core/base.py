@@ -191,13 +191,13 @@ class Modules:
         @final
         def forward(self, data: In, **kwargs) -> Effect[Out]:
             return Effects.Iterator(
-                partial(self._iter, data, **kwargs),
+                partial(self._stream, data, **kwargs),
                 add_values=self.add_values,
                 return_last=self.return_last
             )
 
         @abstractmethod
-        def _iter(self, data: In, **kwargs) -> Iterator[Out]:
+        def _stream(self, data: In, **kwargs) -> Iterator[Out]:
             pass
 
     class AsyncStream(SerializableModule[In, Out], ABC):
@@ -214,13 +214,13 @@ class Modules:
         @final
         def forward(self, data: In, **kwargs) -> Effect[Out]:
             return Effects.AsyncIterator(
-                partial(self._aiter, data, **kwargs),
+                partial(self._astream, data, **kwargs),
                 add_values=self.add_values,
                 return_last=self.return_last
             )
 
         @abstractmethod
-        async def _aiter(self, data: In, **kwargs) -> AsyncIterator[Out]:
+        async def _astream(self, data: In, **kwargs) -> AsyncIterator[Out]:
             pass
 
 type ModuleFunction[In, Out] = Union[Callable[[In], ReturnType[Out]], Callable[..., ReturnType[Out]]]

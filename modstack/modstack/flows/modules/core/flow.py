@@ -117,7 +117,9 @@ class Flow:
     def add_node(
         self,
         node: ModuleLike,
-        name: Optional[str] = None
+        name: Optional[str] = None,
+        in_mapper: Optional[ModuleLike] = None,
+        out_mapper: Optional[ModuleLike] = None
     ) -> None:
         if self.compiled:
             logger.warning(
@@ -130,6 +132,12 @@ class Flow:
             raise ValueError(f'Node `{name}` is already present.')
         if name == START or name == END:
             raise ValueError(f'Node `{name}` is reserved.')
+        if in_mapper and out_mapper:
+            node = node.map(in_mapper=in_mapper, out_mapper=out_mapper)
+        elif in_mapper:
+            node = node.map_in(in_mapper)
+        elif out_mapper:
+            node = node.map_out(out_mapper)
         self.nodes[name] = node
 
     def add_edge(self, source: str, target: str) -> None:

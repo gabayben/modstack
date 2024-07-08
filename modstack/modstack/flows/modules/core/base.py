@@ -30,16 +30,32 @@ logger = logging.getLogger(__name__)
 
 class Pregel(SerializableModule[FlowInput, FlowOutput]):
     nodes: dict[str, PregelNode]
+
     channels: dict[str, Channel]
+
     input_channels: Union[str, Sequence[str]]
+
     output_channels: Union[str, Sequence[str]]
+
+    """Channels to stream, defaults to all channels not in reserved channels."""
     stream_channels: Optional[Union[str, Sequence[str]]] = None
+
     interrupt_before: Union[Sequence[str], All] = Field(default_factory=list)
+
     interrupt_after: Union[Sequence[str], All] = Field(default_factory=list)
+
+    """Checkpointer used to save and load graph state. Defaults to None."""
     checkpointer: Checkpointer
+
+    """Mode to stream output, defaults to 'values'."""
     stream_mode: StreamMode = 'values'
+
     auto_validate: bool = True
+
+    """Maximum time to wait for a step to complete, in seconds. Defaults to None."""
     step_timeout: Optional[int] = None
+
+    """Whether to print debug information during execution. Defaults to False."""
     debug: bool = False
     
     @property
