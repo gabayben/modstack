@@ -186,7 +186,8 @@ class CompiledStateFlow(CompiledFlow):
                 )
             )
             if node:
-                pregel_node = pregel_node | node
+                pregel_node |= node
+
             self.nodes[name] = pregel_node
             self.channels[name] = EphemeralValue(Any, guard=False)
 
