@@ -119,7 +119,6 @@ class CompiledStateFlow(CompiledFlow):
     builder: StateFlow
 
     @override
-    @property
     def input_schema(self) -> Type[BaseModel]:
         return create_schema(
             self.get_name(suffix='Input'),
@@ -127,7 +126,6 @@ class CompiledStateFlow(CompiledFlow):
         )
 
     @override
-    @property
     def output_schema(self) -> Type[BaseModel]:
         return create_schema(
             self.get_name(suffix='Output'),
