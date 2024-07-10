@@ -43,7 +43,7 @@ class EphemeralValue[Value](Channel[Value, Value, Value]):
         try:
             return self.value
         except AttributeError:
-            return EmptyChannelError()
+            raise EmptyChannelError()
 
     def checkpoint(self) -> Optional[Value]:
         try:
