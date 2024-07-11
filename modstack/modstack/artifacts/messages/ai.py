@@ -87,7 +87,6 @@ class AiMessageChunk(AiMessage, MessageChunk):
     ):
         super().__init__(
             content=content,
-            message_type=MessageType.AI,
             tool_calls=tool_calls,
             tool_call_chunks=tool_call_chunks,
             invalid_tool_calls=invalid_tool_calls,

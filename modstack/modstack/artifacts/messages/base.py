@@ -35,7 +35,7 @@ class MessageArtifact(Utf8Artifact):
         self,
         content: str,
         message_type: MessageType | str,
-        role: str,
+        role: str='',
         name: str | None = None,
         **kwargs
     ):
@@ -73,19 +73,17 @@ class MessageArtifact(Utf8Artifact):
         return f'{title}\n\n{self.content}'
 
 class MessageChunk(MessageArtifact):
-    message_type: Literal['chat_chunk']
-
     def __init__(
         self,
         content: str,
-        role: str,
+        message_type: MessageType,
+        role: str='',
         name: str | None = None,
         **kwargs
     ):
-        _ = kwargs.pop('message_type', None)
         super().__init__(
             content,
-            'chat_chunk',
+            message_type=message_type,
             role=role,
             name=name,
             **kwargs

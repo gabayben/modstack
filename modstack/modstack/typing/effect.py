@@ -102,11 +102,11 @@ class Effects:
             return_last: bool | None = None
         ):
             self.func = func
-            self.add_values = add_values if add_values is not None else False
+            self.add_values = add_values if add_values is not None else True
             self.return_last = return_last if return_last is not None else True
 
         def invoke(self) -> Out:
-            if self.add_values and issubclass(Out, Addable):
+            if self.add_values and issubclass(type(Out), Addable):
                 current = next(self.iter())
                 for value in self.iter():
                     current += value
@@ -137,7 +137,7 @@ class Effects:
         ):
             self.func = func
             self.max_workers = max_workers
-            self.add_values = add_values if add_values is not None else False
+            self.add_values = add_values if add_values is not None else True
             self.return_last = return_last if return_last is not None else True
 
         def invoke(self) -> Out:

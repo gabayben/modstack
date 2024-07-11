@@ -12,7 +12,7 @@ class HumanMessage(MessageArtifact):
         **kwargs
     ):
         _ = kwargs.pop('role', None)
-        super().__init__(content, MessageType.HUMAN, name=name, **kwargs)
+        super().__init__(content, message_type=MessageType.HUMAN, name=name, **kwargs)
 
 HumanMessage.model_rebuild()
 

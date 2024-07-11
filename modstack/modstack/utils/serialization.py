@@ -1,14 +1,12 @@
 from functools import lru_cache
 import inspect
 from inspect import Parameter
-from typing import Any, Callable, NamedTuple, Type
+from typing import Any, Callable, Type
 
 from pydantic import BaseModel, ConfigDict, create_model as create_model_base
-from pydantic.main import Model
 
 from modstack.utils.constants import SCHEMA_TYPE
 from modstack.typing import Schema, SchemaType
-from modstack.utils.reflection import is_named_tuple
 
 class _SchemaConfig(ConfigDict):
     pass
@@ -19,7 +17,7 @@ def _create_model_cached(
     *,
     __config__: ConfigDict | None = None,
     __doc__: str | None = None,
-    __base__: Type[Model] | tuple[Type[Model], ...] | None = None,
+    __base__: Type[BaseModel] | tuple[Type[BaseModel], ...] | None = None,
     __module__: str | None = None,
     __validators__: dict[str, classmethod] | None = None,
     __cls_kwargs__: dict[str, Any] | None = None,
@@ -37,7 +35,7 @@ def create_model(
     *,
     __config__: ConfigDict | None = None,
     __doc__: str | None = None,
-    __base__: Type[Model] | tuple[Type[Model], ...] | None = None,
+    __base__: Type[BaseModel] | tuple[Type[BaseModel], ...] | None = None,
     __module__: str | None = None,
     __validators__: dict[str, classmethod] | None = None,
     __cls_kwargs__: dict[str, Any] | None = None,

@@ -3,6 +3,7 @@ from typing import Any, Iterator
 
 import requests
 
+from modstack.artifacts import ArtifactMetadata
 from modstack.core import Modules
 from modstack.artifacts.messages import AiMessageChunk, MessageChunk, MessageType
 from modstack.ai import LLMPrompt
@@ -38,7 +39,7 @@ class OllamaLLM(Modules.Stream[LLMPrompt, MessageChunk]):
         raw: bool | None = None,
         stream: bool | None = None,
         **kwargs
-    ) -> Iterator[list[MessageChunk]]:
+    ) -> Iterator[MessageChunk]:
         generation_args = {**self.generation_args, **kwargs, 'stream': True}
         system_prompt = system_prompt or self.system_prompt
         template = template or self.template
@@ -59,8 +60,8 @@ class OllamaLLM(Modules.Stream[LLMPrompt, MessageChunk]):
         response.raise_for_status()
 
         for line in response.iter_lines():
-            chunk = json.load(line.decode('utf-8'))
+            chunk = json.loads(line.decode('utf-8'))
             yield AiMessageChunk(
                 chunk.get('response'),
-                metadata={key: value for key, value in chunk.items() if key != 'response'}
+                metadata=ArtifactMetadata(**{key: value for key, value in chunk.items() if key != 'response'})
             )
